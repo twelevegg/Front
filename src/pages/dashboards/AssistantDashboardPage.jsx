@@ -1,16 +1,33 @@
+import { useState } from 'react';
 import Card from '../../components/Card.jsx';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { emitCallConnected } from '../../features/calls/callEvents.js';
+import { useToast } from '../../components/common/ToastProvider.jsx';
 
-const data = [
-  { week: 'W-4', qa: 80, success: 81, adherence: 90 },
-  { week: 'W-3', qa: 81, success: 82, adherence: 91 },
-  { week: 'W-2', qa: 82, success: 83, adherence: 92 },
-  { week: 'W-1', qa: 83, success: 84, adherence: 92 }
+const dataWeek = [
+  { label: 'W-4', qa: 80, success: 81, adherence: 90 },
+  { label: 'W-3', qa: 81, success: 82, adherence: 91 },
+  { label: 'W-2', qa: 82, success: 83, adherence: 92 },
+  { label: 'W-1', qa: 83, success: 84, adherence: 92 }
+];
+
+const dataMonth = [
+  { label: 'Jan', qa: 78, success: 75, adherence: 88 },
+  { label: 'Feb', qa: 82, success: 80, adherence: 90 },
+  { label: 'Mar', qa: 85, success: 85, adherence: 93 },
 ];
 
 export default function AssistantDashboardPage() {
-  const openCopilot = (payload) => emitCallConnected(payload);
+  const { addToast } = useToast();
+  const [chartType, setChartType] = useState('line'); // 'line' | 'bar'
+  const [period, setPeriod] = useState('week'); // 'week' | 'month'
+
+  const openCopilot = (payload) => {
+    emitCallConnected(payload);
+    addToast('CoPilot 가이드가 실행되었습니다.', 'success');
+  };
+
+  const currentData = period === 'week' ? dataWeek : dataMonth;
 
   return (
     <div className="space-y-6">
@@ -61,24 +78,55 @@ export default function AssistantDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-extrabold">성과 지표 분석</div>
-              <div className="text-xs text-slate-500 mt-1">QA / 성공률 / 준수율(예시)</div>
+              <div className="text-xs text-slate-500 mt-1">QA / 성공률 / 준수율</div>
             </div>
             <div className="flex gap-2">
-              <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold">최근 4주</span>
-              <span className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold">Line</span>
+              <button
+                onClick={() => setPeriod(period === 'week' ? 'month' : 'week')}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${period === 'week' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 text-slate-500'
+                  }`}
+              >
+                {period === 'week' ? 'Last 4 Weeks' : 'Quarterly'}
+              </button>
+              <button
+                onClick={() => setChartType(chartType === 'line' ? 'bar' : 'line')}
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${chartType === 'line' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 text-slate-500'
+                  }`}
+              >
+                {chartType === 'line' ? 'Line View' : 'Bar View'}
+              </button>
             </div>
           </div>
 
           <div className="mt-4 h-[260px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data}>
-                <XAxis dataKey="week" />
-                <YAxis domain={[0, 100]} />
-                <Tooltip />
-                <Line type="monotone" dataKey="qa" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="success" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="adherence" strokeWidth={2} dot={false} />
-              </LineChart>
+              {chartType === 'line' ? (
+                <LineChart data={currentData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[60, 100]} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                    cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                  />
+                  <Line type="monotone" dataKey="qa" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="success" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="adherence" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }} />
+                </LineChart>
+              ) : (
+                <BarChart data={currentData} barSize={20}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 100]} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                    cursor={{ fill: '#f8fafc' }}
+                  />
+                  <Bar dataKey="qa" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="success" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="adherence" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </div>
         </Card>
