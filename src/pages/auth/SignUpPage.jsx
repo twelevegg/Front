@@ -91,10 +91,10 @@ export default function SignUpPage() {
   return (
     <AuthShell
       mode="signup"
-      title="Sign Up"
-      subtitle="계정을 생성해 CS-Navigator 콘솔을 사용하세요."
-      ctaTitle="Welcome Back!"
-      ctaSubtitle="이미 계정이 있다면 로그인해서 바로 시작하세요."
+      title="Create Account"
+      subtitle="CS-Navigator에 가입하여 상담 효율을 높이세요."
+      ctaTitle="오늘도 힘내세요!"
+      ctaSubtitle="당신의 따뜻한 말 한마디가 고객에게 큰 힘이 됩니다. 이미 계정이 있으신가요?"
       ctaButtonLabel="Sign In"
       ctaTo={ROUTES.LOGIN}
     >
@@ -162,6 +162,7 @@ export default function SignUpPage() {
                 autoComplete="new-password"
                 required
               />
+              <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
             </IconInput>
           </Field>
 
