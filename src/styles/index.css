@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+:root {
+  --app-bg: #f6f8fb;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: var(--app-bg);
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  }
+}
