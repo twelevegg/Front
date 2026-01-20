@@ -127,82 +127,78 @@ export default function SignUpPage() {
           </IconInput>
         </Field>
 
-        {/* ✅ role 선택 UI */}
+        {/* ✅ role 선택 UI (Compact Tab Style) */}
         <Field label="Role">
-          <div className="grid grid-cols-2 gap-3">
-            <RoleChip
+          <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+            <RoleTab
               active={role === 'assistant'}
               onClick={() => setRole('assistant')}
-              icon={<Headset size={18} />}
-              title="Assistant"
-              desc="상담사"
+              label="Assistant (상담사)"
             />
-            <RoleChip
+            <RoleTab
               active={role === 'admin'}
               onClick={() => setRole('admin')}
-              icon={<Shield size={18} />}
-              title="Admin"
-              desc="관리자"
+              label="Admin (관리자)"
             />
           </div>
-
-          <div className="mt-2 text-[11px] text-slate-400">
-            TODO: 운영환경에서는 관리자(admin) 가입은 서버 정책(초대코드/승인/도메인 제한)으로 통제하세요.
+          <div className="mt-1.5 text-[11px] text-slate-400 text-center">
+            운영환경 체크: 관리자 가입은 서버 정책으로 제한하세요.
           </div>
         </Field>
 
-        <Field label="Password">
-          <IconInput>
-            <Lock size={18} className="text-slate-400" />
-            <input
-              type={showPw ? 'text' : 'password'}
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-              required
-            />
+        {/* Password Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Password">
+            <IconInput>
+              <Lock size={18} className="text-slate-400" />
+              <input
+                type={showPw ? 'text' : 'password'}
+                className="flex-1 bg-transparent outline-none text-sm font-semibold"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                required
+              />
+            </IconInput>
+          </Field>
 
-            {/* ✅ 클릭영역/겹침 해결: h-9 w-9 + z-10 + center */}
-            <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
-          </IconInput>
+          <Field label="Confirm">
+            <IconInput>
+              <Lock size={18} className="text-slate-400" />
+              <input
+                type={showPw ? 'text' : 'password'}
+                className="flex-1 bg-transparent outline-none text-sm font-semibold"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                required
+              />
+              <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+            </IconInput>
+          </Field>
+        </div>
 
-          {/* Password Strength Meter */}
-          {password && (
-            <div className="mt-2 flex gap-1">
+        {/* Password Strength (Compact) */}
+        {password && (
+          <div className="flex items-center gap-2 -mt-2">
+            <div className="flex-1 flex gap-1 h-1">
               {[1, 2, 3, 4].map((level) => (
                 <div
                   key={level}
-                  className={`h-1 flex-1 rounded-full transition-all ${passwordStrength >= level
-                    ? (passwordStrength <= 2 ? 'bg-red-400' : passwordStrength === 3 ? 'bg-amber-400' : 'bg-green-500')
-                    : 'bg-slate-100'
+                  className={`flex-1 rounded-full transition-all ${passwordStrength >= level
+                      ? (passwordStrength <= 2 ? 'bg-red-400' : passwordStrength === 3 ? 'bg-amber-400' : 'bg-green-500')
+                      : 'bg-slate-100'
                     }`}
                 />
               ))}
             </div>
-          )}
-          <div className="mt-1 text-xs text-slate-400 text-right">
-            {passwordStrength <= 2 ? 'Weak' : passwordStrength === 3 ? 'Medium' : 'Strong'}
+            <div className="text-[10px] font-bold text-slate-400 w-12 text-right">
+              {passwordStrength <= 2 ? 'Weak' : passwordStrength === 3 ? 'Medium' : 'Strong'}
+            </div>
           </div>
-        </Field>
-
-        <Field label="Confirm Password">
-          <IconInput>
-            <Lock size={18} className="text-slate-400" />
-            <input
-              type={showPw ? 'text' : 'password'}
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
-              value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-              required
-            />
-
-            <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
-          </IconInput>
-        </Field>
+        )}
 
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium flex gap-2 items-center animated-shake">
@@ -295,27 +291,17 @@ function PwToggleButton({ show, onToggle }) {
   );
 }
 
-function RoleChip({ active, onClick, icon, title, desc }) {
+function RoleTab({ active, onClick, label }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={active}
-      className={`w-full text-left rounded-2xl border p-4 transition outline-none focus:ring-2 focus:ring-blue-200 ${active ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'
+      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${active
+          ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
+          : 'text-slate-400 hover:text-slate-600'
         }`}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className={`h-10 w-10 rounded-2xl grid place-items-center border ${active ? 'border-blue-200 bg-white' : 'border-slate-200 bg-slate-50'
-            }`}
-        >
-          {icon}
-        </div>
-        <div>
-          <div className="font-extrabold">{title}</div>
-          <div className="text-xs text-slate-500">{desc}</div>
-        </div>
-      </div>
+      {label}
     </button>
   );
 }
