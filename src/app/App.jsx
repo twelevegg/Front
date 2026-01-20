@@ -16,6 +16,9 @@ import CaseLibraryPage from '../pages/CaseLibraryPage.jsx';
 import PptTrainingPage from '../pages/training/PptTrainingPage.jsx';
 import RolePlayingPage from '../pages/training/RolePlayingPage.jsx';
 
+import AttritionPredictionPage from '../pages/dashboards/AttritionPredictionPage.jsx';
+import BurnoutAnalysisPage from '../pages/dashboards/BurnoutAnalysisPage.jsx';
+
 export default function App() {
   return (
     <Routes>
@@ -41,7 +44,25 @@ export default function App() {
             </RequireRole>
           }
         />
-      
+
+        {/* Admin Analysis Routes */}
+        <Route
+          path={ROUTES.ADMIN_ATTRITION}
+          element={
+            <RequireRole allow={['admin']}>
+              <AttritionPredictionPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.ADMIN_BURNOUT}
+          element={
+            <RequireRole allow={['admin']}>
+              <BurnoutAnalysisPage />
+            </RequireRole>
+          }
+        />
+
         <Route path={ROUTES.DASH_ASSISTANT} element={<AssistantDashboardPage />} />
         <Route path={ROUTES.CALL_HISTORY} element={<CallHistoryPage />} />
         <Route path={ROUTES.CASE_LIBRARY} element={<CaseLibraryPage />} />

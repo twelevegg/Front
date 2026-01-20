@@ -5,13 +5,17 @@ import { LogOut } from 'lucide-react';
 import { useAuth } from '../features/auth/AuthProvider.jsx';
 import { ROUTES } from '../app/routeConstants.js';
 
+import NotificationBell from './common/NotificationBell.jsx';
+
 const titleMap = {
   [ROUTES.DASH_ADMIN]: 'Admin Dashboard',
   [ROUTES.DASH_ASSISTANT]: 'Assistant Dashboard',
   [ROUTES.CALL_HISTORY]: 'Call history',
   [ROUTES.CASE_LIBRARY]: 'Case library',
   [ROUTES.TRAIN_PPT]: 'Training Center · PPT 교육',
-  [ROUTES.TRAIN_ROLEPLAY]: 'Training Center · RolePlaying'
+  [ROUTES.TRAIN_ROLEPLAY]: 'Training Center · RolePlaying',
+  [ROUTES.ADMIN_ATTRITION]: 'Admin · Attrition Prediction',
+  [ROUTES.ADMIN_BURNOUT]: 'Admin · Burnout Analysis'
 };
 
 export default function Topbar({ pathname }) {
@@ -28,6 +32,8 @@ export default function Topbar({ pathname }) {
       </div>
 
       <div className="flex items-center gap-3">
+        <NotificationBell />
+
         <span className="text-xs font-semibold text-slate-500 border border-slate-200 rounded-full px-3 py-1">
           {role === 'admin' ? '관리자(Admin)' : '상담사(Assistant)'}
         </span>

@@ -9,5 +9,9 @@ export const ROUTES = {
   CASE_LIBRARY: '/case-library',
 
   TRAIN_PPT: '/training/ppt',
-  TRAIN_ROLEPLAY: '/training/role-playing'
+  TRAIN_ROLEPLAY: '/training/role-playing',
+
+  /* Admin Analysis */
+  ADMIN_ATTRITION: '/admin/attrition-prediction',
+  ADMIN_BURNOUT: '/admin/burnout-analysis'
 };
