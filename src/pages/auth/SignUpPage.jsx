@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Shield, Headset } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Shield, Headset, Check } from 'lucide-react';
 
 import AuthShell from './AuthShell.jsx';
 import { ROUTES } from '../../app/routeConstants.js';
@@ -23,12 +23,29 @@ export default function SignUpPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
 
+  // ✅ Legal Consents
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedPrivacy, setAgreedPrivacy] = useState(false);
+  const [agreedMarketing, setAgreedMarketing] = useState(false);
+
+  // ✅ Password Strength (0-4)
+  const getPasswordStrength = (pw) => {
+    let s = 0;
+    if (pw.length >= 8) s++;
+    if (/[A-Z]/.test(pw)) s++;
+    if (/[0-9]/.test(pw)) s++;
+    if (/[^A-Za-z0-9]/.test(pw)) s++;
+    return s;
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (password.length < 6) {
-      setError('비밀번호는 6자 이상을 권장합니다.');
+    if (password.length < 8) {
+      setError('비밀번호는 최소 8자 이상이어야 합니다.');
       return;
     }
 
@@ -37,10 +54,26 @@ export default function SignUpPage() {
       return;
     }
 
+    if (!agreedTerms) {
+      setError('서비스 이용약관에 동의해야 합니다.');
+      return;
+    }
+
+    if (!agreedPrivacy) {
+      setError('개인정보 수집 및 이용에 동의해야 합니다.');
+      return;
+    }
+
     setPending(true);
 
     try {
-      await signupApi({ name, email, password, role });
+      await signupApi({
+        name,
+        email,
+        password,
+        role,
+        consents: { terms: agreedTerms, privacy: agreedPrivacy, marketing: agreedMarketing }
+      });
 
       /**
        * ✅ TODO (백엔드 연동 시)
@@ -134,6 +167,24 @@ export default function SignUpPage() {
             {/* ✅ 클릭영역/겹침 해결: h-9 w-9 + z-10 + center */}
             <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
           </IconInput>
+
+          {/* Password Strength Meter */}
+          {password && (
+            <div className="mt-2 flex gap-1">
+              {[1, 2, 3, 4].map((level) => (
+                <div
+                  key={level}
+                  className={`h-1 flex-1 rounded-full transition-all ${passwordStrength >= level
+                    ? (passwordStrength <= 2 ? 'bg-red-400' : passwordStrength === 3 ? 'bg-amber-400' : 'bg-green-500')
+                    : 'bg-slate-100'
+                    }`}
+                />
+              ))}
+            </div>
+          )}
+          <div className="mt-1 text-xs text-slate-400 text-right">
+            {passwordStrength <= 2 ? 'Weak' : passwordStrength === 3 ? 'Medium' : 'Strong'}
+          </div>
         </Field>
 
         <Field label="Confirm Password">
@@ -154,10 +205,32 @@ export default function SignUpPage() {
         </Field>
 
         {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium flex gap-2 items-center animated-shake">
+            <span role="img" aria-label="alert">⚠️</span> {error}
           </div>
         )}
+
+        {/* ✅ Legal Consents */}
+        <div className="space-y-3 pt-2">
+          <Checkbox
+            id="terms"
+            label="[필수] 서비스 이용약관 동의"
+            checked={agreedTerms}
+            onChange={setAgreedTerms}
+          />
+          <Checkbox
+            id="privacy"
+            label="[필수] 개인정보 수집 및 이용 동의"
+            checked={agreedPrivacy}
+            onChange={setAgreedPrivacy}
+          />
+          <Checkbox
+            id="marketing"
+            label="[선택] 마케팅 정보 수신 동의"
+            checked={agreedMarketing}
+            onChange={setAgreedMarketing}
+          />
+        </div>
 
         <button
           disabled={pending}
@@ -227,15 +300,14 @@ function RoleChip({ active, onClick, icon, title, desc }) {
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left rounded-2xl border p-4 transition ${
-        active ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'
-      }`}
+      aria-pressed={active}
+      className={`w-full text-left rounded-2xl border p-4 transition outline-none focus:ring-2 focus:ring-blue-200 ${active ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'
+        }`}
     >
       <div className="flex items-center gap-3">
         <div
-          className={`h-10 w-10 rounded-2xl grid place-items-center border ${
-            active ? 'border-blue-200 bg-white' : 'border-slate-200 bg-slate-50'
-          }`}
+          className={`h-10 w-10 rounded-2xl grid place-items-center border ${active ? 'border-blue-200 bg-white' : 'border-slate-200 bg-slate-50'
+            }`}
         >
           {icon}
         </div>
@@ -245,5 +317,28 @@ function RoleChip({ active, onClick, icon, title, desc }) {
         </div>
       </div>
     </button>
+  );
+}
+
+function Checkbox({ id, label, checked, onChange }) {
+  return (
+    <label htmlFor={id} className="flex items-center gap-3 cursor-pointer group select-none">
+      <div className={`
+        w-5 h-5 rounded-md flex items-center justify-center border transition
+        ${checked ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}
+      `}>
+        {checked && <Check size={14} className="text-white" strokeWidth={3} />}
+      </div>
+      <input
+        id={id}
+        type="checkbox"
+        className="hidden"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span className={`text-sm ${checked ? 'text-slate-700 font-semibold' : 'text-slate-500'}`}>
+        {label}
+      </span>
+    </label>
   );
 }

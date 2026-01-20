@@ -53,10 +53,10 @@ export default function LoginPage() {
     >
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label="Email">
-          <IconInput>
-            <Mail size={18} className="text-slate-400" />
+          <IconInput error={!!error}>
+            <Mail size={18} className={error ? "text-red-400" : "text-slate-400"} />
             <input
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
+              className={`flex-1 bg-transparent outline-none text-sm font-semibold ${error ? 'placeholder:text-red-300 text-red-700' : ''}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
@@ -67,11 +67,11 @@ export default function LoginPage() {
         </Field>
 
         <Field label="Password">
-          <IconInput>
-            <Lock size={18} className="text-slate-400" />
+          <IconInput error={!!error}>
+            <Lock size={18} className={error ? "text-red-400" : "text-slate-400"} />
             <input
               type={showPw ? 'text' : 'password'}
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
+              className={`flex-1 bg-transparent outline-none text-sm font-semibold ${error ? 'placeholder:text-red-300 text-red-700' : ''}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -119,9 +119,10 @@ function Field({ label, children }) {
   );
 }
 
-function IconInput({ children }) {
+function IconInput({ children, error }) {
   return (
-    <div className="relative flex items-center gap-3 rounded-full bg-slate-50 border border-slate-200 px-4 py-3">
+    <div className={`relative flex items-center gap-3 rounded-full px-4 py-3 border transition-colors ${error ? 'bg-red-50 border-red-200 ring-1 ring-red-100' : 'bg-slate-50 border-slate-200 focus-within:border-blue-300 focus-within:bg-white'
+      }`}>
       {children}
     </div>
   );
