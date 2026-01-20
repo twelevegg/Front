@@ -25,7 +25,7 @@ export default function Topbar({ pathname }) {
   const title = useMemo(() => titleMap[pathname] || 'Dashboard', [pathname]);
 
   return (
-    <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100">
+    <div className="flex items-center justify-between px-8 py-5 border-b border-white/50 bg-white/70 backdrop-blur-md sticky top-0 z-40 transition-all duration-300">
       <div>
         <div className="text-sm text-slate-500">{title}</div>
         <div className="text-2xl font-extrabold">{title}</div>
