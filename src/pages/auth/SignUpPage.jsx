@@ -92,10 +92,10 @@ export default function SignUpPage() {
     <AuthShell
       mode="signup"
       title="Create Account"
-      subtitle="CS-Navigator에 가입하여 상담 효율을 높이세요."
-      ctaTitle="오늘도 힘내세요!"
-      ctaSubtitle="당신의 따뜻한 말 한마디가 고객에게 큰 힘이 됩니다. 이미 계정이 있으신가요?"
-      ctaButtonLabel="Sign In"
+      subtitle="CS-Navigator와 함께 상담의 가치를 높여보세요."
+      ctaTitle="오늘도 수고 많으셨어요!"
+      ctaSubtitle="당신의 따뜻한 목소리와 공감이 고객의 하루를 특별하게 만듭니다. 우리는 당신을 언제나 응원합니다."
+      ctaButtonLabel="로그인하러 가기"
       ctaTo={ROUTES.LOGIN}
     >
       <form onSubmit={onSubmit} className="space-y-4">
@@ -155,14 +155,16 @@ export default function SignUpPage() {
               <Lock size={18} className="text-slate-400" />
               <input
                 type={showPw ? 'text' : 'password'}
-                className="flex-1 bg-transparent outline-none text-sm font-semibold"
+                className="flex-1 bg-transparent outline-none text-sm font-semibold pr-8"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="new-password"
                 required
               />
-              <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+              </div>
             </IconInput>
           </Field>
 
@@ -171,14 +173,16 @@ export default function SignUpPage() {
               <Lock size={18} className="text-slate-400" />
               <input
                 type={showPw ? 'text' : 'password'}
-                className="flex-1 bg-transparent outline-none text-sm font-semibold"
+                className="flex-1 bg-transparent outline-none text-sm font-semibold pr-8"
                 value={password2}
                 onChange={(e) => setPassword2(e.target.value)}
                 placeholder="••••••••"
                 autoComplete="new-password"
                 required
               />
-              <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+              </div>
             </IconInput>
           </Field>
         </div>

@@ -17,3 +17,9 @@ body {
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   }
 }
+
+/* ✅ Hide native password reveal button (Edge/IE) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
