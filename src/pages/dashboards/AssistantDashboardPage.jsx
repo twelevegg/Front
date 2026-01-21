@@ -4,7 +4,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import { emitCallConnected } from '../../features/calls/callEvents.js';
 import { mockCalls } from '../../features/calls/mockCalls.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
-import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones } from 'lucide-react';
+import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones, TrendingUp, TrendingDown } from 'lucide-react';
 
 const dataWeek = [
   { label: 'W-4', qa: 80, success: 81, adherence: 90 },
@@ -93,9 +93,30 @@ export default function AssistantDashboardPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Kpi title="오늘 통화" value="17" icon={<Phone size={20} className="text-indigo-500" />} />
-        <Kpi title="QA(최근)" value="82" icon={<CheckCircle size={20} className="text-emerald-500" />} />
-        <Kpi title="가이드라인 준수" value="92%" icon={<BookOpen size={20} className="text-purple-500" />} />
+        <Kpi
+          title="오늘 통화"
+          value="17"
+          icon={<Phone size={20} className="text-indigo-500" />}
+          trend
+          trendValue="+12%"
+          trendUp={true}
+        />
+        <Kpi
+          title="QA(최근)"
+          value="82"
+          icon={<CheckCircle size={20} className="text-emerald-500" />}
+          trend
+          trendValue="+5pts"
+          trendUp={true}
+        />
+        <Kpi
+          title="가이드라인 준수"
+          value="92%"
+          icon={<BookOpen size={20} className="text-purple-500" />}
+          trend
+          trendValue="-2%"
+          trendUp={false}
+        />
       </div>
 
       <div className="grid grid-cols-[420px_1fr] gap-6">
@@ -246,14 +267,21 @@ export default function AssistantDashboardPage() {
   );
 }
 
-function Kpi({ title, value, icon }) {
+function Kpi({ title, value, icon, trend, trendValue, trendUp }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-white px-5 py-4 shadow-soft flex items-center justify-between">
       <div>
         <div className="text-xs text-slate-500 font-semibold">{title}</div>
-        <div className="mt-1 text-2xl font-extrabold">{value}</div>
+        <div className="mt-1 text-2xl font-extrabold text-slate-900">{value}</div>
+        {trend && (
+          <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${trendUp ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {trendUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+            <span>{trendValue}</span>
+            <span className="text-slate-400 font-medium ml-1">vs last week</span>
+          </div>
+        )}
       </div>
-      {icon && <div className="p-3 rounded-xl bg-slate-50">{icon}</div>}
+      {icon && <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 shadow-sm">{icon}</div>}
     </div>
   );
 }

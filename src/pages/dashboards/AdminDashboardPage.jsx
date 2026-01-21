@@ -4,7 +4,10 @@ import Card from '../../components/Card.jsx';
 import Badge from '../../components/Badge.jsx';
 import Pill from '../../components/Pill.jsx';
 import SearchInput from '../../components/SearchInput.jsx';
+import EmptyState from '../../components/common/EmptyState.jsx';
 import { useToast } from '../../components/common/ToastProvider.jsx';
+
+import { TrendingUp, TrendingDown, Users } from 'lucide-react';
 
 const counselors = [
   { name: '김지민', id: 'A-1021', team: '배송/반품', tenure: '근속 43일', risk: 82, riskTone: 'High' },
@@ -62,10 +65,34 @@ export default function AdminDashboardPage() {
 
       <div className="flex flex-wrap gap-4 items-center justify-between">
         <div className="flex gap-4 flex-wrap">
-          <Kpi title="대상" value="4명" />
-          <Kpi title="평균 이탈 징후" value="61" />
-          <Kpi title="평균 스트레스" value="58" />
-          <Kpi title="폭언 알림(7일)" value="6건" />
+          <Kpi
+            title="대상"
+            value="4명"
+            trend
+            trendValue="+1"
+            trendUp={true}
+          />
+          <Kpi
+            title="평균 이탈 징후"
+            value="61"
+            trend
+            trendValue="+4pts"
+            trendUp={false}
+          />
+          <Kpi
+            title="평균 스트레스"
+            value="58"
+            trend
+            trendValue="-2pts"
+            trendUp={true}
+          />
+          <Kpi
+            title="폭언 알림(7일)"
+            value="6건"
+            trend
+            trendValue="+2건"
+            trendUp={false}
+          />
         </div>
 
         <div className="flex gap-3 items-center">
@@ -88,7 +115,11 @@ export default function AdminDashboardPage() {
           <div className="text-sm font-extrabold">이탈 징후 Top 5</div>
           <div className="mt-4 space-y-3">
             {filtered.length === 0 ? (
-              <div className="py-8 text-center text-sm text-slate-400">검색 결과가 없습니다.</div>
+              <EmptyState
+                title="검색 결과 없음"
+                description="조건에 맞는 상담사가 없습니다."
+                className="py-8"
+              />
             ) : (
               filtered.map((c) => (
                 <button
@@ -115,7 +146,8 @@ export default function AdminDashboardPage() {
                   </div>
                 </button>
               ))
-            )}
+            )
+            }
           </div>
         </Card>
 
@@ -203,7 +235,12 @@ export default function AdminDashboardPage() {
               </div>
             </>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-400">상담사를 선택해주세요.</div>
+            <EmptyState
+              icon={Users}
+              title="상담사 선택"
+              description="좌측 목록에서 상담사를 선택하여 상세 정보를 확인하세요."
+              className="h-full"
+            />
           )}
         </Card>
       </div>
@@ -233,11 +270,18 @@ export default function AdminDashboardPage() {
   );
 }
 
-function Kpi({ title, value }) {
+function Kpi({ title, value, trend, trendValue, trendUp }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-white px-5 py-4 min-w-[190px] shadow-soft">
       <div className="text-xs text-slate-500 font-semibold">{title}</div>
-      <div className="mt-1 text-2xl font-extrabold">{value}</div>
+      <div className="mt-1 text-2xl font-extrabold text-slate-900">{value}</div>
+      {trend && (
+        <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${trendUp ? 'text-emerald-600' : 'text-rose-600'}`}>
+          {trendUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+          <span>{trendValue}</span>
+          <span className="text-slate-400 font-medium ml-1">vs last week</span>
+        </div>
+      )}
     </div>
   );
 }
