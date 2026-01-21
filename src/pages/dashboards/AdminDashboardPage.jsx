@@ -95,24 +95,27 @@ export default function AdminDashboardPage() {
           />
         </div>
 
-        <div className="flex gap-3 items-center">
-          <SearchInput placeholder="상담사/ID 검색" value={query} onChange={setQuery} />
-          <select
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-100"
-            value={teamFilter}
-            onChange={(e) => setTeamFilter(e.target.value)}
-          >
-            <option value="All">All Teams</option>
-            <option value="배송/반품">배송/반품</option>
-            <option value="AS/기술지원">AS/기술지원</option>
-            <option value="결제/계정">결제/계정</option>
-          </select>
-        </div>
+
       </div>
 
       <div className="grid grid-cols-[360px_1fr] gap-6">
         <Card className="p-5">
-          <div className="text-sm font-extrabold">이탈 징후 Top 5</div>
+          <div className="flex flex-col gap-4 mb-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-extrabold">이탈 징후 Top 5</div>
+              <select
+                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100 text-slate-600 bg-white"
+                value={teamFilter}
+                onChange={(e) => setTeamFilter(e.target.value)}
+              >
+                <option value="All">All Teams</option>
+                <option value="배송/반품">배송/반품</option>
+                <option value="AS/기술지원">AS/기술지원</option>
+                <option value="결제/계정">결제/계정</option>
+              </select>
+            </div>
+            <SearchInput placeholder="상담사 검색..." value={query} onChange={setQuery} className="w-full" />
+          </div>
           <div className="mt-4 space-y-3">
             {filtered.length === 0 ? (
               <EmptyState
