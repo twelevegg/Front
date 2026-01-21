@@ -31,5 +31,44 @@ export const mockCalls = [
     customerName: '김철수',
     duration: '03:10',
     keywords: ['인터넷', '해지', '위약금']
+  },
+  {
+    id: 'C-20260105-0920',
+    title: '결합 상품 가입 문의',
+    datetime: '2026-01-05 09:20',
+    summary: '인터넷+TV 결합 상품 가입 시 혜택 문의. 요금제 비교 후 베이직 결합 상품 가입 유도 성공.',
+    qa: '상품 지식 정확함. 적극적인 세일즈 스킬 우수.',
+    log: [
+      { speaker: '상담원', text: '안녕하세요, 텔레콤입니다.' },
+      { speaker: '고객', text: '지금 인터넷 쓰고 있는데 TV랑 합치면 얼마나 싸져요?' }
+    ],
+    sentiment: 'Positive',
+    customerName: '이영희',
+    duration: '08:15',
+    keywords: ['결합', '가입', '할인']
+  },
+  {
+    id: 'C-20260104-1430',
+    title: '이사 이전 신청',
+    datetime: '2026-01-04 14:30',
+    summary: '이사로 인한 이전 설치 예약 요청. 희망 날짜 조율 후 예약 확정함.',
+    qa: '절차 안내 명확함. 주소지 재확인 철저.',
+    log: [],
+    sentiment: 'Neutral',
+    customerName: '박지성',
+    duration: '04:45',
+    keywords: ['이사', '이전', '예약']
+  },
+  {
+    id: 'C-20260104-1100',
+    title: '멤버십 등급 문의',
+    datetime: '2026-01-04 11:00',
+    summary: 'VIP 등급 조건 문의. 전월 실적 부족 안내.',
+    qa: '친절하게 응대하였으나 고객이 다소 아쉬워함.',
+    log: [],
+    sentiment: 'Neutral',
+    customerName: '최동원',
+    duration: '02:20',
+    keywords: ['멤버십', '등급']
   }
 ];

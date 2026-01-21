@@ -153,16 +153,19 @@ export default function CallHistoryPage() {
                     <span>{filterSentiment === 'All' ? '감정 필터' : filterSentiment}</span>
                   </button>
                   {/* Simple Dropdown Mock */}
-                  <div className="hidden group-hover:block absolute top-full right-0 mt-1 w-32 bg-white border border-slate-200 shadow-xl rounded-xl z-10 p-1">
-                    {['All', 'Positive', 'Neutral', 'Negative'].map(s => (
-                      <button
-                        key={s}
-                        onClick={() => setFilterSentiment(s)}
-                        className="w-full text-left px-3 py-2 text-xs font-bold hover:bg-slate-50 rounded-lg"
-                      >
-                        {s}
-                      </button>
-                    ))}
+                  <div className="hidden group-hover:block absolute top-full right-0 pt-2 w-32 z-20">
+                    <div className="bg-white border border-slate-200 shadow-xl rounded-xl p-1">
+                      {['All', 'Positive', 'Neutral', 'Negative'].map(s => (
+                        <button
+                          key={s}
+                          onClick={() => setFilterSentiment(s)}
+                          className={`w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition ${filterSentiment === s ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-700'
+                            }`}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
