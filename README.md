@@ -53,15 +53,14 @@ Replace the dev role switch in the topbar with your real login flow.
 
 동의하지 않으면 회원가입이 진행 x.
 
-“내용 보기”를 통해 개인정보처리방침을 확인 가능.
 
 #### 📁 관련 파일:
 
-SignUpPage.jsx / PrivacyPolicyModal.jsx / PrivacyPolicyContent.jsx
+SignUpPage.jsx
 
 ### 2. 비밀번호 규칙 안내(UX)
 
-회원가입 시 비밀번호 규칙을 안내하고, 규칙에 맞지 않으면 입력 하단에 안내 문구 표시.
+회원가입 시 비밀번호 강도(Strength) 안내
 
 운영 환경에서는 프론트 검증 외에도 백엔드에서도 동일 정책 검증 필요.
 
@@ -71,7 +70,7 @@ SignUpPage.jsx
 
 ### 3. 개인정보 표시 제한(마스킹)
 
-관리자/분석/코파일럿 화면에서 인명 정보가 그대로 노출되지 않도록 마스킹 표시를 적용.
+통화기록 / 코파일럿 화면에서 인명 정보가 그대로 노출되지 않도록 마스킹 표시를 적용.
 
 예: 김지민 → 김지*
 
@@ -79,7 +78,7 @@ SignUpPage.jsx
 
 #### 📁 관련 파일:
 
-AdminDashboardPage.jsx / AttritionPredictionPage.jsx / CoPilotModal.jsx / mask.js
+ CallHistoryPage.jsx / CoPilotModal.jsx / mask.js
 
 ### 4. 개인정보처리방침 링크/페이지 제공
 

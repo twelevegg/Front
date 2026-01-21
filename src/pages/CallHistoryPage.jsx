@@ -4,6 +4,7 @@ import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
 import { mockCalls } from '../features/calls/mockCalls.js';
 import { emitCallConnected } from '../features/calls/callEvents.js';
+import { maskName } from '../utils/mask.js'; 
 
 const TABS = [
   { key: 'summary', label: '요약' },
@@ -20,13 +21,20 @@ export default function CallHistoryPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const filteredCalls = useMemo(() => {
-    return mockCalls.filter(c => {
-      const matchesSearch =
-        c.title.includes(searchQuery) ||
-        c.customerName?.includes(searchQuery) || // Assuming mockCalls has customerName
-        c.id.includes(searchQuery);
+    const q = String(searchQuery || '').trim();
+    return mockCalls.filter((c) => {
+      const customer = c.customerName || '';
+      const customerMasked = maskName(customer);
 
-      const matchesSentiment = filterSentiment === 'All' || c.sentiment === filterSentiment; // Assuming mockCalls has sentiment
+      const matchesSearch =
+        !q ||
+        c.title?.includes(q) ||
+        c.id?.includes(q) ||
+        customer.includes(q) ||
+        customerMasked.includes(q); // 마스킹된 이름으로도 검색 가능
+
+      const matchesSentiment =
+        filterSentiment === 'All' || c.sentiment === filterSentiment;
 
       return matchesSearch && matchesSentiment;
     });
@@ -37,7 +45,6 @@ export default function CallHistoryPage() {
     [selectedId]
   );
 
-  // ... rest of logic
   const simulate = () => {
     if (selected) {
       emitCallConnected(selected.id);
@@ -79,6 +86,7 @@ export default function CallHistoryPage() {
             </div>
           </div>
         );
+
       case 'qa':
         return (
           <div className="space-y-4">
@@ -96,8 +104,8 @@ export default function CallHistoryPage() {
             </div>
           </div>
         );
-      case 'log':
-        // Safe rendering check
+
+      case 'log': {
         const logs = Array.isArray(selected?.log) ? selected.log : [];
         const logContent = !Array.isArray(selected?.log) && selected?.log ? selected.log : null;
 
@@ -118,12 +126,15 @@ export default function CallHistoryPage() {
             )}
           </div>
         );
+      }
+
       case 'audio':
         return (
           <div className="h-40 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 text-sm">
             [ Full Audio Player Placeholder ]
           </div>
         );
+
       default:
         return null;
     }
@@ -152,15 +163,17 @@ export default function CallHistoryPage() {
                     <Filter size={14} />
                     <span>{filterSentiment === 'All' ? '감정 필터' : filterSentiment}</span>
                   </button>
-                  {/* Simple Dropdown Mock */}
                   <div className="hidden group-hover:block absolute top-full right-0 pt-2 w-32 z-20">
                     <div className="bg-white border border-slate-200 shadow-xl rounded-xl p-1">
-                      {['All', 'Positive', 'Neutral', 'Negative'].map(s => (
+                      {['All', 'Positive', 'Neutral', 'Negative'].map((s) => (
                         <button
                           key={s}
                           onClick={() => setFilterSentiment(s)}
-                          className={`w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition ${filterSentiment === s ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-50 text-slate-700'
-                            }`}
+                          className={`w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition ${
+                            filterSentiment === s
+                              ? 'bg-blue-50 text-blue-600'
+                              : 'hover:bg-slate-50 text-slate-700'
+                          }`}
                         >
                           {s}
                         </button>
@@ -195,21 +208,29 @@ export default function CallHistoryPage() {
                     setSelectedId(c.id);
                     setActiveTab('summary');
                   }}
-                  className={`w-full text-left rounded-2xl border px-5 py-4 transition hover:bg-slate-50 ${c.id === selectedId ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500' : 'border-slate-100 bg-white'
-                    }`}
+                  className={`w-full text-left rounded-2xl border px-5 py-4 transition hover:bg-slate-50 ${
+                    c.id === selectedId
+                      ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500'
+                      : 'border-slate-100 bg-white'
+                  }`}
                 >
                   <div className="flex justify-between items-start mb-1">
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${c.sentiment === 'Negative' ? 'bg-red-100 text-red-600' :
-                      c.sentiment === 'Positive' ? 'bg-green-100 text-green-600' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                        c.sentiment === 'Negative'
+                          ? 'bg-red-100 text-red-600'
+                          : c.sentiment === 'Positive'
+                          ? 'bg-green-100 text-green-600'
+                          : 'bg-slate-100 text-slate-600'
+                      }`}
+                    >
                       {c.sentiment || 'Neutral'}
                     </span>
                     <span className="text-xs text-slate-400 font-medium">{c.datetime}</span>
                   </div>
                   <div className="font-extrabold text-slate-800 line-clamp-1">{c.title}</div>
                   <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    <span className="font-bold">{c.customerName || '고객'}</span>
+                    <span className="font-bold">{maskName(c.customerName || '고객')}</span> 
                     <span>·</span>
                     <span>{c.duration || '00:00'}</span>
                   </div>
@@ -225,6 +246,9 @@ export default function CallHistoryPage() {
               <div className="text-sm font-extrabold">통화 상세</div>
               <div className="text-xs text-slate-500 mt-1">
                 선택된 통화: <span className="font-extrabold text-slate-900">{selected?.id}</span>
+              </div>
+              <div className="text-xs text-slate-500 mt-1">
+                고객: <span className="font-extrabold text-slate-900">{maskName(selected?.customerName || '고객')}</span> 
               </div>
             </div>
 
@@ -247,7 +271,6 @@ export default function CallHistoryPage() {
             </div>
           </div>
 
-          {/* 탭(버튼식) */}
           <div className="mt-4 inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1 shrink-0 self-start">
             {TABS.map((t) => {
               const active = t.key === activeTab;
@@ -256,10 +279,9 @@ export default function CallHistoryPage() {
                   key={t.key}
                   type="button"
                   onClick={() => setActiveTab(t.key)}
-                  className={`px-4 py-2 text-sm font-extrabold rounded-2xl transition ${active
-                    ? 'bg-white border border-slate-200 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                  className={`px-4 py-2 text-sm font-extrabold rounded-2xl transition ${
+                    active ? 'bg-white border border-slate-200 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
                   {t.label}
                 </button>
@@ -267,14 +289,12 @@ export default function CallHistoryPage() {
             })}
           </div>
 
-          {/* 탭 내용 */}
           <div className="mt-4 flex-1 rounded-2xl border border-slate-100 p-5 overflow-y-auto">
             {renderTabContent()}
           </div>
         </Card>
       </div>
 
-      {/* Deep Dive Modal */}
       {isDetailOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsDetailOpen(false)} />
@@ -283,16 +303,20 @@ export default function CallHistoryPage() {
               <div>
                 <div className="text-xs font-bold text-slate-500 mb-1">AI Insight</div>
                 <h2 className="text-2xl font-black text-slate-900">심층 분석 리포트</h2>
+                <div className="text-xs text-slate-500 mt-1">
+                  고객: <span className="font-extrabold text-slate-900">{maskName(selected?.customerName || '고객')}</span>
+                </div>
               </div>
               <button onClick={() => setIsDetailOpen(false)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
             </div>
 
             <div className="p-8 space-y-8 overflow-y-auto flex-1">
-              {/* Score Cards */}
               <div className="grid grid-cols-4 gap-4">
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                   <div className="text-xs font-bold text-slate-500 mb-2">종합 점수</div>
-                  <div className="text-3xl font-black text-slate-800">85<span className="text-sm font-medium text-slate-400">/100</span></div>
+                  <div className="text-3xl font-black text-slate-800">
+                    85<span className="text-sm font-medium text-slate-400">/100</span>
+                  </div>
                 </div>
                 <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100">
                   <div className="text-xs font-bold text-blue-600 mb-2">공감도</div>
@@ -308,7 +332,6 @@ export default function CallHistoryPage() {
                 </div>
               </div>
 
-              {/* Detailed QA Items */}
               <div>
                 <h3 className="text-lg font-bold text-slate-800 mb-4">평가 상세 항목</h3>
                 <div className="space-y-3">
@@ -331,7 +354,6 @@ export default function CallHistoryPage() {
                 </div>
               </div>
 
-              {/* Sentiment Chart Mock */}
               <div>
                 <h3 className="text-lg font-bold text-slate-800 mb-4">감정 변화 흐름</h3>
                 <div className="h-40 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center text-slate-400 text-sm">
@@ -342,7 +364,6 @@ export default function CallHistoryPage() {
           </div>
         </div>
       ) : null}
-
     </div>
   );
 }

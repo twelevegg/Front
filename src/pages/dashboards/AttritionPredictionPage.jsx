@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { maskName } from '../../utils/mask.js'; // ✅ 추가
 
 export default function AttritionPredictionPage() {
   const [data] = useState([
@@ -31,7 +30,7 @@ export default function AttritionPredictionPage() {
             <tbody className="divide-y divide-slate-50">
               {data.map((item) => (
                 <tr key={item.id} className="group">
-                  <td className="py-3 font-semibold">{maskName(item.name)}</td>
+                  <td className="py-3 font-semibold">{item.name}</td>
                   <td className="py-3">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
