@@ -32,12 +32,16 @@ export default function Sidebar() {
         {role === 'admin' && (
           <>
             <SideLink to="/dashboard/admin" icon={LayoutGrid} label="Admin Dashboard" />
-            <div className="mt-6 mb-2 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">
-              Admin Analysis
-            </div>
-            <SideLink to="/admin/attrition-prediction" icon={Users} label="Attrition Prediction" />
-            <SideLink to="/admin/burnout-analysis" icon={Activity} label="Burnout Analysis" />
-            <div className="my-4 border-t border-slate-100" />
+
+            {/* Admin Analytics Dropdown */}
+            <SidebarDropdown
+              icon={Activity}
+              label="Admin Analytics"
+              routes={[
+                { to: "/admin/attrition-prediction", label: "Attrition Prediction", icon: Users },
+                { to: "/admin/burnout-analysis", label: "Burnout Analysis", icon: Activity }
+              ]}
+            />
           </>
         )}
 
@@ -45,24 +49,15 @@ export default function Sidebar() {
         <SideLink to="/call-history" icon={PhoneCall} label="Call history" />
         <SideLink to="/case-library" icon={Library} label="Case library" />
 
-        {/* Training Center (hover -> sub menu) */}
-        <div className="relative group">
-          <button
-            type="button"
-            onClick={() => navigate('/training/ppt')}
-            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition text-slate-700 hover:bg-slate-50 hover:shadow-sm"
-          >
-            <div className="grid place-items-center h-9 w-9 rounded-xl bg-white border border-slate-100 shadow-sm">
-              <GraduationCap size={18} />
-            </div>
-            Training Center
-          </button>
-
-          <div className="hidden group-hover:block group-focus-within:block ml-12 mt-1 space-y-1">
-            <SubLink to="/training/ppt" icon={FileText} label="PPT 교육" />
-            <SubLink to="/training/role-playing" icon={Users} label="RolePlaying" />
-          </div>
-        </div>
+        {/* Training Center Dropdown */}
+        <SidebarDropdown
+          icon={GraduationCap}
+          label="Training Center"
+          routes={[
+            { to: "/training/ppt", label: "PPT 교육", icon: FileText },
+            { to: "/training/role-playing", label: "RolePlaying", icon: Users }
+          ]}
+        />
       </nav>
 
       {/* Footer / Navigation Rail */}
@@ -112,19 +107,38 @@ function SideLink({ to, icon: Icon, label }) {
   );
 }
 
-function SubLink({ to, icon: Icon, label }) {
+function SidebarDropdown({ icon: Icon, label, routes }) {
+  // Check if any child route is active to highlight the parent
+  // (This is a simplified check, ideally specific to logic needed)
   return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        `flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${isActive
-          ? 'bg-blue-50 text-blue-600 border border-blue-100'
-          : 'text-slate-600 hover:bg-slate-50'
-        }`
-      }
-    >
-      <Icon size={16} />
-      {label}
-    </NavLink>
+    <div className="relative group">
+      <button
+        type="button"
+        className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition text-slate-700 hover:bg-slate-50 hover:shadow-sm"
+      >
+        <div className="grid place-items-center h-9 w-9 rounded-xl bg-white border border-slate-100 shadow-sm">
+          <Icon size={18} />
+        </div>
+        {label}
+      </button>
+
+      <div className="hidden group-hover:block group-focus-within:block ml-12 mt-1 space-y-1">
+        {routes.map((route) => (
+          <NavLink
+            key={route.to}
+            to={route.to}
+            className={({ isActive }) =>
+              `flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${isActive
+                ? 'bg-blue-50 text-blue-600 border border-blue-100'
+                : 'text-slate-600 hover:bg-slate-50'
+              }`
+            }
+          >
+            <route.icon size={16} />
+            {route.label}
+          </NavLink>
+        ))}
+      </div>
+    </div>
   );
 }
