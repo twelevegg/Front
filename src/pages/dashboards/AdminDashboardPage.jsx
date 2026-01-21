@@ -129,10 +129,10 @@ export default function AdminDashboardPage() {
                     {selected.name} · {selected.id} · {selected.team} · {selected.tenure}
                   </div>
                 </div>
-                <div className="flex gap-2 flex-wrap justify-end">
-                  <Pill>이탈 Low ({selected.risk ?? '-'})</Pill>
-                  <Pill>스트레스 Normal (32)</Pill>
-                  <Pill>폭언 7일 0건</Pill>
+                <div className="grid grid-cols-3 gap-2 ml-auto min-w-[300px]">
+                  <div className="flex justify-center"><Pill>이탈 {selected.riskTone || 'Low'} ({selected.risk ?? '-'})</Pill></div>
+                  <div className="flex justify-center"><Pill>스트레스 Normal (32)</Pill></div>
+                  <div className="flex justify-center"><Pill>폭언 7일 0건</Pill></div>
                 </div>
               </div>
 
