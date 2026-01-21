@@ -1,11 +1,8 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut } from 'lucide-react';
 
 import { useAuth } from '../features/auth/AuthProvider.jsx';
 import { ROUTES } from '../app/routeConstants.js';
-
-import NotificationBell from './common/NotificationBell.jsx';
 
 const titleMap = {
   [ROUTES.DASH_ADMIN]: 'Admin Dashboard',
