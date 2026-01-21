@@ -47,6 +47,7 @@ export default function CaseLibraryPage() {
   const { addToast } = useToast();
   const [caseList, setCaseList] = useState(initialCases);
   const [selectedId, setSelectedId] = useState(initialCases[0]?.id);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // modal state
   const [isOpen, setIsOpen] = useState(false);
@@ -55,6 +56,17 @@ export default function CaseLibraryPage() {
   const [formTags, setFormTags] = useState([]); // Array of strings
   const [customTag, setCustomTag] = useState(''); // Input for new manual tags
   const [error, setError] = useState('');
+
+  const filteredCases = useMemo(() => {
+    if (!searchQuery.trim()) return caseList;
+    const query = searchQuery.toLowerCase();
+    return caseList.filter(c =>
+      c.title.toLowerCase().includes(query) ||
+      c.body.toLowerCase().includes(query) ||
+      c.tags?.some(t => t.toLowerCase().includes(query)) ||
+      c.id.toLowerCase().includes(query)
+    );
+  }, [caseList, searchQuery]);
 
   const selected = useMemo(
     () => caseList.find((c) => c.id === selectedId),
@@ -120,7 +132,12 @@ export default function CaseLibraryPage() {
       setCaseList(prev => {
         const next = prev.filter(c => c.id !== id);
         if (id === selectedId && next.length > 0) {
-          setSelectedId(next[0].id);
+          // If deleted item was selected, try to select the first one from remaining
+          // But wait, "next" is the new list. 
+          // We should select from next. 
+          // However filtered list logic might interfere if we just pick first of 'next'.
+          // Simplest is to pick first of next.
+          setSelectedId(next[0]?.id || null);
         } else if (next.length === 0) {
           setSelectedId(null);
         }
@@ -132,39 +149,53 @@ export default function CaseLibraryPage() {
 
   return (
     <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
-      <div className="shrink-0">
-        <div className="text-sm text-slate-500 font-bold">Case library</div>
-        <div className="text-2xl font-black text-slate-900 mt-1">상담 지식 베이스</div>
+      <div className="shrink-0 flex justify-between items-end">
+        <div>
+          <div className="text-sm text-slate-500 font-bold">Case library</div>
+          <div className="text-2xl font-black text-slate-900 mt-1">상담 지식 베이스</div>
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 grid grid-cols-[420px_1fr] gap-6">
         <Card className="flex flex-col h-full overflow-hidden">
-          <div className="p-6 pb-2 shrink-0 flex items-center justify-between">
-            <div className="text-lg font-extrabold text-slate-800">Case List</div>
-            <button
-              className="flex items-center gap-1__ rounded-full bg-slate-900 text-white px-4 py-2 text-sm font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 transition active:scale-95"
-              type="button"
-              onClick={openModal}
-            >
-              <Plus size={16} />
-              <span>추가</span>
-            </button>
+          <div className="p-6 pb-2 shrink-0 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="text-lg font-extrabold text-slate-800">Case List</div>
+              <button
+                className="flex items-center gap-1__ rounded-full bg-slate-900 text-white px-4 py-2 text-sm font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 transition active:scale-95"
+                type="button"
+                onClick={openModal}
+              >
+                <Plus size={16} />
+                <span>추가</span>
+              </button>
+            </div>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="제목, 태그, 내용 검색..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              />
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {caseList.length === 0 ? (
+            {filteredCases.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-2">
                 <AlertCircle size={32} />
-                <span className="text-sm font-medium">등록된 케이스가 없습니다.</span>
+                <span className="text-sm font-medium">검색 결과가 없습니다.</span>
               </div>
             ) : (
-              caseList.map((c) => (
+              filteredCases.map((c) => (
                 <div
                   key={c.id}
                   onClick={() => setSelectedId(c.id)}
                   className={`group relative cursor-pointer w-full text-left rounded-2xl border px-5 py-5 transition-all duration-200 ${c.id === selectedId
-                    ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500'
-                    : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
+                      ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500'
+                      : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
                     }`}
                 >
                   <div className="flex items-start justify-between">
@@ -310,8 +341,8 @@ export default function CaseLibraryPage() {
                         type="button"
                         onClick={() => toggleTag(tag)}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${formTags.includes(tag)
-                            ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200'
-                            : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200'
+                          : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
                           }`}
                       >
                         {tag}
