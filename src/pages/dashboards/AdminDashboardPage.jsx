@@ -122,17 +122,34 @@ export default function AdminDashboardPage() {
         <Card className="p-5">
           {selected ? (
             <>
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between mb-6">
                 <div>
-                  <div className="text-sm font-extrabold">선택 상담사</div>
-                  <div className="text-sm text-slate-500 mt-1">
-                    {selected.name} · {selected.id} · {selected.team} · {selected.tenure}
+                  <div className="text-lg font-black text-slate-800">{selected.name}</div>
+                  <div className="text-sm text-slate-500 font-medium mt-1">
+                    {selected.id} · {selected.team} · {selected.tenure}
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 ml-auto min-w-[300px]">
-                  <div className="flex justify-center"><Pill>이탈 {selected.riskTone || 'Low'} ({selected.risk ?? '-'})</Pill></div>
-                  <div className="flex justify-center"><Pill>스트레스 Normal (32)</Pill></div>
-                  <div className="flex justify-center"><Pill>폭언 7일 0건</Pill></div>
+
+                {/* Redesigned Stat Blocks */}
+                <div className="flex items-center divide-x divide-slate-100 bg-slate-50 rounded-2xl border border-slate-100 p-1">
+                  <div className="px-5 py-2 text-center">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Attrition Risk</div>
+                    <div className={`text-lg font-black ${selected.riskTone === 'High' ? 'text-red-500' : selected.riskTone === 'Medium' ? 'text-amber-500' : 'text-green-500'}`}>
+                      {selected.risk ?? '-'} <span className="text-xs font-bold text-slate-400">/ 100</span>
+                    </div>
+                  </div>
+                  <div className="px-5 py-2 text-center">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Stress Level</div>
+                    <div className="text-lg font-black text-blue-600">
+                      32 <span className="text-xs font-bold text-slate-400">Normal</span>
+                    </div>
+                  </div>
+                  <div className="px-5 py-2 text-center">
+                    <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Abuse (7d)</div>
+                    <div className="text-lg font-black text-slate-700">
+                      0 <span className="text-xs font-bold text-slate-400">cases</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
