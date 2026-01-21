@@ -14,7 +14,17 @@ export default function AppLayout() {
           <div className="rounded-3xl bg-white shadow-soft border border-slate-100 overflow-hidden">
             <Topbar pathname={pathname} />
             <div className="p-8">
-              <Outlet />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={pathname}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Outlet />
+                </motion.div>
+              </AnimatePresence>
             </div>
           </div>
         </div>
