@@ -17,6 +17,7 @@ export default function CallHistoryPage() {
   const [activeTab, setActiveTab] = useState('summary');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSentiment, setFilterSentiment] = useState('All'); // All | Positive | Negative | Neutral
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
   const filteredCalls = useMemo(() => {
     return mockCalls.filter(c => {
@@ -243,8 +244,8 @@ export default function CallHistoryPage() {
                   type="button"
                   onClick={() => setActiveTab(t.key)}
                   className={`px-4 py-2 text-sm font-extrabold rounded-2xl transition ${active
-                      ? 'bg-white border border-slate-200 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white border border-slate-200 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                     }`}
                 >
                   {t.label}
