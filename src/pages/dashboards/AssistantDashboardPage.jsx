@@ -2,8 +2,9 @@ import { useState } from 'react';
 import Card from '../../components/Card.jsx';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { emitCallConnected } from '../../features/calls/callEvents.js';
+import { mockCalls } from '../../features/calls/mockCalls.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
-import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText } from 'lucide-react';
+import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones } from 'lucide-react';
 
 const dataWeek = [
   { label: 'W-4', qa: 80, success: 81, adherence: 90 },
@@ -27,6 +28,10 @@ export default function AssistantDashboardPage() {
   const openCopilot = (payload) => {
     emitCallConnected(payload);
     addToast('CoPilot 가이드가 실행되었습니다.', 'success');
+  };
+
+  const handleQuickAction = (action) => {
+    addToast(`${action} 기능이 실행되었습니다. (Dev Mock)`, 'info');
   };
 
   const StatusButton = ({ type, label, icon: Icon, color }) => (
@@ -94,35 +99,54 @@ export default function AssistantDashboardPage() {
       </div>
 
       <div className="grid grid-cols-[420px_1fr] gap-6">
-        <Card className="p-6">
-          <div className="text-sm font-extrabold">최근 통화</div>
-          <div className="mt-4 space-y-3">
-            <CallItem
-              title="요금 과다 청구/환불"
-              meta="C-20260107-1041 · 2026-01-07 10:11"
-              onOpen={() =>
-                openCopilot({
-                  callId: 'C-20260107-1041',
-                  customerName: '홍길동',
-                  issue: '요금 과다 청구/환불 요청',
-                  channel: '전화(CTI)'
-                })
-              }
-            />
-            <CallItem
-              title="인터넷 품질/해지 문의"
-              meta="C-20260106-1658 · 2026-01-06 16:58"
-              onOpen={() =>
-                openCopilot({
-                  callId: 'C-20260106-1658',
-                  customerName: '홍길동',
-                  issue: '인터넷 끊김/해지 요청',
-                  channel: '전화(CTI)'
-                })
-              }
-            />
-          </div>
-        </Card>
+        <div className="space-y-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-extrabold">최근 통화</div>
+              <button className="text-xs font-bold text-blue-600 hover:underline">전체보기</button>
+            </div>
+            <div className="mt-4 space-y-3">
+              {mockCalls.slice(0, 3).map((call) => (
+                <CallItem
+                  key={call.id}
+                  title={call.title}
+                  meta={`${call.id} · ${call.datetime.split(' ')[1]}`}
+                  onOpen={() =>
+                    openCopilot({
+                      callId: call.id,
+                      customerName: '홍길동',
+                      issue: call.title,
+                      channel: '전화(CTI)'
+                    })
+                  }
+                />
+              ))}
+            </div>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card className="p-6">
+            <div className="text-sm font-extrabold mb-4">빠른 실행 (Quick Actions)</div>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => handleQuickAction('스크립트 조회')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+                <FileText size={20} />
+                <span className="text-xs font-bold">스크립트</span>
+              </button>
+              <button onClick={() => handleQuickAction('지식 베이스 검색')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+                <BookOpen size={20} />
+                <span className="text-xs font-bold">지식 베이스</span>
+              </button>
+              <button onClick={() => handleQuickAction('이슈 리포팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+                <AlertCircle size={20} />
+                <span className="text-xs font-bold">이슈 리포트</span>
+              </button>
+              <button onClick={() => handleQuickAction('상담원 채팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+                <MessageSquare size={20} />
+                <span className="text-xs font-bold">팀 채팅</span>
+              </button>
+            </div>
+          </Card>
+        </div>
 
         <Card className="p-6">
           <div className="flex items-center justify-between">
