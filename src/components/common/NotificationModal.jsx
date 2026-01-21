@@ -103,11 +103,11 @@ export default function NotificationModal({ onClose }) {
     return (
         <AnimatePresence>
             <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className={`absolute top-14 right-4 z-50 overflow-hidden ${selectedId ? 'w-[600px]' : 'w-[420px]'}`}
+                initial={{ opacity: 0, scale: 0.9, x: -20 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.9, x: -20 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className={`absolute bottom-full left-14 z-50 mb-[-40px] ${selectedId ? 'w-[600px]' : 'w-[420px]'}`}
             >
                 <div className="rounded-2xl bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden border border-white/60 flex flex-col max-h-[80vh]">
                     {/* Header */}
@@ -249,8 +249,8 @@ function NotificationItem({ notification, onClick, onDelete, onMarkRead }) {
             exit={{ opacity: 0, scale: 0.9 }}
             onClick={onClick}
             className={`group relative flex gap-4 p-4 rounded-2xl transition-all cursor-pointer border ${notification.read
-                    ? 'bg-transparent border-transparent hover:bg-white hover:shadow-sm hover:border-slate-100'
-                    : 'bg-white shadow-sm border-blue-100/50 hover:border-blue-200 hover:shadow-md'
+                ? 'bg-transparent border-transparent hover:bg-white hover:shadow-sm hover:border-slate-100'
+                : 'bg-white shadow-sm border-blue-100/50 hover:border-blue-200 hover:shadow-md'
                 }`}
         >
             <div className={`mt-0.5 shrink-0 ${!notification.read && 'animate-pulse'}`}>
