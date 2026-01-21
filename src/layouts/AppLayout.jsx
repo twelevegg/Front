@@ -18,10 +18,11 @@ export default function AppLayout() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={pathname}
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, transition: { duration: 0 } }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                  className="w-full"
                 >
                   <Outlet />
                 </motion.div>
