@@ -3,6 +3,7 @@ import Card from '../../components/Card.jsx';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { emitCallConnected } from '../../features/calls/callEvents.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
+import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText } from 'lucide-react';
 
 const dataWeek = [
   { label: 'W-4', qa: 80, success: 81, adherence: 90 },
@@ -21,26 +22,75 @@ export default function AssistantDashboardPage() {
   const { addToast } = useToast();
   const [chartType, setChartType] = useState('line'); // 'line' | 'bar'
   const [period, setPeriod] = useState('week'); // 'week' | 'month'
+  const [status, setStatus] = useState('online'); // online | busy | offline
 
   const openCopilot = (payload) => {
     emitCallConnected(payload);
     addToast('CoPilot 가이드가 실행되었습니다.', 'success');
   };
 
+  const StatusButton = ({ type, label, icon: Icon, color }) => (
+    <button
+      onClick={() => setStatus(type)}
+      className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === type
+        ? `bg-${color}-50 border-${color}-200 text-${color}-700 ring-2 ring-${color}-100 ring-offset-1`
+        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+        }`}
+    >
+      <div className={`w-2 h-2 rounded-full bg-${color}-500`} />
+      <span className="text-xs font-bold">{label}</span>
+    </button>
+  );
+
   const currentData = period === 'week' ? dataWeek : dataMonth;
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="text-sm text-slate-500">Dashboard</div>
-        <div className="text-xl font-extrabold mt-1">상담원 대시보드</div>
-        <div className="text-sm text-slate-500 mt-2">간단 KPI 요약 + 최근 통화 + 성과 지표(예시)</div>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-sm text-slate-500 font-bold">Dashboard</div>
+          <div className="text-xl font-black text-slate-900 mt-1">상담원 대시보드</div>
+        </div>
+
+        {/* Status Toggle */}
+        <div className="flex items-center gap-2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
+          <button
+            onClick={() => setStatus('online')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'online'
+              ? 'bg-green-50 border-green-200 text-green-700 shadow-sm font-bold'
+              : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
+              }`}
+          >
+            <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
+            <span className="text-xs">상담 대기</span>
+          </button>
+          <button
+            onClick={() => setStatus('busy')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'busy'
+              ? 'bg-orange-50 border-orange-200 text-orange-700 shadow-sm font-bold'
+              : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
+              }`}
+          >
+            <div className={`w-2 h-2 rounded-full ${status === 'busy' ? 'bg-orange-500' : 'bg-slate-300'}`} />
+            <span className="text-xs">용무 중</span>
+          </button>
+          <button
+            onClick={() => setStatus('offline')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'offline'
+              ? 'bg-slate-100 border-slate-300 text-slate-700 shadow-sm font-bold'
+              : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
+              }`}
+          >
+            <div className={`w-2 h-2 rounded-full ${status === 'offline' ? 'bg-slate-500' : 'bg-slate-300'}`} />
+            <span className="text-xs">자리 비움</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Kpi title="오늘 통화" value="17" />
-        <Kpi title="QA(최근)" value="82" />
-        <Kpi title="가이드라인 준수" value="92%" />
+        <Kpi title="오늘 통화" value="17" icon={<Phone size={20} className="text-blue-500" />} />
+        <Kpi title="QA(최근)" value="82" icon={<CheckCircle size={20} className="text-green-500" />} />
+        <Kpi title="가이드라인 준수" value="92%" icon={<BookOpen size={20} className="text-purple-500" />} />
       </div>
 
       <div className="grid grid-cols-[420px_1fr] gap-6">
@@ -135,11 +185,14 @@ export default function AssistantDashboardPage() {
   );
 }
 
-function Kpi({ title, value }) {
+function Kpi({ title, value, icon }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white px-5 py-4 shadow-soft">
-      <div className="text-xs text-slate-500 font-semibold">{title}</div>
-      <div className="mt-1 text-2xl font-extrabold">{value}</div>
+    <div className="rounded-2xl border border-slate-100 bg-white px-5 py-4 shadow-soft flex items-center justify-between">
+      <div>
+        <div className="text-xs text-slate-500 font-semibold">{title}</div>
+        <div className="mt-1 text-2xl font-extrabold">{value}</div>
+      </div>
+      {icon && <div className="p-3 rounded-xl bg-slate-50">{icon}</div>}
     </div>
   );
 }
