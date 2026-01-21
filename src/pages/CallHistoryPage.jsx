@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Search, Calendar, Filter, PlayCircle, BarChart2 } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
@@ -59,14 +60,6 @@ export default function CallHistoryPage() {
       case 'summary':
         return (
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <PlayCircle size={20} className="text-indigo-500" />
-              <span className="text-sm font-bold text-slate-700">통화 녹음</span>
-            </div>
-            <div className="h-16 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 text-sm">
-              [ Audio Player Placeholder ]
-            </div>
-
             <div className="flex items-center gap-2">
               <BarChart2 size={20} className="text-indigo-500" />
               <span className="text-sm font-bold text-slate-700">통화 요약</span>
@@ -130,8 +123,29 @@ export default function CallHistoryPage() {
 
       case 'audio':
         return (
-          <div className="h-40 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 text-sm">
-            [ Full Audio Player Placeholder ]
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <PlayCircle size={20} className="text-indigo-500" />
+              <span className="text-sm font-bold text-slate-700">통화 녹음 다시듣기</span>
+            </div>
+            <div className="h-16 bg-white rounded-xl border border-slate-200 flex items-center px-4 gap-4 shadow-sm">
+              <button className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 transition">
+                <PlayCircle size={16} className="ml-0.5" />
+              </button>
+              <div className="flex-1 h-8 flex items-center gap-1 opacity-50">
+                {[...Array(40)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1 bg-indigo-500 rounded-full transition-all duration-300"
+                    style={{
+                      height: `${Math.max(20, Math.random() * 100)}%`,
+                      opacity: Math.random() > 0.5 ? 1 : 0.4
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="text-xs font-bold text-slate-500">03:12</div>
+            </div>
           </div>
         );
 
@@ -170,8 +184,8 @@ export default function CallHistoryPage() {
                           key={s}
                           onClick={() => setFilterSentiment(s)}
                           className={`w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition ${filterSentiment === s
-                              ? 'bg-indigo-50 text-indigo-600'
-                              : 'hover:bg-slate-50 text-slate-700'
+                            ? 'bg-indigo-50 text-indigo-600'
+                            : 'hover:bg-slate-50 text-slate-700'
                             }`}
                         >
                           {s}
@@ -208,17 +222,17 @@ export default function CallHistoryPage() {
                     setActiveTab('summary');
                   }}
                   className={`w-full text-left rounded-2xl border px-5 py-4 transition hover:bg-slate-50 ${c.id === selectedId
-                      ? 'border-indigo-500 bg-indigo-50/50 ring-1 ring-indigo-500'
-                      : 'border-slate-100 bg-white'
+                    ? 'border-indigo-500 bg-indigo-50/50 ring-1 ring-indigo-500'
+                    : 'border-slate-100 bg-white'
                     }`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span
                       className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${c.sentiment === 'Negative'
-                          ? 'bg-rose-100 text-rose-600'
-                          : c.sentiment === 'Positive'
-                            ? 'bg-emerald-100 text-emerald-600'
-                            : 'bg-slate-100 text-slate-600'
+                        ? 'bg-rose-100 text-rose-600'
+                        : c.sentiment === 'Positive'
+                          ? 'bg-emerald-100 text-emerald-600'
+                          : 'bg-slate-100 text-slate-600'
                         }`}
                     >
                       {c.sentiment || 'Neutral'}
@@ -352,8 +366,24 @@ export default function CallHistoryPage() {
 
               <div>
                 <h3 className="text-lg font-bold text-slate-800 mb-4">감정 변화 흐름</h3>
-                <div className="h-40 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-center text-slate-400 text-sm">
-                  [ Sentiment Line Chart Placeholder ]
+                <div className="h-[200px] w-full bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={[
+                      { time: '00:30', val: 30 }, { time: '01:00', val: 40 }, { time: '01:30', val: 35 },
+                      { time: '02:00', val: 50 }, { time: '02:30', val: 70 }, { time: '03:00', val: 85 }
+                    ]}>
+                      <defs>
+                        <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                      <YAxis hide domain={[0, 100]} />
+                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                      <Area type="monotone" dataKey="val" stroke="#4f46e5" strokeWidth={3} fillUrl="url(#sentimentGradient)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
             </div>
