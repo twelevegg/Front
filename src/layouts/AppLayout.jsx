@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar.jsx';
 import Topbar from '../components/Topbar.jsx';
 import { CoPilotModal } from '../features/copilot/CoPilotModal.jsx';
