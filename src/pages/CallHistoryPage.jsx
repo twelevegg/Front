@@ -106,8 +106,8 @@ export default function CallHistoryPage() {
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${c.sentiment === 'Negative' ? 'bg-red-100 text-red-600' :
-                        c.sentiment === 'Positive' ? 'bg-green-100 text-green-600' :
-                          'bg-slate-100 text-slate-600'
+                      c.sentiment === 'Positive' ? 'bg-green-100 text-green-600' :
+                        'bg-slate-100 text-slate-600'
                       }`}>
                       {c.sentiment || 'Neutral'}
                     </span>
@@ -153,8 +153,8 @@ export default function CallHistoryPage() {
                   type="button"
                   onClick={() => setActiveTab(t.key)}
                   className={`px-4 py-2 text-sm font-extrabold rounded-2xl transition ${active
-                      ? 'bg-white border border-slate-200 shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white border border-slate-200 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                     }`}
                 >
                   {t.label}
