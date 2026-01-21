@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, Search, Tag, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Search, Tag, AlertCircle, X } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
 import { useToast } from '../components/common/ToastProvider.jsx';
@@ -19,6 +19,10 @@ const initialCases = [
     tags: ['환불', '정책'],
     body: '결제 내역 확인 후 정책에 따라 환불 절차 안내'
   }
+];
+
+const RECOMMENDED_TAGS = [
+  '고위험', '환불', '정책', '결제', '배송', '서비스', '불만', '칭찬', '시스템', '기타'
 ];
 
 function todayYYYYMMDD() {
@@ -48,7 +52,8 @@ export default function CaseLibraryPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [formTitle, setFormTitle] = useState('');
   const [formBody, setFormBody] = useState('');
-  const [formTags, setFormTags] = useState(''); // comma-separated
+  const [formTags, setFormTags] = useState([]); // Array of strings
+  const [customTag, setCustomTag] = useState(''); // Input for new manual tags
   const [error, setError] = useState('');
 
   const selected = useMemo(
@@ -60,13 +65,32 @@ export default function CaseLibraryPage() {
     setError('');
     setFormTitle('');
     setFormBody('');
-    setFormTags('');
+    setFormTags([]);
+    setCustomTag('');
     setIsOpen(true);
   };
 
   const closeModal = () => {
     setIsOpen(false);
     setError('');
+  };
+
+  const toggleTag = (tag) => {
+    setFormTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+  };
+
+  const addCustomTag = (e) => {
+    if (e.key === 'Enter' || e.type === 'click') {
+      e.preventDefault();
+      const val = customTag.trim();
+      if (!val) return;
+      if (!formTags.includes(val)) {
+        setFormTags([...formTags, val]);
+      }
+      setCustomTag('');
+    }
   };
 
   const saveCase = () => {
@@ -76,16 +100,11 @@ export default function CaseLibraryPage() {
     if (!title) return setError('제목을 입력해 주세요.');
     if (!body) return setError('내용을 입력해 주세요.');
 
-    const tags = formTags
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-
     const newCase = {
       id: nextCaseId(caseList),
       title,
       date: todayYYYYMMDD(),
-      tags,
+      tags: formTags,
       body
     };
 
@@ -144,8 +163,8 @@ export default function CaseLibraryPage() {
                   key={c.id}
                   onClick={() => setSelectedId(c.id)}
                   className={`group relative cursor-pointer w-full text-left rounded-2xl border px-5 py-5 transition-all duration-200 ${c.id === selectedId
-                      ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500'
-                      : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
+                    ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500'
+                    : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
                     }`}
                 >
                   <div className="flex items-start justify-between">
@@ -236,7 +255,7 @@ export default function CaseLibraryPage() {
         </Card>
       </div>
 
-      {/* Modal logic remains similar, will be updated in next step */}
+      {/* Modal */}
       {isOpen ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
@@ -282,13 +301,54 @@ export default function CaseLibraryPage() {
               </div>
 
               <div>
-                <div className="text-sm font-bold text-slate-700 mb-2">태그</div>
-                <input
-                  value={formTags}
-                  onChange={(e) => setFormTags(e.target.value)}
-                  placeholder="쉼표로 구분 (예: 고위험, 정책)"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-                />
+                <div className="text-sm font-bold text-slate-700 mb-2">태그 선택</div>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {RECOMMENDED_TAGS.map(tag => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => toggleTag(tag)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${formTags.includes(tag)
+                            ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-200'
+                            : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="relative">
+                    <input
+                      value={customTag}
+                      onChange={(e) => setCustomTag(e.target.value)}
+                      onKeyDown={addCustomTag}
+                      placeholder="직접 입력 (Enter로 추가)"
+                      className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomTag}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-slate-200 rounded-full hover:bg-slate-300 text-slate-600"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+
+                  {formTags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-100 min-h-[3rem]">
+                      {formTags.map(tag => (
+                        <span key={tag} className="flex items-center gap-1 pl-3 pr-2 py-1 rounded-full bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-sm">
+                          {tag}
+                          <button onClick={() => toggleTag(tag)} className="p-0.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-red-500">
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
