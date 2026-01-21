@@ -19,7 +19,7 @@ npm run dev
 - `Training Center` shows a hover submenu: PPT 교육 / RolePlaying.
 - CoPilot modal pops up on a simulated call event. Use the button on Call history page.
 
-## Admin Features Verification (Update 2025.01)
+## Admin Features Verification (Update 2026.01)
 
 최근 추가된 관리자 기능 및 알림 시스템 확인 방법입니다.
 
@@ -42,3 +42,51 @@ npm run dev
 ---
 Replace the dev role switch in the topbar with your real login flow.
 
+
+## Privacy & Security Updates (Update 2026.02)
+
+추가/변경된 개인정보/보안 관련 기능입니다.
+
+### 1. 회원가입 개인정보 수집·이용 동의(필수)
+
+회원가입(Sign Up) 시 **개인정보 수집 및 이용 동의 체크(필수)** 추가.
+
+동의하지 않으면 회원가입이 진행 x.
+
+“내용 보기”를 통해 개인정보처리방침을 확인 가능.
+
+#### 📁 관련 파일:
+
+SignUpPage.jsx / PrivacyPolicyModal.jsx / PrivacyPolicyContent.jsx
+
+### 2. 비밀번호 규칙 안내(UX)
+
+회원가입 시 비밀번호 규칙을 안내하고, 규칙에 맞지 않으면 입력 하단에 안내 문구 표시.
+
+운영 환경에서는 프론트 검증 외에도 백엔드에서도 동일 정책 검증 필요.
+
+#### 📁 관련 파일:
+
+SignUpPage.jsx
+
+### 3. 개인정보 표시 제한(마스킹)
+
+관리자/분석/코파일럿 화면에서 인명 정보가 그대로 노출되지 않도록 마스킹 표시를 적용.
+
+예: 김지민 → 김지*
+
+주의: 프론트 마스킹은 “화면 표시”만 가립니다. 운영에서는 백엔드 응답 필드 제한/권한별 마스킹 정책도 함께 적용 필요.
+
+#### 📁 관련 파일:
+
+AdminDashboardPage.jsx / AttritionPredictionPage.jsx / CoPilotModal.jsx / mask.js
+
+### 4. 개인정보처리방침 링크/페이지 제공
+
+로그인 페이지 하단에 개인정보처리방침 링크를 추가하여 개인정보처리방침 페이지에서 내용을 확인 가능.
+
+처리방침 콘텐츠는 통신사 특성을 반영해 구성.
+
+#### 📁 관련 파일:
+
+LoginPage.jsx / PrivacyPolicyPage.jsx / PrivacyPolicyContent.jsx

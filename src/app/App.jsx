@@ -19,12 +19,16 @@ import RolePlayingPage from '../pages/training/RolePlayingPage.jsx';
 import AttritionPredictionPage from '../pages/dashboards/AttritionPredictionPage.jsx';
 import BurnoutAnalysisPage from '../pages/dashboards/BurnoutAnalysisPage.jsx';
 
+import PrivacyPolicyPage from '../pages/PrivacyPolicyPage.jsx';
+
 export default function App() {
   return (
     <Routes>
       {/* Public */}
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.SIGNUP} element={<SignUpPage />} />
+      {/* ✅ 개인정보처리방침은 로그인 없이 접근 가능해야 함 */}
+      <Route path={ROUTES.PRIVACY} element={<PrivacyPolicyPage />} />
 
       {/* Protected */}
       <Route
@@ -68,6 +72,7 @@ export default function App() {
         <Route path={ROUTES.CASE_LIBRARY} element={<CaseLibraryPage />} />
         <Route path={ROUTES.TRAIN_PPT} element={<PptTrainingPage />} />
         <Route path={ROUTES.TRAIN_ROLEPLAY} element={<RolePlayingPage />} />
+
       </Route>
 
       {/* Fallback */}

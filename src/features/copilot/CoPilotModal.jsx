@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Card from '../../components/Card.jsx';
 import { useCoPilot } from './CoPilotProvider.jsx';
+import { maskName } from '../../utils/mask.js';
 
 /**
  * CoPilotModal (v2)
@@ -104,9 +105,7 @@ export function CoPilotModal() {
                         <div className="text-sm font-extrabold flex items-center gap-2">
                           <Phone size={16} /> 통화 내용(실시간)
                         </div>
-                        <div className="text-xs text-slate-500 mt-1">
-                          {session.callMeta}
-                        </div>
+                        <div className="text-xs text-slate-500 mt-1">{session.callMeta}</div>
                       </div>
                       <button className="rounded-full border border-slate-200 px-3 py-1 text-xs font-extrabold hover:bg-slate-50">
                         {session.now}
@@ -195,7 +194,9 @@ export function CoPilotModal() {
                         <div className="text-sm font-extrabold">멘트/행동 추천(감정 기반)</div>
                         <div className="text-xs text-slate-500 mt-1">통화 중 상대 감정에 맞춰 대응 전략을 제안합니다.</div>
                       </div>
-                      <Pill tone={session.emotion.tone}>{session.emotion.label} ({session.emotion.score})</Pill>
+                      <Pill tone={session.emotion.tone}>
+                        {session.emotion.label} ({session.emotion.score})
+                      </Pill>
                     </div>
 
                     <div className="mt-4 space-y-3">
@@ -227,7 +228,8 @@ export function CoPilotModal() {
                     <div className="mt-4 rounded-2xl border border-slate-100 p-4">
                       <div className="text-xs text-slate-500 font-semibold">추천(예시)</div>
                       <div className="mt-2 text-sm text-slate-700 leading-6">
-                        • 고객이 해지 의사를 보이면: <span className="font-extrabold">위약금/혜택</span>을 비교 제시하고 선택지를 주기<br />
+                        • 고객이 해지 의사를 보이면: <span className="font-extrabold">위약금/혜택</span>을 비교 제시하고 선택지를 주기
+                        <br />
                         • 업셀링: 사용 패턴 기반으로 <span className="font-extrabold">추가 데이터/결합 할인</span> 제안
                       </div>
                     </div>
@@ -240,7 +242,7 @@ export function CoPilotModal() {
             <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <UserRound size={14} />
-                고객: <span className="font-semibold text-slate-700">{session.customer.name}</span> ·
+                고객: <span className="font-semibold text-slate-700">{maskName(session.customer.name)}</span> ·
                 {session.customer.phone}
               </div>
 

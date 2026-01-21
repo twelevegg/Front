@@ -9,8 +9,8 @@ export default function Sidebar() {
   return (
     <div className="rounded-3xl bg-white shadow-soft border border-slate-100 p-6">
       <div className="mb-6">
-        <div className="text-xl font-extrabold tracking-tight">CS-Navigator</div>
-        <div className="text-sm text-slate-500">Console</div>
+        <div className="text-xl font-extrabold tracking-tight">CS Assistant</div>
+        <div className="text-sm text-slate-500">console</div>
       </div>
 
       <nav className="space-y-2">

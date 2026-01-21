@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Shield, Headset } from 'lucide-react';
 
 import AuthShell from './AuthShell.jsx';
 import { ROUTES } from '../../app/routeConstants.js';
 import { signupApi } from '../../features/auth/api.js';
+import PrivacyPolicyModal from '../../components/legal/PrivacyPolicyModal.jsx';
 
 export default function SignUpPage() {
   const nav = useNavigate();
@@ -17,18 +18,65 @@ export default function SignUpPage() {
 
   const [showPw, setShowPw] = useState(false);
 
+  // ✅ 개인정보 동의 + 모달
+  const [privacyAgree, setPrivacyAgree] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
+
   // ✅ role 선택 (admin / assistant)
   const [role, setRole] = useState('assistant');
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
 
+  // ✅ 비밀번호 규칙 안내(UX): 사용자가 비밀번호 필드를 건드렸는지
+  const [pwTouched, setPwTouched] = useState(false);
+
+  // ✅ 비밀번호 규칙 정의
+  const pwRuleText = '영문, 숫자, 특수문자를 모두 1회 이상 포함하여 10-16자리로 구성해야 합니다.';
+
+  const pwRule = useMemo(() => {
+    const lenOk = password.length >= 10 && password.length <= 16;
+    const hasLetter = /[A-Za-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+
+    return {
+      lenOk,
+      hasLetter,
+      hasNumber,
+      hasSpecial,
+      ok: lenOk && hasLetter && hasNumber && hasSpecial,
+    };
+  }, [password]);
+
+  // ✅ 규칙 불만족 시 보여줄 에러 메시지
+  const pwError = useMemo(() => {
+    if (!pwTouched) return '';
+    if (!password) return '';
+    if (pwRule.ok) return '';
+    return pwRuleText;
+  }, [pwTouched, password, pwRule.ok]);
+
+  // ✅ 비밀번호 확인 불일치 에러(입력했을 때만)
+  const pw2Error = useMemo(() => {
+    if (!pwTouched) return '';
+    if (!password2) return '';
+    if (password === password2) return '';
+    return '비밀번호 확인이 일치하지 않습니다.';
+  }, [pwTouched, password, password2]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setPwTouched(true);
 
-    if (password.length < 6) {
-      setError('비밀번호는 6자 이상을 권장합니다.');
+    if (!privacyAgree) {
+      setError('개인정보 수집 및 이용에 동의해주세요.');
+      return;
+    }
+
+    if (!pwRule.ok) {
+      setError(pwRuleText);
       return;
     }
 
@@ -49,7 +97,7 @@ export default function SignUpPage() {
        */
       nav(ROUTES.LOGIN, { replace: true });
     } catch (err) {
-      setError(err.message || '회원가입에 실패했습니다.');
+      setError(err?.message || '회원가입에 실패했습니다.');
     } finally {
       setPending(false);
     }
@@ -125,15 +173,35 @@ export default function SignUpPage() {
               type={showPw ? 'text' : 'password'}
               className="flex-1 bg-transparent outline-none text-sm font-semibold"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (!pwTouched) setPwTouched(true);
+              }}
+              onBlur={() => setPwTouched(true)}
               placeholder="••••••••"
               autoComplete="new-password"
               required
             />
-
-            {/* ✅ 클릭영역/겹침 해결: h-9 w-9 + z-10 + center */}
             <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
           </IconInput>
+
+          {/* ✅ 규칙 안내(항상 표시) */}
+          <div className="mt-2 text-[11px] text-slate-400">{pwRuleText}</div>
+
+          {/* ✅ 규칙 불만족 시 빨간 안내 */}
+          {pwError && (
+            <div className="mt-2 text-xs font-semibold text-red-600">
+              {pwError}
+            </div>
+          )}
+
+          {/* ✅ 체크리스트(원하면 유지, 싫으면 이 블록 삭제 가능) */}
+          <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
+            <RulePill ok={pwRule.lenOk} label="10~16자" />
+            <RulePill ok={pwRule.hasLetter} label="영문 포함" />
+            <RulePill ok={pwRule.hasNumber} label="숫자 포함" />
+            <RulePill ok={pwRule.hasSpecial} label="특수문자 포함" />
+          </div>
         </Field>
 
         <Field label="Confirm Password">
@@ -143,15 +211,47 @@ export default function SignUpPage() {
               type={showPw ? 'text' : 'password'}
               className="flex-1 bg-transparent outline-none text-sm font-semibold"
               value={password2}
-              onChange={(e) => setPassword2(e.target.value)}
+              onChange={(e) => {
+                setPassword2(e.target.value);
+                if (!pwTouched) setPwTouched(true);
+              }}
+              onBlur={() => setPwTouched(true)}
               placeholder="••••••••"
               autoComplete="new-password"
               required
             />
-
             <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
           </IconInput>
+
+          {pw2Error && (
+            <div className="mt-2 text-xs font-semibold text-red-600">
+              {pw2Error}
+            </div>
+          )}
         </Field>
+
+        {/* ✅ 개인정보 수집 이용 동의 체크 */}
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 rounded border-slate-300"
+              checked={privacyAgree}
+              onChange={(e) => setPrivacyAgree(e.target.checked)}
+            />
+            <span className="text-sm text-slate-700">
+              <span className="font-extrabold">개인정보 수집 및 이용 동의</span>{' '}
+              <span className="text-red-600">(필수)</span>
+              <button
+                type="button"
+                onClick={() => setPolicyOpen(true)}
+                className="ml-2 text-xs font-extrabold text-blue-600 hover:text-blue-700"
+              >
+                내용 보기
+              </button>
+            </span>
+          </label>
+        </div>
 
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -173,6 +273,8 @@ export default function SignUpPage() {
           </Link>
         </div>
       </form>
+
+      <PrivacyPolicyModal open={policyOpen} onClose={() => setPolicyOpen(false)} />
     </AuthShell>
   );
 }
@@ -200,7 +302,6 @@ function PwToggleButton({ show, onToggle }) {
   return (
     <button
       type="button"
-      // ✅ 포커스/라벨 이벤트 간섭 방지
       onMouseDown={(e) => e.preventDefault()}
       onClick={onToggle}
       className="
@@ -245,5 +346,17 @@ function RoleChip({ active, onClick, icon, title, desc }) {
         </div>
       </div>
     </button>
+  );
+}
+
+function RulePill({ ok, label }) {
+  return (
+    <span
+      className={`px-2 py-1 rounded-full border ${
+        ok ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-500'
+      }`}
+    >
+      {label}
+    </span>
   );
 }

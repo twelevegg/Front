@@ -3,6 +3,7 @@ import Card from '../../components/Card.jsx';
 import Badge from '../../components/Badge.jsx';
 import Pill from '../../components/Pill.jsx';
 import SearchInput from '../../components/SearchInput.jsx';
+import { maskName } from '../../utils/mask.js'; // ✅ 추가
 
 const counselors = [
   { name: '김지민', id: 'A-1021', team: '배송/반품', tenure: '근속 43일', risk: 82, riskTone: 'High' },
@@ -18,7 +19,7 @@ export default function AdminDashboardPage() {
   const filtered = useMemo(() => {
     const q = query.trim();
     if (!q) return counselors;
-    return counselors.filter((c) => `${c.name} ${c.id}`.includes(q));
+    return counselors.filter((c) => `${c.name} ${c.id}`.includes(q)); // 검색은 원본 기준 유지
   }, [query]);
 
   return (
@@ -64,7 +65,7 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
-                      <div className="font-extrabold">{c.name}</div>
+                      <div className="font-extrabold">{maskName(c.name)}</div>
                       <Badge label={c.riskTone} tone={c.riskTone} />
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
@@ -86,7 +87,7 @@ export default function AdminDashboardPage() {
             <div>
               <div className="text-sm font-extrabold">선택 상담사</div>
               <div className="text-sm text-slate-500 mt-1">
-                {selected?.name} · {selected?.id} · {selected?.team} · {selected?.tenure}
+                {maskName(selected?.name)} · {selected?.id} · {selected?.team} · {selected?.tenure}
               </div>
             </div>
             <div className="flex gap-2 flex-wrap justify-end">
@@ -131,4 +132,3 @@ function Kpi({ title, value }) {
     </div>
   );
 }
-

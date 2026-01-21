@@ -6,6 +6,8 @@ import AuthShell from './AuthShell.jsx';
 import { ROUTES } from '../../app/routeConstants.js';
 import { useAuth } from '../../features/auth/AuthProvider.jsx';
 
+
+
 export default function LoginPage() {
   const nav = useNavigate();
   const loc = useLocation();
@@ -102,6 +104,12 @@ export default function LoginPage() {
           </Link>
         </div>
 
+        <div className="pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
+          <Link to={ROUTES.PRIVACY} className="font-extrabold text-slate-600 hover:text-slate-900">
+            개인정보처리방침
+          </Link>
+        </div>
+        
         <div className="text-xs text-slate-400 text-center">
           (데모) 이메일에 <span className="font-semibold">admin</span> 포함 시 admin 로그인으로 처리됩니다.
         </div>
@@ -109,6 +117,8 @@ export default function LoginPage() {
     </AuthShell>
   );
 }
+
+
 
 function Field({ label, children }) {
   return (
