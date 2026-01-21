@@ -1,8 +1,8 @@
 const styles = {
-  High: 'bg-red-500 text-white',
+  High: 'bg-rose-500 text-white',
   Medium: 'bg-slate-100 text-slate-700',
-  Low: 'bg-blue-100 text-blue-700',
-  Severe: 'bg-red-600 text-white',
+  Low: 'bg-indigo-100 text-indigo-700',
+  Severe: 'bg-rose-600 text-white',
   Normal: 'bg-slate-100 text-slate-700'
 };
 

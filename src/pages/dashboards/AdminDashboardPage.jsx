@@ -95,7 +95,7 @@ export default function AdminDashboardPage() {
                   key={c.id}
                   type="button"
                   onClick={() => setSelected(c)}
-                  className={`w-full text-left rounded-2xl border px-4 py-3 transition hover:bg-slate-50 ${selected?.id === c.id ? 'border-blue-200 bg-blue-50' : 'border-slate-100 bg-white'
+                  className={`w-full text-left rounded-2xl border px-4 py-3 transition hover:bg-slate-50 ${selected?.id === c.id ? 'border-indigo-200 bg-indigo-50' : 'border-slate-100 bg-white'
                     }`}
                 >
                   <div className="flex items-center justify-between">
@@ -134,13 +134,13 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center divide-x divide-slate-100 bg-slate-50 rounded-2xl border border-slate-100 p-1">
                   <div className="px-5 py-2 text-center">
                     <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Attrition Risk</div>
-                    <div className={`text-lg font-black ${selected.riskTone === 'High' ? 'text-red-500' : selected.riskTone === 'Medium' ? 'text-amber-500' : 'text-green-500'}`}>
+                    <div className={`text-lg font-black ${selected.riskTone === 'High' ? 'text-rose-500' : selected.riskTone === 'Medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
                       {selected.risk ?? '-'} <span className="text-xs font-bold text-slate-400">/ 100</span>
                     </div>
                   </div>
                   <div className="px-5 py-2 text-center">
                     <div className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Stress Level</div>
-                    <div className="text-lg font-black text-blue-600">
+                    <div className="text-lg font-black text-indigo-600">
                       32 <span className="text-xs font-bold text-slate-400">Normal</span>
                     </div>
                   </div>
@@ -179,12 +179,12 @@ export default function AdminDashboardPage() {
                   <AreaChart data={mockTrendData}>
                     <defs>
                       <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="colorStress" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
@@ -192,14 +192,14 @@ export default function AdminDashboardPage() {
                     <Tooltip
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                     />
-                    <Area type="monotone" dataKey="risk" stroke="#ef4444" fillOpacity={1} fill="url(#colorRisk)" strokeWidth={3} />
-                    <Area type="monotone" dataKey="stress" stroke="#3b82f6" fillOpacity={1} fill="url(#colorStress)" strokeWidth={3} />
+                    <Area type="monotone" dataKey="risk" stroke="#f43f5e" fillOpacity={1} fill="url(#colorRisk)" strokeWidth={3} />
+                    <Area type="monotone" dataKey="stress" stroke="#4f46e5" fillOpacity={1} fill="url(#colorStress)" strokeWidth={3} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
               <div className="mt-2 text-xs text-slate-400 text-right">
-                <span className="text-red-500 font-bold">● Risk</span> &nbsp;
-                <span className="text-blue-500 font-bold">● Stress</span> (7일 추이)
+                <span className="text-rose-500 font-bold">● Risk</span> &nbsp;
+                <span className="text-indigo-500 font-bold">● Stress</span> (7일 추이)
               </div>
             </>
           ) : (
@@ -212,16 +212,16 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between">
           <div className="text-sm font-extrabold">폭언/욕설 실시간 알림</div>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
             <Pill>Live</Pill>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           {mockAlerts.map(alert => (
-            <div key={alert.id} className="flex items-start gap-3 p-4 rounded-2xl bg-red-50 border border-red-100">
+            <div key={alert.id} className="flex items-start gap-3 p-4 rounded-2xl bg-rose-50 border border-rose-100">
               <div className="bg-white p-2 rounded-xl text-xl shadow-sm">🚨</div>
               <div>
-                <div className="text-xs font-bold text-red-700 mb-1">{alert.type.toUpperCase()} ALERT</div>
+                <div className="text-xs font-bold text-rose-700 mb-1">{alert.type.toUpperCase()} ALERT</div>
                 <div className="text-sm font-bold text-slate-800">{alert.msg}</div>
                 <div className="text-xs text-slate-400 mt-1">{alert.time}</div>
               </div>

@@ -62,21 +62,21 @@ export default function AssistantDashboardPage() {
           <button
             onClick={() => setStatus('online')}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'online'
-              ? 'bg-green-50 border-green-200 text-green-700 shadow-sm font-bold'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm font-bold'
               : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
               }`}
           >
-            <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-slate-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
             <span className="text-xs">상담 대기</span>
           </button>
           <button
             onClick={() => setStatus('busy')}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'busy'
-              ? 'bg-orange-50 border-orange-200 text-orange-700 shadow-sm font-bold'
+              ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm font-bold'
               : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
               }`}
           >
-            <div className={`w-2 h-2 rounded-full ${status === 'busy' ? 'bg-orange-500' : 'bg-slate-300'}`} />
+            <div className={`w-2 h-2 rounded-full ${status === 'busy' ? 'bg-amber-500' : 'bg-slate-300'}`} />
             <span className="text-xs">용무 중</span>
           </button>
           <button
@@ -93,8 +93,8 @@ export default function AssistantDashboardPage() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Kpi title="오늘 통화" value="17" icon={<Phone size={20} className="text-blue-500" />} />
-        <Kpi title="QA(최근)" value="82" icon={<CheckCircle size={20} className="text-green-500" />} />
+        <Kpi title="오늘 통화" value="17" icon={<Phone size={20} className="text-indigo-500" />} />
+        <Kpi title="QA(최근)" value="82" icon={<CheckCircle size={20} className="text-emerald-500" />} />
         <Kpi title="가이드라인 준수" value="92%" icon={<BookOpen size={20} className="text-purple-500" />} />
       </div>
 
@@ -103,7 +103,7 @@ export default function AssistantDashboardPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div className="text-sm font-extrabold">최근 통화</div>
-              <button className="text-xs font-bold text-blue-600 hover:underline">전체보기</button>
+              <button className="text-xs font-bold text-indigo-600 hover:underline">전체보기</button>
             </div>
             <div className="mt-4 space-y-3">
               {mockCalls.slice(0, 3).map((call) => (
@@ -128,19 +128,19 @@ export default function AssistantDashboardPage() {
           <Card className="p-6">
             <div className="text-sm font-extrabold mb-4">빠른 실행 (Quick Actions)</div>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => handleQuickAction('스크립트 조회')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+              <button onClick={() => handleQuickAction('스크립트 조회')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
                 <FileText size={20} />
                 <span className="text-xs font-bold">스크립트</span>
               </button>
-              <button onClick={() => handleQuickAction('지식 베이스 검색')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+              <button onClick={() => handleQuickAction('지식 베이스 검색')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
                 <BookOpen size={20} />
                 <span className="text-xs font-bold">지식 베이스</span>
               </button>
-              <button onClick={() => handleQuickAction('이슈 리포팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+              <button onClick={() => handleQuickAction('이슈 리포팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
                 <AlertCircle size={20} />
                 <span className="text-xs font-bold">이슈 리포트</span>
               </button>
-              <button onClick={() => handleQuickAction('상담원 채팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 hover:text-blue-600 transition border border-slate-100">
+              <button onClick={() => handleQuickAction('상담원 채팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
                 <MessageSquare size={20} />
                 <span className="text-xs font-bold">팀 채팅</span>
               </button>
@@ -157,14 +157,14 @@ export default function AssistantDashboardPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setPeriod(period === 'week' ? 'month' : 'week')}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${period === 'week' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 text-slate-500'
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${period === 'week' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-slate-200 text-slate-500'
                   }`}
               >
                 {period === 'week' ? 'Last 4 Weeks' : 'Quarterly'}
               </button>
               <button
                 onClick={() => setChartType(chartType === 'line' ? 'bar' : 'line')}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${chartType === 'line' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'border-slate-200 text-slate-500'
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${chartType === 'line' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-slate-200 text-slate-500'
                   }`}
               >
                 {chartType === 'line' ? 'Line View' : 'Bar View'}
@@ -183,7 +183,7 @@ export default function AssistantDashboardPage() {
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                     cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
                   />
-                  <Line type="monotone" dataKey="qa" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="qa" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4, fill: '#4f46e5', strokeWidth: 0 }} activeDot={{ r: 6 }} />
                   <Line type="monotone" dataKey="success" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} />
                   <Line type="monotone" dataKey="adherence" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }} />
                 </LineChart>
@@ -196,7 +196,7 @@ export default function AssistantDashboardPage() {
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
                     cursor={{ fill: '#f8fafc' }}
                   />
-                  <Bar dataKey="qa" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="qa" fill="#4f46e5" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="success" fill="#10b981" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="adherence" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -215,26 +215,26 @@ export default function AssistantDashboardPage() {
             <div className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">3건 남음</div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-blue-200 hover:bg-white transition cursor-pointer">
+            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-indigo-200 hover:bg-white transition cursor-pointer">
               <div className="flex items-start justify-between mb-2">
-                <div className="px-2 py-1 bg-red-100 text-red-600 rounded text-[10px] font-bold">긴급</div>
-                <CheckCircle size={16} className="text-slate-300 group-hover:text-blue-500" />
+                <div className="px-2 py-1 bg-rose-100 text-rose-600 rounded text-[10px] font-bold">긴급</div>
+                <CheckCircle size={16} className="text-slate-300 group-hover:text-indigo-500" />
               </div>
               <div className="text-sm font-bold text-slate-800 mb-1">QA 피드백 확인 필요</div>
               <div className="text-xs text-slate-500">어제 16:30분 건에 대한 개선 피드백이 도착했습니다.</div>
             </div>
-            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-blue-200 hover:bg-white transition cursor-pointer">
+            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-indigo-200 hover:bg-white transition cursor-pointer">
               <div className="flex items-start justify-between mb-2">
-                <div className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-[10px] font-bold">교육</div>
-                <CheckCircle size={16} className="text-slate-300 group-hover:text-blue-500" />
+                <div className="px-2 py-1 bg-indigo-100 text-indigo-600 rounded text-[10px] font-bold">교육</div>
+                <CheckCircle size={16} className="text-slate-300 group-hover:text-indigo-500" />
               </div>
               <div className="text-sm font-bold text-slate-800 mb-1">신규 상품 안내 교육</div>
               <div className="text-xs text-slate-500">신규 인터넷 결합 상품에 대한 온라인 교육을 이수하세요.</div>
             </div>
-            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-blue-200 hover:bg-white transition cursor-pointer">
+            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-indigo-200 hover:bg-white transition cursor-pointer">
               <div className="flex items-start justify-between mb-2">
                 <div className="px-2 py-1 bg-slate-200 text-slate-600 rounded text-[10px] font-bold">일반</div>
-                <CheckCircle size={16} className="text-slate-300 group-hover:text-blue-500" />
+                <CheckCircle size={16} className="text-slate-300 group-hover:text-indigo-500" />
               </div>
               <div className="text-sm font-bold text-slate-800 mb-1">콜백 요청 (2건)</div>
               <div className="text-xs text-slate-500">부재중 요청 고객에 대한 콜백이 필요합니다.</div>

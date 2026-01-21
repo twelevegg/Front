@@ -4,7 +4,7 @@ import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
 import { mockCalls } from '../features/calls/mockCalls.js';
 import { emitCallConnected } from '../features/calls/callEvents.js';
-import { maskName } from '../utils/mask.js'; 
+import { maskName } from '../utils/mask.js';
 
 const TABS = [
   { key: 'summary', label: '요약' },
@@ -60,7 +60,7 @@ export default function CallHistoryPage() {
         return (
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <PlayCircle size={20} className="text-blue-500" />
+              <PlayCircle size={20} className="text-indigo-500" />
               <span className="text-sm font-bold text-slate-700">통화 녹음</span>
             </div>
             <div className="h-16 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 text-sm">
@@ -68,7 +68,7 @@ export default function CallHistoryPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <BarChart2 size={20} className="text-blue-500" />
+              <BarChart2 size={20} className="text-indigo-500" />
               <span className="text-sm font-bold text-slate-700">통화 요약</span>
             </div>
             <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 text-sm text-slate-700 leading-relaxed">
@@ -76,7 +76,7 @@ export default function CallHistoryPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Filter size={20} className="text-blue-500" />
+              <Filter size={20} className="text-indigo-500" />
               <span className="text-sm font-bold text-slate-700">핵심 키워드</span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -115,7 +115,7 @@ export default function CallHistoryPage() {
             {logs.length > 0 ? (
               logs.map((entry, index) => (
                 <div key={index} className="bg-slate-50 rounded-xl border border-slate-100 p-3">
-                  <span className="font-bold text-blue-600">{entry.speaker}: </span>
+                  <span className="font-bold text-indigo-600">{entry.speaker}: </span>
                   <span>{entry.text}</span>
                 </div>
               ))
@@ -169,11 +169,10 @@ export default function CallHistoryPage() {
                         <button
                           key={s}
                           onClick={() => setFilterSentiment(s)}
-                          className={`w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition ${
-                            filterSentiment === s
-                              ? 'bg-blue-50 text-blue-600'
+                          className={`w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition ${filterSentiment === s
+                              ? 'bg-indigo-50 text-indigo-600'
                               : 'hover:bg-slate-50 text-slate-700'
-                          }`}
+                            }`}
                         >
                           {s}
                         </button>
@@ -190,7 +189,7 @@ export default function CallHistoryPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="고객명, 이슈, ID 검색..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
             </div>
           </div>
@@ -208,21 +207,19 @@ export default function CallHistoryPage() {
                     setSelectedId(c.id);
                     setActiveTab('summary');
                   }}
-                  className={`w-full text-left rounded-2xl border px-5 py-4 transition hover:bg-slate-50 ${
-                    c.id === selectedId
-                      ? 'border-blue-500 bg-blue-50/50 ring-1 ring-blue-500'
+                  className={`w-full text-left rounded-2xl border px-5 py-4 transition hover:bg-slate-50 ${c.id === selectedId
+                      ? 'border-indigo-500 bg-indigo-50/50 ring-1 ring-indigo-500'
                       : 'border-slate-100 bg-white'
-                  }`}
+                    }`}
                 >
                   <div className="flex justify-between items-start mb-1">
                     <span
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                        c.sentiment === 'Negative'
-                          ? 'bg-red-100 text-red-600'
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${c.sentiment === 'Negative'
+                          ? 'bg-rose-100 text-rose-600'
                           : c.sentiment === 'Positive'
-                          ? 'bg-green-100 text-green-600'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
+                            ? 'bg-emerald-100 text-emerald-600'
+                            : 'bg-slate-100 text-slate-600'
+                        }`}
                     >
                       {c.sentiment || 'Neutral'}
                     </span>
@@ -230,7 +227,7 @@ export default function CallHistoryPage() {
                   </div>
                   <div className="font-extrabold text-slate-800 line-clamp-1">{c.title}</div>
                   <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    <span className="font-bold">{maskName(c.customerName || '고객')}</span> 
+                    <span className="font-bold">{maskName(c.customerName || '고객')}</span>
                     <span>·</span>
                     <span>{c.duration || '00:00'}</span>
                   </div>
@@ -248,7 +245,7 @@ export default function CallHistoryPage() {
                 선택된 통화: <span className="font-extrabold text-slate-900">{selected?.id}</span>
               </div>
               <div className="text-xs text-slate-500 mt-1">
-                고객: <span className="font-extrabold text-slate-900">{maskName(selected?.customerName || '고객')}</span> 
+                고객: <span className="font-extrabold text-slate-900">{maskName(selected?.customerName || '고객')}</span>
               </div>
             </div>
 
@@ -263,7 +260,7 @@ export default function CallHistoryPage() {
               </button>
               <button
                 onClick={simulate}
-                className="rounded-full border border-blue-200 bg-blue-50 text-blue-700 px-4 py-2 text-sm font-bold hover:bg-blue-100"
+                className="rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 px-4 py-2 text-sm font-bold hover:bg-indigo-100"
                 type="button"
               >
                 📞 CoPilot 열기(DEV)
@@ -279,9 +276,8 @@ export default function CallHistoryPage() {
                   key={t.key}
                   type="button"
                   onClick={() => setActiveTab(t.key)}
-                  className={`px-4 py-2 text-sm font-extrabold rounded-2xl transition ${
-                    active ? 'bg-white border border-slate-200 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-                  }`}
+                  className={`px-4 py-2 text-sm font-extrabold rounded-2xl transition ${active ? 'bg-white border border-slate-200 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
                 >
                   {t.label}
                 </button>
@@ -318,9 +314,9 @@ export default function CallHistoryPage() {
                     85<span className="text-sm font-medium text-slate-400">/100</span>
                   </div>
                 </div>
-                <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100">
-                  <div className="text-xs font-bold text-blue-600 mb-2">공감도</div>
-                  <div className="text-2xl font-black text-blue-800">Excellent</div>
+                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100">
+                  <div className="text-xs font-bold text-indigo-600 mb-2">공감도</div>
+                  <div className="text-2xl font-black text-indigo-800">Excellent</div>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                   <div className="text-xs font-bold text-slate-500 mb-2">해결력</div>
@@ -337,19 +333,19 @@ export default function CallHistoryPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100">
                     <span className="font-bold text-slate-700">고객 맞이 및 첫인상</span>
-                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">PASS</span>
+                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">PASS</span>
                   </div>
                   <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100">
                     <span className="font-bold text-slate-700">고객 문제 파악 및 경청</span>
-                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">PASS</span>
+                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">PASS</span>
                   </div>
                   <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100">
                     <span className="font-bold text-slate-700">해결책 제시의 정확성</span>
-                    <span className="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">보통</span>
+                    <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">보통</span>
                   </div>
-                  <div className="flex items-center justify-between p-4 rounded-2xl border border-red-100 bg-red-50/50">
+                  <div className="flex items-center justify-between p-4 rounded-2xl border border-rose-100 bg-rose-50/50">
                     <span className="font-bold text-slate-700">통화 종료 및 친절한 마무리</span>
-                    <span className="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">FAIL</span>
+                    <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold">FAIL</span>
                   </div>
                 </div>
               </div>
