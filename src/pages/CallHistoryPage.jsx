@@ -3,6 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { Search, Calendar, Filter, PlayCircle, BarChart2 } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
+import EmptyState from '../components/common/EmptyState.jsx';
 import { mockCalls } from '../features/calls/mockCalls.js';
 import { emitCallConnected } from '../features/calls/callEvents.js';
 import { maskName } from '../utils/mask.js';
@@ -210,9 +211,11 @@ export default function CallHistoryPage() {
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {filteredCalls.length === 0 ? (
-              <div className="h-40 flex flex-col items-center justify-center text-slate-400">
-                <span className="text-sm font-bold">검색 결과가 없습니다.</span>
-              </div>
+              <EmptyState
+                title="검색 결과 없음"
+                description="다른 키워드로 검색해보세요."
+                className="h-40"
+              />
             ) : (
               filteredCalls.map((c) => (
                 <button
