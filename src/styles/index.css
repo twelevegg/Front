@@ -47,6 +47,11 @@ body {
   .shadow-soft {
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
   }
+
+  /* Global Interaction Feedback */
+  .btn-press {
+    @apply transition-transform active:scale-95;
+  }
 }
 
 /* ✅ Hide native password reveal button (Edge/IE) */
