@@ -275,8 +275,8 @@ export default function CallHistoryPage() {
       {isDetailOpen && selected ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsDetailOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
               <div>
                 <div className="text-xs font-bold text-slate-500 mb-1">AI Insight</div>
                 <h2 className="text-2xl font-black text-slate-900">심층 분석 리포트</h2>
@@ -284,7 +284,7 @@ export default function CallHistoryPage() {
               <button onClick={() => setIsDetailOpen(false)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
             </div>
 
-            <div className="p-8 space-y-8">
+            <div className="p-8 space-y-8 overflow-y-auto flex-1">
               {/* Score Cards */}
               <div className="grid grid-cols-4 gap-4">
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
