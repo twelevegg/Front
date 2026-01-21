@@ -180,6 +180,43 @@ export default function AssistantDashboardPage() {
             </ResponsiveContainer>
           </div>
         </Card>
+
+        {/* Action Items Section */}
+        <Card className="p-6 col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-sm font-extrabold flex items-center gap-2">
+              <AlertCircle size={18} className="text-orange-500" />
+              <span>필수 조치 항목 (My Action Items)</span>
+            </div>
+            <div className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">3건 남음</div>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-blue-200 hover:bg-white transition cursor-pointer">
+              <div className="flex items-start justify-between mb-2">
+                <div className="px-2 py-1 bg-red-100 text-red-600 rounded text-[10px] font-bold">긴급</div>
+                <CheckCircle size={16} className="text-slate-300 group-hover:text-blue-500" />
+              </div>
+              <div className="text-sm font-bold text-slate-800 mb-1">QA 피드백 확인 필요</div>
+              <div className="text-xs text-slate-500">어제 16:30분 건에 대한 개선 피드백이 도착했습니다.</div>
+            </div>
+            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-blue-200 hover:bg-white transition cursor-pointer">
+              <div className="flex items-start justify-between mb-2">
+                <div className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-[10px] font-bold">교육</div>
+                <CheckCircle size={16} className="text-slate-300 group-hover:text-blue-500" />
+              </div>
+              <div className="text-sm font-bold text-slate-800 mb-1">신규 상품 안내 교육</div>
+              <div className="text-xs text-slate-500">신규 인터넷 결합 상품에 대한 온라인 교육을 이수하세요.</div>
+            </div>
+            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-blue-200 hover:bg-white transition cursor-pointer">
+              <div className="flex items-start justify-between mb-2">
+                <div className="px-2 py-1 bg-slate-200 text-slate-600 rounded text-[10px] font-bold">일반</div>
+                <CheckCircle size={16} className="text-slate-300 group-hover:text-blue-500" />
+              </div>
+              <div className="text-sm font-bold text-slate-800 mb-1">콜백 요청 (2건)</div>
+              <div className="text-xs text-slate-500">부재중 요청 고객에 대한 콜백이 필요합니다.</div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
