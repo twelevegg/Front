@@ -47,8 +47,8 @@ export function CoPilotModal() {
   const session = useMemo(() => buildMockSession(call), [call]);
 
   const contentClass = compact
-    ? 'fixed right-6 top-6 w-[560px] max-w-[calc(100vw-48px)] rounded-3xl bg-white shadow-soft border border-slate-100 overflow-hidden'
-    : 'fixed inset-6 md:inset-10 rounded-3xl bg-white shadow-soft border border-slate-100 overflow-hidden';
+    ? 'fixed right-6 top-6 w-[560px] max-w-[calc(100vw-48px)] rounded-3xl bg-white shadow-soft border border-slate-100 overflow-hidden z-[100]'
+    : 'fixed inset-6 md:inset-10 rounded-3xl bg-white shadow-soft border border-slate-100 overflow-hidden z-[100]';
 
   const gridClass = compact
     ? 'grid grid-cols-1 gap-6'
@@ -57,7 +57,7 @@ export function CoPilotModal() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 bg-black/30" />
+        <Dialog.Overlay className="fixed inset-0 bg-black/30 z-[99]" />
 
         <Dialog.Content className={contentClass}>
           <div className="h-full flex flex-col">
@@ -265,9 +265,8 @@ function Bubble({ speaker, time, text }) {
   return (
     <div className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[78%] rounded-2xl border px-4 py-3 text-sm leading-6 shadow-soft ${
-          isAgent ? 'bg-white border-blue-100' : 'bg-white border-slate-100'
-        }`}
+        className={`max-w-[78%] rounded-2xl border px-4 py-3 text-sm leading-6 shadow-soft ${isAgent ? 'bg-white border-blue-100' : 'bg-white border-slate-100'
+          }`}
       >
         <div className="text-xs text-slate-500 mb-1">
           <span className="font-semibold">{speaker}</span> · {time}
@@ -361,9 +360,8 @@ function TogglePill({ label, on, onToggle }) {
     <button
       type="button"
       onClick={onToggle}
-      className={`rounded-full border px-3 py-1 text-xs font-extrabold hover:bg-slate-50 ${
-        on ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600'
-      }`}
+      className={`rounded-full border px-3 py-1 text-xs font-extrabold hover:bg-slate-50 ${on ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600'
+        }`}
     >
       {label}: {on ? 'on' : 'off'}
     </button>
