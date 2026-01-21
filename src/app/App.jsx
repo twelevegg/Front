@@ -17,6 +17,7 @@ import PptTrainingPage from '../pages/training/PptTrainingPage.jsx';
 import RolePlayingPage from '../pages/training/RolePlayingPage.jsx';
 
 import AttritionPredictionPage from '../pages/dashboards/AttritionPredictionPage.jsx';
+import AuthLayout from '../layouts/AuthLayout.jsx';
 import BurnoutAnalysisPage from '../pages/dashboards/BurnoutAnalysisPage.jsx';
 
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage.jsx';
@@ -24,9 +25,11 @@ import PrivacyPolicyPage from '../pages/PrivacyPolicyPage.jsx';
 export default function App() {
   return (
     <Routes>
-      {/* Public */}
-      <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-      <Route path={ROUTES.SIGNUP} element={<SignUpPage />} />
+      {/* Public Routes with Animation */}
+      <Route element={<AuthLayout />}>
+        <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+        <Route path={ROUTES.SIGNUP} element={<SignUpPage />} />
+      </Route>
       {/* ✅ 개인정보처리방침은 로그인 없이 접근 가능해야 함 */}
       <Route path={ROUTES.PRIVACY} element={<PrivacyPolicyPage />} />
 
