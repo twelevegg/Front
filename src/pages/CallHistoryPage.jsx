@@ -97,15 +97,25 @@ export default function CallHistoryPage() {
           </div>
         );
       case 'log':
+        // Safe rendering check
+        const logs = Array.isArray(selected?.log) ? selected.log : [];
+        const logContent = !Array.isArray(selected?.log) && selected?.log ? selected.log : null;
+
         return (
           <div className="space-y-2 text-sm text-slate-700">
             <h3 className="font-bold mb-2">통화 로그</h3>
-            {selected?.log?.map((entry, index) => (
-              <div key={index} className="bg-slate-50 rounded-xl border border-slate-100 p-3">
-                <span className="font-bold text-blue-600">{entry.speaker}: </span>
-                <span>{entry.text}</span>
+            {logs.length > 0 ? (
+              logs.map((entry, index) => (
+                <div key={index} className="bg-slate-50 rounded-xl border border-slate-100 p-3">
+                  <span className="font-bold text-blue-600">{entry.speaker}: </span>
+                  <span>{entry.text}</span>
+                </div>
+              ))
+            ) : (
+              <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 whitespace-pre-wrap">
+                {logContent || '로그 정보가 없습니다.'}
               </div>
-            )) || <span className="text-sm text-slate-500">로그 정보가 없습니다.</span>}
+            )}
           </div>
         );
       case 'audio':
