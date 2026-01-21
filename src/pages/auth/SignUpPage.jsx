@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Shield, Headset } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Shield, Headset, Check } from 'lucide-react';
 
 import AuthShell from './AuthShell.jsx';
 import { ROUTES } from '../../app/routeConstants.js';
@@ -28,55 +28,30 @@ export default function SignUpPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
 
-  // ✅ 비밀번호 규칙 안내(UX): 사용자가 비밀번호 필드를 건드렸는지
-  const [pwTouched, setPwTouched] = useState(false);
+  // ✅ Legal Consents
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedPrivacy, setAgreedPrivacy] = useState(false);
+  const [agreedMarketing, setAgreedMarketing] = useState(false);
 
-  // ✅ 비밀번호 규칙 정의
-  const pwRuleText = '영문, 숫자, 특수문자를 모두 1회 이상 포함하여 10-16자리로 구성해야 합니다.';
+  // ✅ Password Strength (0-4)
+  const getPasswordStrength = (pw) => {
+    let s = 0;
+    if (pw.length >= 8) s++;
+    if (/[A-Z]/.test(pw)) s++;
+    if (/[0-9]/.test(pw)) s++;
+    if (/[^A-Za-z0-9]/.test(pw)) s++;
+    return s;
+  };
 
-  const pwRule = useMemo(() => {
-    const lenOk = password.length >= 10 && password.length <= 16;
-    const hasLetter = /[A-Za-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[^A-Za-z0-9]/.test(password);
-
-    return {
-      lenOk,
-      hasLetter,
-      hasNumber,
-      hasSpecial,
-      ok: lenOk && hasLetter && hasNumber && hasSpecial,
-    };
-  }, [password]);
-
-  // ✅ 규칙 불만족 시 보여줄 에러 메시지
-  const pwError = useMemo(() => {
-    if (!pwTouched) return '';
-    if (!password) return '';
-    if (pwRule.ok) return '';
-    return pwRuleText;
-  }, [pwTouched, password, pwRule.ok]);
-
-  // ✅ 비밀번호 확인 불일치 에러(입력했을 때만)
-  const pw2Error = useMemo(() => {
-    if (!pwTouched) return '';
-    if (!password2) return '';
-    if (password === password2) return '';
-    return '비밀번호 확인이 일치하지 않습니다.';
-  }, [pwTouched, password, password2]);
+  const passwordStrength = getPasswordStrength(password);
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setPwTouched(true);
 
-    if (!privacyAgree) {
-      setError('개인정보 수집 및 이용에 동의해주세요.');
-      return;
-    }
-
-    if (!pwRule.ok) {
-      setError(pwRuleText);
+    if (password.length < 8) {
+      setError('비밀번호는 최소 8자 이상이어야 합니다.');
       return;
     }
 
@@ -85,10 +60,26 @@ export default function SignUpPage() {
       return;
     }
 
+    if (!agreedTerms) {
+      setError('서비스 이용약관에 동의해야 합니다.');
+      return;
+    }
+
+    if (!agreedPrivacy) {
+      setError('개인정보 수집 및 이용에 동의해야 합니다.');
+      return;
+    }
+
     setPending(true);
 
     try {
-      await signupApi({ name, email, password, role });
+      await signupApi({
+        name,
+        email,
+        password,
+        role,
+        consents: { terms: agreedTerms, privacy: agreedPrivacy, marketing: agreedMarketing }
+      });
 
       /**
        * ✅ TODO (백엔드 연동 시)
@@ -106,11 +97,11 @@ export default function SignUpPage() {
   return (
     <AuthShell
       mode="signup"
-      title="Sign Up"
-      subtitle="계정을 생성해 CS-Navigator 콘솔을 사용하세요."
-      ctaTitle="Welcome Back!"
-      ctaSubtitle="이미 계정이 있다면 로그인해서 바로 시작하세요."
-      ctaButtonLabel="Sign In"
+      title="Create Account"
+      subtitle="CS-Navigator와 함께 상담의 가치를 높여보세요."
+      ctaTitle="오늘도 수고 많으셨어요!"
+      ctaSubtitle="당신의 따뜻한 목소리와 공감이 고객의 하루를 특별하게 만듭니다. 우리는 당신을 언제나 응원합니다."
+      ctaButtonLabel="로그인하러 가기"
       ctaTo={ROUTES.LOGIN}
     >
       <form onSubmit={onSubmit} className="space-y-4">
@@ -142,122 +133,113 @@ export default function SignUpPage() {
           </IconInput>
         </Field>
 
-        {/* ✅ role 선택 UI */}
+        {/* ✅ role 선택 UI (Compact Tab Style) */}
         <Field label="Role">
-          <div className="grid grid-cols-2 gap-3">
-            <RoleChip
+          <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
+            <RoleTab
               active={role === 'assistant'}
               onClick={() => setRole('assistant')}
-              icon={<Headset size={18} />}
-              title="Assistant"
-              desc="상담사"
+              icon={<Headset size={16} />}
+              label="Assistant (상담사)"
             />
-            <RoleChip
+            <RoleTab
               active={role === 'admin'}
               onClick={() => setRole('admin')}
-              icon={<Shield size={18} />}
-              title="Admin"
-              desc="관리자"
+              icon={<Shield size={16} />}
+              label="Admin (관리자)"
             />
           </div>
-
-          <div className="mt-2 text-[11px] text-slate-400">
-            TODO: 운영환경에서는 관리자(admin) 가입은 서버 정책(초대코드/승인/도메인 제한)으로 통제하세요.
+          <div className="mt-1.5 text-[11px] text-slate-400 text-center">
+            운영환경 체크: 관리자 가입은 서버 정책으로 제한하세요.
           </div>
         </Field>
 
-        <Field label="Password">
-          <IconInput>
-            <Lock size={18} className="text-slate-400" />
-            <input
-              type={showPw ? 'text' : 'password'}
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (!pwTouched) setPwTouched(true);
-              }}
-              onBlur={() => setPwTouched(true)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-              required
-            />
-            <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
-          </IconInput>
+        {/* Password Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Password">
+            <IconInput>
+              <Lock size={18} className="text-slate-400" />
+              <input
+                type={showPw ? 'text' : 'password'}
+                className="flex-1 bg-transparent outline-none text-sm font-semibold pr-8"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                required
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+              </div>
+            </IconInput>
+          </Field>
 
-          {/* ✅ 규칙 안내(항상 표시) */}
-          <div className="mt-2 text-[11px] text-slate-400">{pwRuleText}</div>
-
-          {/* ✅ 규칙 불만족 시 빨간 안내 */}
-          {pwError && (
-            <div className="mt-2 text-xs font-semibold text-red-600">
-              {pwError}
-            </div>
-          )}
-
-          {/* ✅ 체크리스트(원하면 유지, 싫으면 이 블록 삭제 가능) */}
-          <div className="mt-2 flex flex-wrap gap-2 text-[11px]">
-            <RulePill ok={pwRule.lenOk} label="10~16자" />
-            <RulePill ok={pwRule.hasLetter} label="영문 포함" />
-            <RulePill ok={pwRule.hasNumber} label="숫자 포함" />
-            <RulePill ok={pwRule.hasSpecial} label="특수문자 포함" />
-          </div>
-        </Field>
-
-        <Field label="Confirm Password">
-          <IconInput>
-            <Lock size={18} className="text-slate-400" />
-            <input
-              type={showPw ? 'text' : 'password'}
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
-              value={password2}
-              onChange={(e) => {
-                setPassword2(e.target.value);
-                if (!pwTouched) setPwTouched(true);
-              }}
-              onBlur={() => setPwTouched(true)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-              required
-            />
-            <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
-          </IconInput>
-
-          {pw2Error && (
-            <div className="mt-2 text-xs font-semibold text-red-600">
-              {pw2Error}
-            </div>
-          )}
-        </Field>
-
-        {/* ✅ 개인정보 수집 이용 동의 체크 */}
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-          <label className="flex items-start gap-3 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              className="mt-1 h-4 w-4 rounded border-slate-300"
-              checked={privacyAgree}
-              onChange={(e) => setPrivacyAgree(e.target.checked)}
-            />
-            <span className="text-sm text-slate-700">
-              <span className="font-extrabold">개인정보 수집 및 이용 동의</span>{' '}
-              <span className="text-red-600">(필수)</span>
-              <button
-                type="button"
-                onClick={() => setPolicyOpen(true)}
-                className="ml-2 text-xs font-extrabold text-blue-600 hover:text-blue-700"
-              >
-                내용 보기
-              </button>
-            </span>
-          </label>
+          <Field label="Confirm">
+            <IconInput>
+              <Lock size={18} className="text-slate-400" />
+              <input
+                type={showPw ? 'text' : 'password'}
+                className="flex-1 bg-transparent outline-none text-sm font-semibold pr-8"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+                placeholder="••••••••"
+                autoComplete="new-password"
+                required
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+              </div>
+            </IconInput>
+          </Field>
         </div>
 
-        {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+        {/* Password Strength (Compact) */}
+        {password && (
+          <div className="flex items-center gap-2 -mt-2">
+            <div className="flex-1 flex gap-1 h-1">
+              {[1, 2, 3, 4].map((level) => (
+                <div
+                  key={level}
+                  className={`flex-1 rounded-full transition-all ${passwordStrength >= level
+                    ? (passwordStrength <= 2 ? 'bg-red-400' : passwordStrength === 3 ? 'bg-amber-400' : 'bg-green-500')
+                    : 'bg-slate-100'
+                    }`}
+                />
+              ))}
+            </div>
+            <div className="text-[10px] font-bold text-slate-400 w-12 text-right">
+              {passwordStrength <= 2 ? 'Weak' : passwordStrength === 3 ? 'Medium' : 'Strong'}
+            </div>
           </div>
         )}
+
+        {error && (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-medium flex gap-2 items-center animated-shake">
+            <span role="img" aria-label="alert">⚠️</span> {error}
+          </div>
+        )}
+
+        {/* ✅ Legal Consents */}
+        <div className="space-y-3 pt-2">
+          <Checkbox
+            id="terms"
+            label="[필수] 서비스 이용약관 동의"
+            checked={agreedTerms}
+            onChange={setAgreedTerms}
+          />
+          <Checkbox
+            id="privacy"
+            label="[필수] 개인정보 수집 및 이용 동의"
+            checked={agreedPrivacy}
+            onChange={setAgreedPrivacy}
+          />
+          <Checkbox
+            id="marketing"
+            label="[선택] 마케팅 정보 수신 동의"
+            checked={agreedMarketing}
+            onChange={setAgreedMarketing}
+          />
+        </div>
 
         <button
           disabled={pending}
@@ -323,40 +305,41 @@ function PwToggleButton({ show, onToggle }) {
   );
 }
 
-function RoleChip({ active, onClick, icon, title, desc }) {
+function RoleTab({ active, onClick, icon, label }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full text-left rounded-2xl border p-4 transition ${
-        active ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'
-      }`}
+      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${active
+        ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
+        : 'text-slate-400 hover:text-slate-600'
+        }`}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className={`h-10 w-10 rounded-2xl grid place-items-center border ${
-            active ? 'border-blue-200 bg-white' : 'border-slate-200 bg-slate-50'
-          }`}
-        >
-          {icon}
-        </div>
-        <div>
-          <div className="font-extrabold">{title}</div>
-          <div className="text-xs text-slate-500">{desc}</div>
-        </div>
-      </div>
+      {icon}
+      {label}
     </button>
   );
 }
 
-function RulePill({ ok, label }) {
+function Checkbox({ id, label, checked, onChange }) {
   return (
-    <span
-      className={`px-2 py-1 rounded-full border ${
-        ok ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-slate-200 bg-slate-50 text-slate-500'
-      }`}
-    >
-      {label}
-    </span>
+    <label htmlFor={id} className="flex items-center gap-3 cursor-pointer group select-none">
+      <div className={`
+        w-5 h-5 rounded-md flex items-center justify-center border transition
+        ${checked ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}
+      `}>
+        {checked && <Check size={14} className="text-white" strokeWidth={3} />}
+      </div>
+      <input
+        id={id}
+        type="checkbox"
+        className="hidden"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
+      <span className={`text-sm ${checked ? 'text-slate-700 font-semibold' : 'text-slate-500'}`}>
+        {label}
+      </span>
+    </label>
   );
 }

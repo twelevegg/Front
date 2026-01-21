@@ -46,19 +46,19 @@ export default function LoginPage() {
   return (
     <AuthShell
       mode="login"
-      title="Sign In"
-      subtitle="계정으로 로그인해서 콘솔을 이용하세요."
-      ctaTitle="Hello, Friend!"
-      ctaSubtitle="처음이신가요? 회원가입 후 바로 시작할 수 있어요."
-      ctaButtonLabel="Sign Up"
+      title="Welcome Back"
+      subtitle="상담사님의 하루를 진심으로 응원합니다."
+      ctaTitle="함께 성장해요!"
+      ctaSubtitle="함께하는 동료들이 있어 든든합니다. 아직 계정이 없으신가요?"
+      ctaButtonLabel="회원가입 하기"
       ctaTo={ROUTES.SIGNUP}
     >
       <form onSubmit={onSubmit} className="space-y-4">
         <Field label="Email">
-          <IconInput>
-            <Mail size={18} className="text-slate-400" />
+          <IconInput error={!!error}>
+            <Mail size={18} className={error ? "text-red-400" : "text-slate-400"} />
             <input
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
+              className={`flex-1 bg-transparent outline-none text-sm font-semibold ${error ? 'placeholder:text-red-300 text-red-700' : ''}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@company.com"
@@ -69,18 +69,20 @@ export default function LoginPage() {
         </Field>
 
         <Field label="Password">
-          <IconInput>
-            <Lock size={18} className="text-slate-400" />
+          <IconInput error={!!error}>
+            <Lock size={18} className={error ? "text-red-400" : "text-slate-400"} />
             <input
               type={showPw ? 'text' : 'password'}
-              className="flex-1 bg-transparent outline-none text-sm font-semibold"
+              className={`flex-1 bg-transparent outline-none text-sm font-semibold pr-8 ${error ? 'placeholder:text-red-300 text-red-700' : ''}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               autoComplete="current-password"
               required
             />
-            <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <PwToggleButton show={showPw} onToggle={() => setShowPw((v) => !v)} />
+            </div>
           </IconInput>
         </Field>
 
@@ -129,9 +131,10 @@ function Field({ label, children }) {
   );
 }
 
-function IconInput({ children }) {
+function IconInput({ children, error }) {
   return (
-    <div className="relative flex items-center gap-3 rounded-full bg-slate-50 border border-slate-200 px-4 py-3">
+    <div className={`relative flex items-center gap-3 rounded-full px-4 py-3 border transition-colors ${error ? 'bg-red-50 border-red-200 ring-1 ring-red-100' : 'bg-slate-50 border-slate-200 focus-within:border-blue-300 focus-within:bg-white'
+      }`}>
       {children}
     </div>
   );

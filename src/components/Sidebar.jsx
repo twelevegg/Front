@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutGrid, PhoneCall, Library, GraduationCap, FileText, Users, Activity } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useAuth } from '../features/auth/AuthProvider.jsx';
 
 export default function Sidebar() {
@@ -7,10 +8,17 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   return (
-    <div className="rounded-3xl bg-white shadow-soft border border-slate-100 p-6">
+    <motion.div
+      initial={{ x: -20, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-soft border border-white/50 p-6 sticky top-6 self-start"
+    >
       <div className="mb-6">
-        <div className="text-xl font-extrabold tracking-tight">CS Assistant</div>
-        <div className="text-sm text-slate-500">console</div>
+        <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+          CS-Navigator
+        </div>
+        <div className="text-sm text-slate-500">Console</div>
       </div>
 
       <nav className="space-y-2">
@@ -35,9 +43,9 @@ export default function Sidebar() {
           <button
             type="button"
             onClick={() => navigate('/training/ppt')}
-            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition text-slate-700 hover:bg-slate-50"
+            className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition text-slate-700 hover:bg-slate-50 hover:shadow-sm"
           >
-            <div className="grid place-items-center h-9 w-9 rounded-xl bg-white border border-slate-100">
+            <div className="grid place-items-center h-9 w-9 rounded-xl bg-white border border-slate-100 shadow-sm">
               <GraduationCap size={18} />
             </div>
             Training Center
@@ -49,7 +57,7 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
-    </div>
+    </motion.div>
   );
 }
 

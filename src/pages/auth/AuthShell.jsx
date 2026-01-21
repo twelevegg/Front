@@ -20,7 +20,7 @@ export default function AuthShell({
 
   return (
     <div className="min-h-full bg-[var(--app-bg)] grid place-items-center px-6 py-10">
-      <div className="w-full max-w-[980px] rounded-[36px] bg-white shadow-soft border border-slate-100 overflow-hidden">
+      <div className="w-full max-w-[1100px] rounded-[36px] bg-white shadow-soft border border-slate-100 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Left: form */}
           <div className="p-10 md:p-12">
