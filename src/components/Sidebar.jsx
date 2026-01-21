@@ -19,7 +19,7 @@ export default function Sidebar() {
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-soft border border-white/50 p-6 sticky top-6 self-start flex flex-col h-[calc(100vh-3rem)]"
+      className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-soft border border-white/50 p-6 sticky top-6 self-start flex flex-col h-[calc(100vh-3rem)] z-50"
     >
       <div className="mb-6 shrink-0">
         <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
