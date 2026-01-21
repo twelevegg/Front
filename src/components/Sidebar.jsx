@@ -1,27 +1,34 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutGrid, PhoneCall, Library, GraduationCap, FileText, Users, Activity } from 'lucide-react';
+import { LayoutGrid, PhoneCall, Library, GraduationCap, FileText, Users, Activity, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../features/auth/AuthProvider.jsx';
+import NotificationBell from './common/NotificationBell.jsx';
+import { ROUTES } from '../app/routeConstants.js';
 
 export default function Sidebar() {
-  const { role } = useAuth();
+  const { role, user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate(ROUTES.LOGIN, { replace: true });
+  };
 
   return (
     <motion.div
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-soft border border-white/50 p-6 sticky top-6 self-start"
+      className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-soft border border-white/50 p-6 sticky top-6 self-start flex flex-col h-[calc(100vh-3rem)]"
     >
-      <div className="mb-6">
+      <div className="mb-6 shrink-0">
         <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
           CS-Navigator
         </div>
         <div className="text-sm text-slate-500">Console</div>
       </div>
 
-      <nav className="space-y-2">
+      <nav className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
         {role === 'admin' && (
           <>
             <SideLink to="/dashboard/admin" icon={LayoutGrid} label="Admin Dashboard" />
@@ -57,6 +64,31 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
+
+      {/* Footer / Navigation Rail */}
+      <div className="mt-4 pt-4 border-t border-slate-100/50 shrink-0">
+        <div className="flex items-center justify-between mb-4 px-2">
+          <div className="text-xs font-bold text-slate-400">USER PROFILE</div>
+          <NotificationBell />
+        </div>
+
+        <div className="bg-white/50 rounded-2xl p-3 border border-slate-100 flex items-center gap-3">
+          <div className="h-10 w-10 shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+            {role === 'admin' ? 'AD' : 'AS'}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-extrabold text-slate-800 truncate">{user?.name || 'User'}</div>
+            <div className="text-[10px] font-bold text-slate-500 uppercase">{role === 'admin' ? 'Administrator' : 'Assistant'}</div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
+            title="Logout"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
+      </div>
     </motion.div>
   );
 }

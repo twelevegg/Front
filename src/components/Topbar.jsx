@@ -32,28 +32,7 @@ export default function Topbar({ pathname }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <NotificationBell />
-
-        <span className="text-xs font-semibold text-slate-500 border border-slate-200 rounded-full px-3 py-1">
-          {role === 'admin' ? '관리자(Admin)' : '상담사(Assistant)'}
-        </span>
-
-        <div className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold">
-          👤 {user?.name || 'User'}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            logout();
-            nav(ROUTES.LOGIN, { replace: true });
-          }}
-          className="ml-1 inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50"
-          title="Logout"
-        >
-          <LogOut size={16} />
-          Logout
-        </button>
+        {/* Actions moved to Sidebar */}
       </div>
     </div>
   );
