@@ -48,7 +48,7 @@ export default function AuthShell({
               className="h-full p-10 md:p-12 text-white flex flex-col justify-between"
               style={{
                 background:
-                  'linear-gradient(135deg, rgba(11, 62, 140, 1) 0%, rgba(25, 116, 179, 1) 55%, rgba(30, 146, 190, 1) 100%)'
+                  'linear-gradient(135deg, rgba(79, 70, 229, 1) 0%, rgba(67, 56, 202, 1) 100%)'
               }}
             >
               {/* big curved shape */}
