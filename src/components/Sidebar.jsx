@@ -94,12 +94,12 @@ function SideLink({ to, icon: Icon, label }) {
       to={to}
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition ${isActive
-          ? 'bg-blue-50 text-blue-600 border border-blue-100'
+          ? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
           : 'text-slate-700 hover:bg-slate-50'
         }`
       }
     >
-      <div className="grid place-items-center h-9 w-9 rounded-xl bg-white border border-slate-100">
+      <div className="grid place-items-center h-9 w-9 rounded-xl bg-white border border-slate-100 shadow-sm">
         <Icon size={18} />
       </div>
       {label}
