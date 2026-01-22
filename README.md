@@ -23,6 +23,26 @@
 
 ---
 
+## 🛡️ Brand Compliance & UI Guidelines
+
+본 프로젝트는 다중 테넌트(KT, SKT, LG U+) 환경을 지원하며, 각 통신사의 **Corporate Identity (CI) 가이드라인을 엄격히 준수**하여 UI를 디자인했습니다.
+
+### 1. Logo Integrity & Safety Space
+-   **Originality**: 모든 워드마크(Logos)는 각 사가 제공한 **규정 원본 파일(SVG/PNG)**을 사용하며, 임의의 왜곡(비율 변경, 기울기 등)을 가하지 않았습니다.
+-   **Isolation (최소 공간 규정)**: 로고 주변에는 CI의 가시성 확보를 위한 충분한 **보호 공간(Clear Space)**을 확보했습니다. 좁은 UI 요소 내에서도 로고가 숨쉬는 공간을 유지합니다.
+
+### 2. Brand Color Accuracy
+각 테넌트의 공식 브랜드 컬러 규정을 준수하여, 사용자가 브랜드 아이덴티티를 명확히 인지할 수 있도록 구현했습니다.
+-   **KT**: `KT Red` (#ED1C24 / Pantone 1795C)
+-   **SKT**: `SKT Red` (#3617CE / Pantone 2126C)
+-   **LG U+**: `Magenta` (#EC008C / Visual Match)
+
+### 3. Background Contrast & Visibility
+-   **Background Control**: 로고는 원칙적으로 White 또는 명확히 대비되는 배경 위에서 표현됩니다.
+-   **Mix-Blend Mode**: 밝은 카드 UI 내에서 로고의 흰색 배경(Bounding Box)이 시각적으로 방해되지 않도록 `mix-blend-multiply` 등의 기법을 적용하여 로고 본연의 형태만 자연스럽게 부각되도록 처리했습니다.
+
+---
+
 ## 🛠 Technical Architecture
 
 이 프로젝트는 확장성과 유지보수성을 고려하여 **Feature-Based Architecture**를 채택했습니다.
