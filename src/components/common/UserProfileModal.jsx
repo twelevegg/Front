@@ -58,8 +58,9 @@ export default function UserProfileModal({ open, onClose, user, role }) {
 
                                     <div className="flex items-center gap-4">
                                         <motion.div
-                                            layoutId="profile-avatar"
-                                            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                            initial={{ scale: 0.8, opacity: 0 }}
+                                            animate={{ scale: 1, opacity: 1 }}
+                                            transition={{ delay: 0.1, duration: 0.2 }}
                                             className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-xl shadow-indigo-200"
                                         >
                                             {role === 'admin' ? 'AD' : 'AS'}
@@ -67,15 +68,17 @@ export default function UserProfileModal({ open, onClose, user, role }) {
 
                                         <div className="space-y-1">
                                             <motion.h2
-                                                layoutId="profile-name"
-                                                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                                initial={{ x: -10, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                transition={{ delay: 0.15, duration: 0.2 }}
                                                 className="text-xl font-extrabold text-slate-800"
                                             >
                                                 {user?.name || 'User Name'}
                                             </motion.h2>
                                             <motion.div
-                                                layoutId="profile-role"
-                                                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                                initial={{ x: -10, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                transition={{ delay: 0.2, duration: 0.2 }}
                                                 className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold"
                                             >
                                                 <Shield size={12} />

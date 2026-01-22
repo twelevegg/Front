@@ -4,10 +4,13 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../features/auth/AuthProvider.jsx';
 import NotificationBell from './common/NotificationBell.jsx';
 import { ROUTES } from '../app/routeConstants.js';
+import UserProfileModal from './common/UserProfileModal.jsx';
+import { useState } from 'react';
 
 export default function Sidebar() {
   const { role, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -67,23 +70,45 @@ export default function Sidebar() {
           <NotificationBell />
         </div>
 
-        <div className="bg-white/50 rounded-2xl p-3 border border-slate-100 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-200">
+        <motion.div
+          layoutId="profile-card-container"
+          onClick={() => setIsProfileOpen(true)}
+          className="bg-white/50 rounded-2xl p-3 border border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-white hover:shadow-md transition-all group relative"
+        >
+          <div
+            className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-lg shadow-indigo-200 group-hover:scale-105 transition-transform"
+          >
             {role === 'admin' ? 'AD' : 'AS'}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-extrabold text-slate-800 truncate">{user?.name || 'User'}</div>
-            <div className="text-[10px] font-bold text-slate-500 uppercase">{role === 'admin' ? 'Administrator' : 'Assistant'}</div>
+            <div className="text-sm font-extrabold text-slate-800 truncate">
+              {user?.name || 'User'}
+            </div>
+            <div className="text-[10px] font-bold text-slate-500 uppercase">
+              {role === 'admin' ? 'Administrator' : 'Assistant'}
+            </div>
           </div>
+
+          {/* Quick Logout Button (Stop Propagation to prevent opening modal) */}
           <button
-            onClick={handleLogout}
-            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLogout();
+            }}
+            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition relative z-10"
             title="Logout"
           >
             <LogOut size={16} />
           </button>
-        </div>
+        </motion.div>
       </div>
+
+      <UserProfileModal
+        open={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        user={user}
+        role={role}
+      />
     </motion.div>
   );
 }
