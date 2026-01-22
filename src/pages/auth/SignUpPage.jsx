@@ -25,6 +25,9 @@ export default function SignUpPage() {
   // ✅ role 선택 (admin / assistant)
   const [role, setRole] = useState('assistant');
 
+  // ✅ Tenant 선택 (kt, skt, lgu) - Default to 'kt' or null
+  const [tenant, setTenant] = useState('kt');
+
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
 
@@ -78,6 +81,7 @@ export default function SignUpPage() {
         email,
         password,
         role,
+        tenant, // ✅ Tenant 정보 추가
         consents: { terms: agreedTerms, privacy: agreedPrivacy, marketing: agreedMarketing }
       });
 
@@ -131,6 +135,34 @@ export default function SignUpPage() {
               required
             />
           </IconInput>
+        </Field>
+
+        {/* ✅ Tenant 선택 UI */}
+        <Field label="Organization">
+          <div className="grid grid-cols-3 gap-3 mb-1">
+            <TenantButton
+              active={tenant === 'kt'}
+              onClick={() => setTenant('kt')}
+              src="/logos/kt.png"
+              alt="KT"
+              color="ring-kt bg-kt/5 hover:bg-kt/10"
+            />
+            <TenantButton
+              active={tenant === 'skt'}
+              onClick={() => setTenant('skt')}
+              src="/logos/skt.png"
+              alt="SKT"
+              color="ring-skt bg-skt/5 hover:bg-skt/10"
+            />
+            <TenantButton
+              active={tenant === 'lgu'}
+              onClick={() => setTenant('lgu')}
+              src="/logos/lgu.png"
+              alt="LG U+"
+              color="ring-lgu bg-lgu/5 hover:bg-lgu/10"
+              imgClass="h-[75%] w-auto object-contain mix-blend-multiply"
+            />
+          </div>
         </Field>
 
         {/* ✅ role 선택 UI (Compact Tab Style) */}
@@ -341,5 +373,23 @@ function Checkbox({ id, label, checked, onChange }) {
         {label}
       </span>
     </label>
+  );
+}
+
+function TenantButton({ active, onClick, src, alt, color, imgClass = "h-[60%] w-auto object-contain" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        h-14 rounded-2xl flex items-center justify-center border transition-all overflow-hidden relative w-full
+        ${active
+          ? `ring-4 ring-offset-2 ${color} border-transparent`
+          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+        }
+      `}
+    >
+      <img src={src} alt={alt} className={`${imgClass} mix-blend-multiply`} />
+    </button>
   );
 }
