@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import {
   BadgeCheck,
   Bot,
-  ChevronDown,
   Clipboard,
   Headphones,
   Megaphone,
@@ -20,15 +19,14 @@ import { maskName } from '../../utils/mask.js';
 /**
  * CoPilotModal (v2)
  *
- * ✅ 목표
- * - "통화 연결" 이벤트(CALL_CONNECTED)가 들어오면 자동으로 패널을 오픈
- * - 첨부 이미지처럼 2컬럼(대화/추천 vs 예측/감정/마케팅) 구조
- * - 통신사 도메인에 맞는 샘플 데이터
+ * ✅ 동작
+ * - CALL_CONNECTED 이벤트 들어오면 자동 open
+ * - payload(call) 기반으로 고객/콜 메타 표시
  *
- * ✅ Backend/AI 연동 시 변경 포인트 (FastAPI 등)
- * - 통화 이벤트: CTI/Asterisk/WebSocket에서 CALL_CONNECTED payload를 받아 openWithCall(payload) 호출
- * - STT/전사: 스트리밍 전사 내용을 state로 append (예: transcript.push(...))
- * - "민원 요청 예측/감정/업셀링/해지방어"는 AI API 결과로 교체 (현재는 mock)
+ * ✅ Backend/AI 연동 포인트
+ * - CALL_CONNECTED payload에 callId/customerName 정도는 최소 포함
+ * - open 이후: GET /calls/{callId} 로 상세 로드
+ * - 실시간 전사/분석은 WebSocket(SSE)로 push 받는 구조 권장
  */
 export function CoPilotModal() {
   const {
@@ -45,6 +43,7 @@ export function CoPilotModal() {
     setSummaryOn
   } = useCoPilot();
 
+  // ✅ 현재는 mock 세션 생성(실연동 전)
   const session = useMemo(() => buildMockSession(call), [call]);
 
   const contentClass = compact
@@ -99,6 +98,7 @@ export function CoPilotModal() {
               <div className={gridClass}>
                 {/* LEFT */}
                 <div className="space-y-6">
+                  {/* 통화 내용 */}
                   <Card className="p-5">
                     <div className="flex items-start justify-between">
                       <div>
@@ -130,6 +130,7 @@ export function CoPilotModal() {
                     </div>
                   </Card>
 
+                  {/* 추천 멘트 */}
                   <Card className="p-5">
                     <div className="flex items-center justify-between">
                       <div>
@@ -146,31 +147,27 @@ export function CoPilotModal() {
                     </div>
                   </Card>
 
+                  {/* ✅ 마케팅/리텐션 액션(왼쪽으로 이동해서 균형 맞춤) */}
                   <Card className="p-5">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-extrabold">이관(부서) 추천</div>
-                        <div className="text-xs text-slate-500 mt-1">필요 시 담당 부서로 이관 준비</div>
-                      </div>
-                      <button className="rounded-full border border-slate-200 px-3 py-1 text-xs font-extrabold hover:bg-slate-50">
-                        추천안
-                      </button>
+                    <div className="text-sm font-extrabold">마케팅/리텐션 액션</div>
+                    <div className="text-xs text-slate-500 mt-1">
+                      업셀링/해지방어/혜택 제안 버튼으로 AI 전략을 호출하도록 설계할 수 있습니다.
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <div className="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold flex items-center justify-between">
-                        <span>인터넷/모바일(품질/해지)</span>
-                        <ChevronDown size={16} />
-                      </div>
-                      <button className="rounded-2xl border border-blue-200 bg-blue-50 text-blue-700 px-4 py-3 text-sm font-extrabold hover:bg-blue-100">
-                        이관 준비
-                      </button>
+                    <div className="mt-4 grid grid-cols-2 gap-2">
+                      <PrimaryButton icon={Megaphone} label="업셀링 제안" />
+                      <PrimaryButton icon={Shield} label="해지 방어" tone="danger" />
+                      <PrimaryButton icon={Sparkles} label="혜택/프로모션" />
+                      <PrimaryButton icon={Headphones} label="품질/장애 안내" tone="neutral" />
                     </div>
 
-                    <div className="mt-4 grid grid-cols-1 gap-2 max-h-[220px] overflow-auto pr-1">
-                      {session.handoffCandidates.map((h, idx) => (
-                        <HandoffRow key={idx} {...h} />
-                      ))}
+                    <div className="mt-4 rounded-2xl border border-slate-100 p-4">
+                      <div className="text-xs text-slate-500 font-semibold">추천(예시)</div>
+                      <div className="mt-2 text-sm text-slate-700 leading-6">
+                        • 고객이 해지 의사를 보이면: <span className="font-extrabold">위약금/혜택</span>을 비교 제시하고 선택지를 주기
+                        <br />
+                        • 업셀링: 사용 패턴 기반으로 <span className="font-extrabold">추가 데이터/결합 할인</span> 제안
+                      </div>
                     </div>
                   </Card>
                 </div>
@@ -203,35 +200,6 @@ export function CoPilotModal() {
                       {session.emotionPlaybook.map((p, idx) => (
                         <PlaybookCard key={idx} {...p} />
                       ))}
-                    </div>
-                  </Card>
-
-                  <Card className="p-5">
-                    <div className="text-sm font-extrabold">마케팅/리텐션 액션</div>
-                    <div className="text-xs text-slate-500 mt-1">
-                      업셀링/해지방어/혜택 제안 버튼으로 AI 전략을 호출하도록 설계할 수 있습니다.
-                      {/*
-                        TODO(FastAPI 연동 예시)
-                        - 업셀링: POST /ai/upsell { callId, transcript, customerProfile }
-                        - 해지방어: POST /ai/retention { callId, transcript, contractInfo }
-                        - 감정분석: POST /ai/emotion { callId, audioChunk|text }
-                      */}
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-2">
-                      <PrimaryButton icon={Megaphone} label="업셀링 제안" />
-                      <PrimaryButton icon={Shield} label="해지 방어" tone="danger" />
-                      <PrimaryButton icon={Sparkles} label="혜택/프로모션" />
-                      <PrimaryButton icon={Headphones} label="품질/장애 안내" tone="neutral" />
-                    </div>
-
-                    <div className="mt-4 rounded-2xl border border-slate-100 p-4">
-                      <div className="text-xs text-slate-500 font-semibold">추천(예시)</div>
-                      <div className="mt-2 text-sm text-slate-700 leading-6">
-                        • 고객이 해지 의사를 보이면: <span className="font-extrabold">위약금/혜택</span>을 비교 제시하고 선택지를 주기
-                        <br />
-                        • 업셀링: 사용 패턴 기반으로 <span className="font-extrabold">추가 데이터/결합 할인</span> 제안
-                      </div>
                     </div>
                   </Card>
                 </div>
@@ -267,8 +235,9 @@ function Bubble({ speaker, time, text }) {
   return (
     <div className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[78%] rounded-2xl border px-4 py-3 text-sm leading-6 shadow-soft ${isAgent ? 'bg-white border-blue-100' : 'bg-white border-slate-100'
-          }`}
+        className={`max-w-[78%] rounded-2xl border px-4 py-3 text-sm leading-6 shadow-soft ${
+          isAgent ? 'bg-white border-blue-100' : 'bg-white border-slate-100'
+        }`}
       >
         <div className="text-xs text-slate-500 mb-1">
           <span className="font-semibold">{speaker}</span> · {time}
@@ -313,18 +282,6 @@ function ScriptRow({ text }) {
   );
 }
 
-function HandoffRow({ title, desc, tag }) {
-  return (
-    <div className="rounded-2xl border border-slate-100 px-4 py-3 flex items-start justify-between gap-3">
-      <div>
-        <div className="font-extrabold">{title}</div>
-        <div className="text-xs text-slate-500 mt-1">{desc}</div>
-      </div>
-      <Pill tone={tag === '추천' ? 'primary' : 'neutral'}>{tag}</Pill>
-    </div>
-  );
-}
-
 function PlaybookCard({ title, desc }) {
   return (
     <div className="rounded-2xl border border-slate-100 p-4">
@@ -347,14 +304,12 @@ function Pill({ children, tone = 'neutral' }) {
     tone === 'primary'
       ? 'border-blue-200 bg-blue-50 text-blue-700'
       : tone === 'success'
-        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-        : tone === 'danger'
-          ? 'border-red-200 bg-red-50 text-red-700'
-          : 'border-slate-200 bg-white text-slate-700';
+      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+      : tone === 'danger'
+      ? 'border-red-200 bg-red-50 text-red-700'
+      : 'border-slate-200 bg-white text-slate-700';
 
-  return (
-    <span className={`rounded-full border px-3 py-1 text-xs font-extrabold ${toneClass}`}>{children}</span>
-  );
+  return <span className={`rounded-full border px-3 py-1 text-xs font-extrabold ${toneClass}`}>{children}</span>;
 }
 
 function TogglePill({ label, on, onToggle }) {
@@ -362,8 +317,9 @@ function TogglePill({ label, on, onToggle }) {
     <button
       type="button"
       onClick={onToggle}
-      className={`rounded-full border px-3 py-1 text-xs font-extrabold hover:bg-slate-50 ${on ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600'
-        }`}
+      className={`rounded-full border px-3 py-1 text-xs font-extrabold hover:bg-slate-50 ${
+        on ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600'
+      }`}
     >
       {label}: {on ? 'on' : 'off'}
     </button>
@@ -375,8 +331,8 @@ function ActionChip({ icon: Icon, label, tone = 'neutral' }) {
     tone === 'primary'
       ? 'border-blue-200 bg-blue-50 text-blue-700'
       : tone === 'danger'
-        ? 'border-red-200 bg-red-50 text-red-700'
-        : 'border-slate-200 bg-white text-slate-700';
+      ? 'border-red-200 bg-red-50 text-red-700'
+      : 'border-slate-200 bg-white text-slate-700';
 
   return (
     <button
@@ -394,8 +350,8 @@ function PrimaryButton({ icon: Icon, label, tone = 'primary' }) {
     tone === 'danger'
       ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
       : tone === 'neutral'
-        ? 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
-        : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100';
+      ? 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
+      : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100';
 
   return (
     <button
@@ -409,15 +365,18 @@ function PrimaryButton({ icon: Icon, label, tone = 'primary' }) {
 }
 
 function buildMockSession(call) {
-  // 통화 이벤트가 아직 없으면(미리보기) 기본값
-  const callId = call?.callId || 'C-20260120-1011';
+  // ✅ 중요: call은 이벤트 payload 그대로 들어옴
+  // 현재 CallHistoryPage에서는 emitCallConnected(selected.id)라서 string이 들어오고,
+  // 실제로는 { callId, customerName, issue, channel } 같은 객체가 들어오는 게 정상.
+
+  const callId = (call && typeof call === 'object' ? call.callId : call) || 'C-20260120-1011';
 
   return {
     now: '10:11',
     callMeta: `CallId: ${callId} · 채널: ${call?.channel || '전화(CTI)'} · 이슈: ${call?.issue || '해지/요금제 문의'}`,
     customer: {
       name: call?.customerName || '홍길동',
-      phone: '010-1234-5678'
+      phone: call?.customerPhone || '010-1234-5678'
     },
     transcript: [
       { speaker: '고객', time: '10:11', text: '인터넷이 계속 끊기는데요. 이럴 거면 해지하고 싶습니다.' },
@@ -429,11 +388,6 @@ function buildMockSession(call) {
       '불편을 드려 정말 죄송합니다. 우선 품질 점검을 진행하고 바로 안내드리겠습니다.',
       '해지를 원하시는 이유가 품질 문제인지 확인 후, 가능한 보상/혜택도 함께 안내드려도 될까요?',
       '위약금은 약정/결합 여부에 따라 달라져서, 가입 정보를 확인한 뒤 정확히 안내드리겠습니다.'
-    ],
-    handoffCandidates: [
-      { title: '인터넷 품질/장애', desc: '망 점검 · 기사 방문 · 장애 보상', tag: '추천' },
-      { title: '해지/위약금', desc: '약정/결합 · 위약금 산정 · 해지 방어', tag: '추천' },
-      { title: '요금제/프로모션', desc: '요금제 변경 · 결합 할인 · 부가서비스', tag: '일반' }
     ],
     intentCards: [
       {
@@ -468,7 +422,7 @@ function buildMockSession(call) {
       },
       {
         title: '고위험 신호 대응',
-        desc: '욕설/민원/언론 언급 시: 안내 문구 고정 + 관리자/전문 부서 이관 준비'
+        desc: '욕설/민원/언론 언급 시: 안내 문구 고정 + 관리자 공유/케이스 기록 강화'
       }
     ]
   };

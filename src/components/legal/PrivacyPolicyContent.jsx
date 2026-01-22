@@ -239,7 +239,7 @@ export default function PrivacyPolicyContent() {
         <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700">
           (현재 기준) 제3자 제공: <span className="font-extrabold">해당없음</span>
           <div className="mt-1 text-slate-600">
-            ※ 제3자 제공이 발생하면 제공받는 자/목적/항목/보유기간을 표로 공개하세요.
+            ※ 제3자 제공이 발생하면 제공받는 자/목적/항목/보유기간을 표로 공개.
           </div>
         </div>
       </Section>
@@ -288,8 +288,7 @@ export default function PrivacyPolicyContent() {
         </p>
 
         <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-700">
-          (현재 기준) 국외 이전: <span className="font-extrabold">[해당없음/해당]</span>
-          <div className="mt-1 text-slate-600">※ “해당”인 경우 표로 구체 정보를 반드시 기재하세요.</div>
+          (현재 기준) 국외 이전: <span className="font-extrabold">[해당없음]</span>
         </div>
       </Section>
 
@@ -380,9 +379,6 @@ export default function PrivacyPolicyContent() {
         </div>
       </Section>
 
-      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
-        ※ 템플릿(초안)입니다. 실제 운영 환경에 맞게 수집 항목/보유기간/위탁사/국외이전 여부/고객사 역할을 확정하여 수정하세요.
-      </div>
     </div>
   );
 }

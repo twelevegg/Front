@@ -49,7 +49,13 @@ export default function CallHistoryPage() {
 
   const simulate = () => {
     if (selected) {
-      emitCallConnected(selected.id);
+      emitCallConnected({
+        callId: selected.id,
+        customerName: selected.customerName,
+        customerPhone: selected.customerPhone,
+        issue: selected.title,
+        channel: '전화(DEV)'
+      });
       alert(`Simulating call connection for ID: ${selected.id}`);
     } else {
       alert('No call selected to simulate.');
