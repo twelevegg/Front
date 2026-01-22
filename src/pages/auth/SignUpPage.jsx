@@ -145,21 +145,21 @@ export default function SignUpPage() {
               onClick={() => setTenant('kt')}
               src="/logos/kt.png"
               alt="KT"
-              color="ring-kt bg-kt/5 hover:bg-kt/10"
+              color="ring-[#ED1C24] bg-[#ED1C24]/5 hover:bg-[#ED1C24]/10"
             />
             <TenantButton
               active={tenant === 'skt'}
               onClick={() => setTenant('skt')}
               src="/logos/skt.png"
               alt="SKT"
-              color="ring-skt bg-skt/5 hover:bg-skt/10"
+              color="ring-[#3617CE] bg-[#3617CE]/5 hover:bg-[#3617CE]/10"
             />
             <TenantButton
               active={tenant === 'lgu'}
               onClick={() => setTenant('lgu')}
               src="/logos/lgu.png"
               alt="LG U+"
-              color="ring-lgu bg-lgu/5 hover:bg-lgu/10"
+              color="ring-[#D0006F] bg-[#D0006F]/5 hover:bg-[#D0006F]/10"
               imgClass="h-[75%] w-auto object-contain mix-blend-multiply"
             />
           </div>
