@@ -22,154 +22,144 @@ export default function UserProfileModal({ open, onClose, user, role }) {
 
     return (
         <Dialog.Root open={open} onOpenChange={onClose}>
-            <AnimatePresence>
-                {open && (
-                    <Dialog.Portal forceMount>
-                        {/* Backdrop */}
-                        <Dialog.Overlay asChild>
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
-                            />
-                        </Dialog.Overlay>
+            <Dialog.Portal>
+                {/* Backdrop */}
+                <Dialog.Overlay asChild>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100]"
+                    />
+                </Dialog.Overlay>
 
-                        <Dialog.Content asChild>
-                            <div className="fixed inset-0 flex items-center justify-center z-[110] pointer-events-none">
-                                {/* Clicking outside strategy: We use a full-screen div for centering, 
+                <Dialog.Content asChild>
+                    <div className="fixed inset-0 flex items-center justify-center z-[110] pointer-events-none">
+                        {/* Clicking outside strategy: We use a full-screen div for centering, 
                                     so we need a way to close on outside click. 
                                     Radix's Overlay usually handles this, but with custom structure we might need manual handling if pointer-events are tricky.
                                     However, Dialog.Overlay handles the click. 
                                 */}
-                                <div className="relative w-full max-w-md pointer-events-auto p-4">
-                                    <motion.div
-                                        layoutId="profile-card-container"
-                                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                                        className="bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-white/50"
+                        <div className="relative w-full max-w-md pointer-events-auto p-4">
+                            <motion.div
+                                layoutId="profile-card-container"
+                                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                layout="position"
+                                className="bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-white/50"
+                            >
+                                {/* Header Section (Shared Element Transition) */}
+                                <div className="relative p-6 bg-gradient-to-br from-indigo-50 to-white border-b border-indigo-100/50">
+                                    <button
+                                        onClick={onClose}
+                                        className="absolute right-4 top-4 p-2 rounded-full hover:bg-black/5 text-slate-400 transition"
                                     >
-                                        {/* Header Section (Shared Element Transition) */}
-                                        <div className="relative p-6 bg-gradient-to-br from-indigo-50 to-white border-b border-indigo-100/50">
-                                            <button
-                                                onClick={onClose}
-                                                className="absolute right-4 top-4 p-2 rounded-full hover:bg-black/5 text-slate-400 transition"
-                                            >
-                                                <X size={20} />
-                                            </button>
+                                        <X size={20} />
+                                    </button>
 
-                                            <div className="flex items-center gap-4">
-                                                <motion.div
-                                                    layoutId="profile-avatar"
-                                                    transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                                                    className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-xl shadow-indigo-200"
-                                                >
-                                                    {role === 'admin' ? 'AD' : 'AS'}
-                                                </motion.div>
-
-                                                <div className="space-y-1">
-                                                    <motion.h2
-                                                        layoutId="profile-name"
-                                                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                                                        className="text-xl font-extrabold text-slate-800"
-                                                    >
-                                                        {user?.name || 'User Name'}
-                                                    </motion.h2>
-                                                    <motion.div
-                                                        layoutId="profile-role"
-                                                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                                                        className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold"
-                                                    >
-                                                        <Shield size={12} />
-                                                        {role === 'admin' ? 'Administrator' : 'Assistant'}
-                                                    </motion.div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Body Section */}
+                                    <div className="flex items-center gap-4">
                                         <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            transition={{ delay: 0.1, duration: 0.2 }}
-                                            className="p-6 space-y-6"
+                                            layoutId="profile-avatar"
+                                            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                            className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-xl shadow-indigo-200"
                                         >
-                                            {/* User Info */}
-                                            <div className="space-y-4">
-                                                <InfoItem icon={<Mail size={16} />} label="Email Address" value={user?.email || 'user@company.com'} />
-                                                <InfoItem icon={<User size={16} />} label="User ID" value={user?.id || 'USER-001'} />
-                                            </div>
-
-                                            {/* Divider */}
-                                            <div className="h-px bg-slate-100" />
-
-                                            {/* Password Change Toggle */}
-                                            {!showPwForm ? (
-                                                <button
-                                                    onClick={() => setShowPwForm(true)}
-                                                    className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2"
-                                                >
-                                                    <Lock size={16} />
-                                                    Change Password
-                                                </button>
-                                            ) : (
-                                                <motion.form
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    className="space-y-3 overflow-hidden"
-                                                    onSubmit={handlePwChange}
-                                                >
-                                                    <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
-                                                        Update Password
-                                                    </h3>
-                                                    <input
-                                                        type="password"
-                                                        placeholder="Current Password"
-                                                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
-                                                        value={passwordForm.current}
-                                                        onChange={e => setPasswordForm(p => ({ ...p, current: e.target.value }))}
-                                                    />
-                                                    <input
-                                                        type="password"
-                                                        placeholder="New Password"
-                                                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
-                                                        value={passwordForm.new}
-                                                        onChange={e => setPasswordForm(p => ({ ...p, new: e.target.value }))}
-                                                    />
-                                                    <input
-                                                        type="password"
-                                                        placeholder="Confirm New Password"
-                                                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
-                                                        value={passwordForm.confirm}
-                                                        onChange={e => setPasswordForm(p => ({ ...p, confirm: e.target.value }))}
-                                                    />
-
-                                                    <div className="flex gap-2 pt-1">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowPwForm(false)}
-                                                            className="flex-1 py-2.5 rounded-1xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition"
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                        <button
-                                                            type="submit"
-                                                            className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition"
-                                                        >
-                                                            Update
-                                                        </button>
-                                                    </div>
-                                                </motion.form>
-                                            )}
+                                            {role === 'admin' ? 'AD' : 'AS'}
                                         </motion.div>
-                                    </motion.div>
+
+                                        <div className="space-y-1">
+                                            <motion.h2
+                                                layoutId="profile-name"
+                                                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                                className="text-xl font-extrabold text-slate-800"
+                                            >
+                                                {user?.name || 'User Name'}
+                                            </motion.h2>
+                                            <motion.div
+                                                layoutId="profile-role"
+                                                transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                                                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold"
+                                            >
+                                                <Shield size={12} />
+                                                {role === 'admin' ? 'Administrator' : 'Assistant'}
+                                            </motion.div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </Dialog.Content>
-                    </Dialog.Portal>
-                )}
-            </AnimatePresence>
+
+                                {/* Body Section */}
+                                <div className="p-6 space-y-6">
+                                    {/* User Info */}
+                                    <div className="space-y-4">
+                                        <InfoItem icon={<Mail size={16} />} label="Email Address" value={user?.email || 'user@company.com'} />
+                                        <InfoItem icon={<User size={16} />} label="User ID" value={user?.id || 'USER-001'} />
+                                    </div>
+
+                                    {/* Divider */}
+                                    <div className="h-px bg-slate-100" />
+
+                                    {/* Password Change Toggle */}
+                                    {!showPwForm ? (
+                                        <button
+                                            onClick={() => setShowPwForm(true)}
+                                            className="w-full py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-300 transition flex items-center justify-center gap-2"
+                                        >
+                                            <Lock size={16} />
+                                            Change Password
+                                        </button>
+                                    ) : (
+                                        <motion.form
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            className="space-y-3 overflow-hidden"
+                                            onSubmit={handlePwChange}
+                                        >
+                                            <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                                Update Password
+                                            </h3>
+                                            <input
+                                                type="password"
+                                                placeholder="Current Password"
+                                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                                                value={passwordForm.current}
+                                                onChange={e => setPasswordForm(p => ({ ...p, current: e.target.value }))}
+                                            />
+                                            <input
+                                                type="password"
+                                                placeholder="New Password"
+                                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                                                value={passwordForm.new}
+                                                onChange={e => setPasswordForm(p => ({ ...p, new: e.target.value }))}
+                                            />
+                                            <input
+                                                type="password"
+                                                placeholder="Confirm New Password"
+                                                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition"
+                                                value={passwordForm.confirm}
+                                                onChange={e => setPasswordForm(p => ({ ...p, confirm: e.target.value }))}
+                                            />
+
+                                            <div className="flex gap-2 pt-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPwForm(false)}
+                                                    className="flex-1 py-2.5 rounded-1xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="submit"
+                                                    className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition"
+                                                >
+                                                    Update
+                                                </button>
+                                            </div>
+                                        </motion.form>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+                </Dialog.Content>
+            </Dialog.Portal>
         </Dialog.Root>
     );
 }
