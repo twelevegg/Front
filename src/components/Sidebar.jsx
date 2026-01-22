@@ -72,7 +72,8 @@ export default function Sidebar() {
 
         <motion.div
           layoutId="profile-card-container"
-          transition={{ duration: 0.2, ease: "easeOut" }}
+          layout="position"
+          transition={{ duration: 0 }}
           onClick={() => setIsProfileOpen(true)}
           className="bg-white/50 rounded-2xl p-3 border border-slate-100 flex items-center gap-3 cursor-pointer hover:bg-white hover:shadow-md transition-all group relative"
         >

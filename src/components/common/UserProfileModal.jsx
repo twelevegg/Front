@@ -20,8 +20,13 @@ export default function UserProfileModal({ open, onClose, user, role }) {
         setPasswordForm({ current: '', new: '', confirm: '' });
     };
 
+    const handleClose = () => {
+        setShowPwForm(false);
+        onClose();
+    };
+
     return (
-        <Dialog.Root open={open} onOpenChange={onClose}>
+        <Dialog.Root open={open} onOpenChange={handleClose}>
             <Dialog.Portal>
                 {/* Backdrop */}
                 <Dialog.Overlay asChild>
@@ -50,7 +55,7 @@ export default function UserProfileModal({ open, onClose, user, role }) {
                                 {/* Header Section (Shared Element Transition) */}
                                 <div className="relative p-6 bg-gradient-to-br from-indigo-50 to-white border-b border-indigo-100/50">
                                     <button
-                                        onClick={onClose}
+                                        onClick={handleClose}
                                         className="absolute right-4 top-4 p-2 rounded-full hover:bg-black/5 text-slate-400 transition"
                                     >
                                         <X size={20} />
