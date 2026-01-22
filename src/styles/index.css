@@ -3,6 +3,8 @@
 @theme {
   --color-kt: #ED1C24;
   --color-skt: #3617CE;
+  --color-lgu: #D0006F;
+  /* R208 G0 B111 */
 }
 
 :root {

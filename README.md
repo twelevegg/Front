@@ -35,7 +35,7 @@
 각 테넌트의 공식 브랜드 컬러 규정을 준수하여, 사용자가 브랜드 아이덴티티를 명확히 인지할 수 있도록 구현했습니다.
 -   **KT**: `KT Red` (#ED1C24 / Pantone 1795C)
 -   **SKT**: `SKT Red` (#3617CE / Pantone 2126C)
--   **LG U+**: `Magenta` (#EC008C / Visual Match)
+-   **LG U+**: `Magenta` (#D0006F / R208 G0 B111)
 
 ### 3. Background Contrast & Visibility
 -   **Background Control**: 로고는 원칙적으로 White 또는 명확히 대비되는 배경 위에서 표현됩니다.
