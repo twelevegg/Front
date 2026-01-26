@@ -1,8 +1,11 @@
+'use client';
 import { useState, useEffect } from 'react';
+import { sendRPMessage } from '../../api/rpService';
 import { Mic, MicOff, PhoneOff, User, BarChart2, Clock, Volume2, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Card from '../../components/Card.jsx';
 import { useToast } from '../../components/common/ToastProvider.jsx';
+
 
 const PERSONAS = [
   {
@@ -35,11 +38,33 @@ const PERSONAS = [
 ];
 
 export default function RolePlayingPage() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+
   const { addToast } = useToast();
   const [selectedPersona, setSelectedPersona] = useState(null);
   const [callStatus, setCallStatus] = useState('idle'); // idle | connecting | active | ended
   const [micOn, setMicOn] = useState(true);
   const [duration, setDuration] = useState(0);
+
+    const sendMessage = async (text) => {
+        const userMsg = { role: 'user', content: text };
+        setMessages(prev => [...prev, userMsg]);
+
+        try {
+            const data = await sendRPMessage({
+                sessionId: selectedPersona.id,
+                message: text,
+            });
+
+            setMessages(prev => [
+                ...prev,
+                { role: 'assistant', content: data.message },
+            ]);
+        } catch (e) {
+            addToast('AI 응답 오류가 발생했습니다.', 'error');
+        }
+    };
 
   // Timer logic
   useEffect(() => {
@@ -154,49 +179,52 @@ export default function RolePlayingPage() {
             </div>
 
             {/* Visualizer Area */}
-            <div className="flex-1 relative z-10 flex flex-col items-center justify-center space-y-8">
-              {callStatus === 'active' && (
-                <div className="flex items-center gap-2 h-32">
-                  {[...Array(12)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="w-4 bg-blue-500 rounded-full"
-                      animate={{
-                        height: [40, Math.random() * 120 + 40, 40],
-                        opacity: [0.5, 1, 0.5]
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 0.8,
-                        delay: i * 0.05,
-                        ease: "easeInOut"
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
+              <div className="flex-1 relative z-10 flex flex-col p-6 overflow-hidden">
+                  {/* Chat Messages */}
+                  <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+                      {messages.map((msg, idx) => (
+                          <div
+                              key={idx}
+                              className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm ${
+                                  msg.role === 'user'
+                                      ? 'ml-auto bg-blue-500 text-white'
+                                      : 'mr-auto bg-slate-700 text-white'
+                              }`}
+                          >
+                              {msg.content}
+                          </div>
+                      ))}
+                  </div>
 
-              {callStatus === 'connecting' && (
-                <div className="text-slate-400 font-medium animate-pulse">
-                  상담 데이터 로딩 및 AI 페르소나 생성 중...
-                </div>
-              )}
+                  {/* Input */}
+                  <div className="flex gap-2">
+                      <input
+                          value={input}
+                          onChange={(e) => setInput(e.target.value)}
+                          onKeyDown={(e) => {
+                              if (e.key === 'Enter' && input.trim()) {
+                                  sendMessage(input);
+                                  setInput('');
+                              }
+                          }}
+                          placeholder="상담사 답변을 입력하세요..."
+                          className="flex-1 px-4 py-3 rounded-xl bg-slate-800 text-white outline-none border border-slate-700"
+                      />
+                      <button
+                          onClick={() => {
+                              if (!input.trim()) return;
+                              sendMessage(input);
+                              setInput('');
+                          }}
+                          className="px-6 py-3 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition"
+                      >
+                          전송
+                      </button>
+                  </div>
+              </div>
 
-              {callStatus === 'ended' && (
-                <div className="text-center space-y-4">
-                  <div className="text-2xl font-bold">Training Completed</div>
-                  <div className="text-slate-400">총 통화 시간: {formatTime(duration)}</div>
-                  <button
-                    onClick={resetCall}
-                    className="px-8 py-3 rounded-full bg-white text-slate-900 font-extrabold hover:bg-slate-200 transition"
-                  >
-                    나가기
-                  </button>
-                </div>
-              )}
-            </div>
 
-            {/* Controls */}
+              {/* Controls */}
             {callStatus !== 'ended' && (
               <div className="relative z-10 p-10 flex justify-center items-center gap-8">
                 <button
@@ -208,7 +236,12 @@ export default function RolePlayingPage() {
                 </button>
 
                 <button
-                  onClick={handleEndCall}
+                    onClick={() => {
+                        handleEndCall();
+                        resetCall();   // 🔥 이 줄 추가
+                        setMessages([]); // 채팅 초기화 (중요)
+                        setInput('');
+                    }}
                   className="p-8 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 hover:scale-105 transition-all active:scale-95"
                 >
                   <PhoneOff size={40} />
