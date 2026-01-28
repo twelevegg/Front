@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from '../components/Sidebar.jsx';
 import Topbar from '../components/Topbar.jsx';
 import { CoPilotModal } from '../features/copilot/CoPilotModal.jsx';
+import CoPilotFab from '../features/copilot/CoPilotFab.jsx';
+import IncomingCallToast from '../features/calls/IncomingCallToast.jsx';
 import Footer from '../components/Footer.jsx';
 
 export default function AppLayout() {
@@ -38,6 +40,8 @@ export default function AppLayout() {
       </div>
 
       <CoPilotModal />
+      <IncomingCallToast />
+      <CoPilotFab />
     </div>
   );
 }

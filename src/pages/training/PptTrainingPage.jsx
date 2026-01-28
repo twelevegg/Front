@@ -10,7 +10,28 @@ export default function PptTrainingPage() {
   const [openVideo, setOpenVideo] = useState(false);
   const [openQuiz, setOpenQuiz] = useState(false);
 
-  const [ppt, setPpt] = useState(null); // { pptId, filename }
+  // { jobId, filename, round, isComplete, lastScore }
+  const [ppt, setPpt] = useState(null);
+
+  const resetPpt = () => {
+    setPpt(null);
+    // 혹시 모달이 열려있던 상태면 같이 닫아주기
+    setOpenVideo(false);
+    setOpenQuiz(false);
+  };
+
+  const handleGradeUpdated = (gradeRes) => {
+    // gradeRes: { score, is_complete, round, ... }
+    setPpt((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        lastScore: typeof gradeRes?.score === 'number' ? gradeRes.score : prev.lastScore,
+        isComplete: Boolean(gradeRes?.is_complete ?? gradeRes?.isComplete ?? prev.isComplete),
+        round: typeof gradeRes?.round === 'number' ? gradeRes.round : prev.round,
+      };
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -29,24 +50,29 @@ export default function PptTrainingPage() {
             type="button"
             onClick={() => setOpenUpload(true)}
           >
-            업로드
+            {ppt ? '다른 PPT 업로드(교체)' : '업로드'}
           </button>
 
           <button
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50"
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
             type="button"
             onClick={() => setOpenVideo(true)}
+            disabled={!ppt}
+            title={!ppt ? '먼저 PPT를 업로드해주세요' : undefined}
           >
             영상 생성
           </button>
 
           <button
-            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50"
+            className="rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
             type="button"
             onClick={() => setOpenQuiz(true)}
+            disabled={!ppt}
+            title={!ppt ? '먼저 PPT를 업로드해주세요' : undefined}
           >
             퀴즈 생성
           </button>
+
         </div>
 
         <div className="mt-4">
@@ -59,7 +85,15 @@ export default function PptTrainingPage() {
               <div className="font-extrabold">현재 선택된 PPT</div>
               <div className="text-xs text-slate-600 mt-1">
                 <span className="font-semibold">{ppt.filename}</span>
-                <span className="text-slate-400"> ({ppt.pptId})</span>
+                <span className="text-slate-400"> ({ppt.jobId})</span>
+              </div>
+              <div className="text-xs text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                <span>round: <b>{ppt.round ?? 0}</b></span>
+                {typeof ppt.lastScore === 'number' && <span>last score: <b>{Math.round(ppt.lastScore)}</b></span>}
+                {ppt.isComplete && <span className="text-blue-700 font-bold">모든 학습 완료</span>}
+              </div>
+              <div className="text-xs text-slate-400 mt-2">
+                퀴즈/영상까지 완료 후 “작업 종료(초기화)”를 누르고 다음 PPT를 업로드하세요.
               </div>
             </div>
           )}
@@ -70,7 +104,10 @@ export default function PptTrainingPage() {
       <PptUploadModal
         open={openUpload}
         onClose={() => setOpenUpload(false)}
-        onUploaded={(res) => setPpt(res)}
+        onUploaded={(res) => {
+          setPpt(res);         
+          setOpenUpload(false); 
+        }}
       />
 
       <VideoGenerateModal
@@ -83,6 +120,8 @@ export default function PptTrainingPage() {
         open={openQuiz}
         onClose={() => setOpenQuiz(false)}
         ppt={ppt}
+        onGradeUpdated={handleGradeUpdated}
+        onRequestOpenVideo={() => setOpenVideo(true)}
       />
     </div>
   );

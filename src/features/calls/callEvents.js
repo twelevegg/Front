@@ -3,6 +3,12 @@
 
 export const callEventBus = new EventTarget();
 
+// ✅ 전화 수신(울림) 이벤트
+// - 실제 연동에서는 Asterisk/CTI 이벤트를 여기로 연결하세요.
+export function emitCallRinging(payload) {
+  callEventBus.dispatchEvent(new CustomEvent('CALL_RINGING', { detail: payload }));
+}
+
 export function emitCallConnected(payload) {
   callEventBus.dispatchEvent(new CustomEvent('CALL_CONNECTED', { detail: payload }));
 }

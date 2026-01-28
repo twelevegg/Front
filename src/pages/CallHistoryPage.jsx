@@ -281,13 +281,13 @@ export default function CallHistoryPage() {
                 <BarChart2 size={16} />
                 <span>심층 분석</span>
               </button>
-              <button
+              {/* <button
                 onClick={simulate}
                 className="rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 px-4 py-2 text-sm font-bold hover:bg-indigo-100"
                 type="button"
               >
                 📞 CoPilot 열기(DEV)
-              </button>
+              </button> */}
             </div>
           </div>
 
