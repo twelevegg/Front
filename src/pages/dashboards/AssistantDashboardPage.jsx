@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { notificationService } from '../../services/NotificationService.js';
 import Card from '../../components/Card.jsx';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { emitCallConnected } from '../../features/calls/callEvents.js';
 import { mockCalls } from '../../features/calls/mockCalls.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
 import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones, TrendingUp, TrendingDown } from 'lucide-react';
+import { useCoPilot } from '../../features/copilot/CoPilotProvider.jsx';
 
 const dataWeek = [
   { label: 'W-4', qa: 80, success: 81, adherence: 90 },
@@ -20,15 +22,46 @@ const dataMonth = [
 ];
 
 export default function AssistantDashboardPage() {
+  const { openWithCall } = useCoPilot();
   const { addToast } = useToast();
   const [chartType, setChartType] = useState('line'); // 'line' | 'bar'
   const [period, setPeriod] = useState('week'); // 'week' | 'month'
   const [status, setStatus] = useState('online'); // online | busy | offline
 
   const openCopilot = (payload) => {
-    emitCallConnected(payload);
+    // emitCallConnected(payload); // 기존 pending 로직 대신
+    openWithCall(payload); // 바로 모달 열기 및 모니터링 시작
     addToast('CoPilot 가이드가 실행되었습니다.', 'success');
   };
+
+  // [NEW] Notification Service Integration
+  useEffect(() => {
+    // 임시 User ID 사용 (실제로는 로그인 정보에서 가져와야 함)
+    const userId = "agent_user_01";
+    notificationService.connect(userId);
+
+    const handleCallStart = (data) => {
+      console.log("Dashboard: Call Started Event", data);
+
+      // 알림 메시지 표시
+      addToast(`새로운 상담 전화가 연결되었습니다. (Call ID: ${data.callId})`, 'info');
+
+      // CoPilot 자동 실행
+      openCopilot({
+        callId: data.callId,
+        customerName: data.customer_info?.name || '고객',
+        issue: '실시간 상담 (Incoming Call)',
+        channel: 'Voice'
+      });
+    };
+
+    notificationService.on("CALL_STARTED", handleCallStart);
+
+    return () => {
+      notificationService.off("CALL_STARTED", handleCallStart);
+      notificationService.disconnect();
+    };
+  }, []);
 
   const handleQuickAction = (action) => {
     addToast(`${action} 기능이 실행되었습니다. (Dev Mock)`, 'info');
