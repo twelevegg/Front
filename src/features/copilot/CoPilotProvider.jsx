@@ -79,6 +79,58 @@ export function CoPilotProvider({ children }) {
     };
   }, [ignoredCallIds]);
 
+  // [NEW] 실시간 데이터 상태
+  const [transcript, setTranscript] = useState([]);
+  const [agentResults, setAgentResults] = useState([]);
+
+  // [NEW] Monitor WebSocket Connection
+  useEffect(() => {
+    if (!call?.callId) return;
+
+    // 실제 환경에서는 환경변수나 base URL 사용 권장
+    // 나중에 실제 base URL로 변경해야함.
+    const wsUrl = `ws://localhost:8000/api/v1/agent/monitor/${call.callId}`;
+    console.log(`CoPilotProvider: Connecting to Monitor WS: ${wsUrl}`);
+
+    let socket;
+    try {
+      socket = new WebSocket(wsUrl);
+
+      socket.onopen = () => {
+        console.log("CoPilotProvider: Monitor WS Connected");
+      };
+
+      socket.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log("Monitor WS Received:", data);
+
+          if (data.type === 'transcript_update') {
+            setTranscript(prev => [...prev, data.data]);
+          } else if (data.type === 'result') {
+            setAgentResults(prev => [...prev, data]);
+          }
+        } catch (e) {
+          console.error("Monitor WS Error parsing:", e);
+        }
+      };
+
+      socket.onclose = () => console.log("CoPilotProvider: Monitor WS Disconnected");
+      socket.onerror = (err) => console.error("CoPilotProvider: Monitor WS Error:", err);
+
+    } catch (e) {
+      console.error("CoPilotProvider: Failed to create WebSocket", e);
+    }
+
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+      setTranscript([]);
+      setAgentResults([]);
+    };
+  }, [call?.callId]);
+
   const value = useMemo(
     () => ({
       open,
@@ -99,9 +151,13 @@ export function CoPilotProvider({ children }) {
       diarizationOn,
       setDiarizationOn,
       summaryOn,
-      setSummaryOn
+      setSummaryOn,
+
+      // [NEW] Real-time Data
+      transcript,
+      agentResults
     }),
-    [open, call, pendingCall, compact, sttOn, diarizationOn, summaryOn]
+    [open, call, pendingCall, compact, sttOn, diarizationOn, summaryOn, transcript, agentResults]
   );
 
   return <CoPilotContext.Provider value={value}>{children}</CoPilotContext.Provider>;

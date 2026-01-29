@@ -1,6 +1,6 @@
 // src/features/copilot/CoPilotModal.jsx
 import * as Dialog from '@radix-ui/react-dialog';
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import { Bot, Phone, X, Megaphone, UserRound } from 'lucide-react';
 import Card from '../../components/Card.jsx';
 import { useCoPilot } from './CoPilotProvider.jsx';
@@ -8,18 +8,21 @@ import { maskName } from '../../utils/mask.js';
 
 /**
  * CoPilotModal (Layout v4)
- * ✅ 변경 반영
- * - 멘트추천 ↔ 마케팅 추천 위치 변경
- *   - 멘트추천: 왼쪽(STT 아래)
- *   - 마케팅 추천: 오른쪽(상단)
- * - 오른쪽 비율을 이전으로 복구: grid-cols-[1fr_420px]
- * - 오른쪽 하단에 고객 정보 추가(마케팅 아래 공간 채우기)
- * - 멘트/마케팅 리스트 스크롤 적용
- * - 목데이터 기반
+ * - Auto-scroll applied to STT log.
+ * - Initial Mock Data Removed (Starts empty).
  */
 export function CoPilotModal() {
-  const { open, setOpen, call, compact, setCompact } = useCoPilot();
-  const session = useMemo(() => buildMockSession(call), [call]);
+  const { open, setOpen, call, compact, setCompact, transcript, agentResults } = useCoPilot();
+  const session = useMemo(() => buildMockSession(call, transcript, agentResults), [call, transcript, agentResults]);
+
+  // Auto-scroll logic
+  const transcriptRef = useRef(null);
+
+  useEffect(() => {
+    if (transcriptRef.current) {
+      transcriptRef.current.scrollTop = transcriptRef.current.scrollHeight;
+    }
+  }, [session.transcript]);
 
   const contentClass = compact
     ? 'fixed right-6 top-6 w-[720px] max-w-[calc(100vw-48px)] rounded-3xl bg-white shadow-soft border border-slate-100 overflow-hidden z-[100]'
@@ -82,11 +85,20 @@ export function CoPilotModal() {
                   </div>
 
                   {/* STT 로그 (간격 축소) */}
-                  <div className="mt-4 rounded-2xl border border-slate-100 p-3 bg-slate-50/30">
+                  <div
+                    ref={transcriptRef}
+                    className="mt-4 flex-1 min-h-0 overflow-y-auto rounded-2xl border border-slate-100 p-3 bg-slate-50/30 max-h-[400px]"
+                  >
                     <div className="space-y-2">
-                      {session.transcript.map((t, idx) => (
-                        <Bubble key={idx} {...t} />
-                      ))}
+                      {session.transcript.length > 0 ? (
+                        session.transcript.map((t, idx) => (
+                          <Bubble key={idx} {...t} />
+                        ))
+                      ) : (
+                        <div className="py-8 text-center text-xs text-slate-400">
+                          대화가 시작되면 실시간으로 표시됩니다.
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -103,9 +115,15 @@ export function CoPilotModal() {
                     {/* ✅ 멘트 리스트 스크롤 */}
                     <div className="mt-3 max-h-[260px] overflow-auto pr-1">
                       <div className="space-y-2">
-                        {session.mentSuggestions.map((s, idx) => (
-                          <SuggestionRow key={idx} title={s.title} text={s.text} />
-                        ))}
+                        {session.mentSuggestions.length > 0 ? (
+                          session.mentSuggestions.map((s, idx) => (
+                            <SuggestionRow key={idx} title={s.title} text={s.text} />
+                          ))
+                        ) : (
+                          <div className="py-4 text-center text-xs text-slate-400">
+                            대기중...
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -128,9 +146,15 @@ export function CoPilotModal() {
                     {/* ✅ 마케팅 리스트 스크롤 */}
                     <div className="mt-3 flex-1 min-h-0 overflow-auto pr-1">
                       <div className="space-y-2">
-                        {session.marketingProducts.map((p, idx) => (
-                          <CompactProductRow key={idx} {...p} />
-                        ))}
+                        {session.marketingProducts.length > 0 ? (
+                          session.marketingProducts.map((p, idx) => (
+                            <CompactProductRow key={idx} {...p} />
+                          ))
+                        ) : (
+                          <div className="py-4 text-center text-xs text-slate-400">
+                            분석중...
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Card>
@@ -180,9 +204,8 @@ function Bubble({ speaker, time, text }) {
   return (
     <div className={`flex ${isAgent ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[78%] rounded-2xl border px-3 py-2 text-sm leading-6 shadow-soft ${
-          isAgent ? 'bg-white border-blue-100' : 'bg-white border-slate-100'
-        }`}
+        className={`max-w-[78%] rounded-2xl border px-3 py-2 text-sm leading-6 shadow-soft ${isAgent ? 'bg-white border-blue-100' : 'bg-white border-slate-100'
+          }`}
       >
         <div className="text-[11px] text-slate-500 mb-0.5">
           <span className="font-semibold">{speaker}</span> · {time}
@@ -205,7 +228,7 @@ function SuggestionRow({ title, text }) {
   );
 }
 
-function CompactProductRow({ name, tag, reason, benefit }) {
+function CompactProductRow({ name, tag, reason, desc }) {
   return (
     <div className="rounded-2xl border border-slate-100 p-3">
       <div className="flex items-start justify-between gap-3">
@@ -216,7 +239,7 @@ function CompactProductRow({ name, tag, reason, benefit }) {
         <Pill tone="primary">{tag}</Pill>
       </div>
       <div className="mt-2 text-xs text-slate-700 leading-5">
-        <span className="font-extrabold">혜택:</span> {benefit}
+        <span className="font-extrabold">혜택:</span> {desc}
       </div>
     </div>
   );
@@ -243,77 +266,122 @@ function Pill({ children, tone = 'neutral' }) {
     tone === 'primary'
       ? 'border-blue-200 bg-blue-50 text-blue-700'
       : tone === 'success'
-      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-      : tone === 'danger'
-      ? 'border-red-200 bg-red-50 text-red-700'
-      : 'border-slate-200 bg-white text-slate-700';
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+        : tone === 'danger'
+          ? 'border-red-200 bg-red-50 text-red-700'
+          : 'border-slate-200 bg-white text-slate-700';
 
   return <span className={`rounded-full border px-3 py-1 text-xs font-extrabold ${toneClass}`}>{children}</span>;
 }
 
 /* ------------------------- Mock Data ------------------------- */
 
-function buildMockSession(call) {
+function buildMockSession(call, realTranscript = [], realAgentResults = []) {
   const callId = (call && typeof call === 'object' ? call.callId : call) || `C-${Date.now()}`;
 
   const customerName = call?.customerName || '홍길동';
   const customerPhone = call?.customerPhone || call?.phone || '010-1234-5678';
 
+  // [NEW] Use real transcript if available
+  const displayTranscript = realTranscript.length > 0
+    ? realTranscript.map(t => ({
+      speaker: t.speaker === 'agent' ? '상담사' : (t.speaker === 'customer' ? '고객' : t.speaker),
+      time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }), // 타임스탬프가 없으면 현재시간
+      text: t.transcript
+    }))
+    : [];
+
+  // [NEW] Process real agent results (Guidance / Marketing)
+
+  // 1. Guidance (Latest one wins for the "Ment Suggestion" box)
+  // agent.py sends: { type: 'result', results: { recommended_answer: '...', ... } }
+  const lastGuidance = realAgentResults
+    .filter(r => (r.agent_type === 'guidance' || r.results?.agent_type === 'guidance') && r.results?.recommended_answer)
+    .pop();
+
+  let currentMentSuggestions = [];
+
+  if (lastGuidance) {
+    currentMentSuggestions = [
+      {
+        title: lastGuidance.results.work_guide || 'AI 가이드',
+        text: lastGuidance.results.recommended_answer
+      }
+    ];
+  }
+
+  // 2. Marketing (Latest one wins for the "Marketing Products" box)
+  const lastMarketing = realAgentResults
+    .filter(r => (r.agent_type === 'marketing' || r.results?.agent_type === 'marketing') && r.results?.recommended_answer)
+    .pop();
+
+  let currentMarketingProducts = [];
+
+  if (lastMarketing) {
+    const results = lastMarketing.results || {};
+    let tag = '추천';
+
+    // Parse Tag
+    if (results.work_guide?.includes('Type:')) {
+      try {
+        tag = results.work_guide.split('Type:')[1].split('(')[0].trim().toUpperCase();
+      } catch (e) { tag = '추천'; }
+    }
+
+    // Safe Logic for Title & Description
+    let productName = 'AI 마케팅 제안';
+    let description = '';
+    let reasonText = '';
+
+    // 1. Try to use rich proposal data if available
+    const proposal = results.marketing_proposal;
+    if (proposal) {
+      if (proposal.card_title) productName = proposal.card_title;
+      if (proposal.arrow_text) reasonText = proposal.arrow_text; // e.g. "스펙 업그레이드"
+
+      if (Array.isArray(proposal.benefits)) {
+        description = proposal.benefits.join(', ');
+      } else if (typeof proposal.benefits === 'string') {
+        description = proposal.benefits;
+      }
+    }
+
+    // 2. Fallback or Enhancement from recommended_answer (Object or String)
+    const rawAnswer = results.recommended_answer;
+
+    // If rawAnswer is a structured object, it overrides generic defaults if specific fields exist
+    if (rawAnswer && typeof rawAnswer === 'object') {
+      if (rawAnswer.recommendation) productName = rawAnswer.recommendation;
+      if (rawAnswer.ment) description = rawAnswer.ment;
+      if (rawAnswer.comparison) reasonText = rawAnswer.comparison;
+      // If comparison is missing, maybe use 'needs'
+      if (!reasonText && rawAnswer.needs) reasonText = rawAnswer.needs;
+    }
+    // If it's just a string and we still have no description
+    else if (typeof rawAnswer === 'string' && !description) {
+      description = rawAnswer;
+    }
+
+    currentMarketingProducts = [
+      {
+        id: 'real-mkt-1',
+        name: productName,
+        tag: tag,
+        reason: reasonText,
+        desc: description
+      }
+    ];
+  }
+
   return {
     callMeta: `CallId: ${callId} · 채널: ${call?.channel || '전화'} · 이슈: ${call?.issue || '요금제/해지 문의'}`,
     customer: { name: customerName, phone: customerPhone },
 
-    transcript: [
-      { speaker: '고객', time: '10:11', text: '인터넷이 계속 끊기는데요. 이럴 거면 해지하고 싶습니다.' },
-      { speaker: '상담사', time: '10:11', text: '불편을 드려 죄송합니다. 먼저 회선 상태를 확인해도 될까요?' },
-      { speaker: '고객', time: '10:12', text: '네, 위약금도 얼마나 나오는지 같이 알려주세요.' },
-      { speaker: '상담사', time: '10:12', text: '네, 확인 감사합니다. 위약금과 가능한 혜택까지 함께 안내드리겠습니다.' }
-    ],
+    transcript: displayTranscript,
 
-    mentSuggestions: [
-      {
-        title: '공감 + 확인 질문',
-        text: '불편을 드려 정말 죄송합니다. 정확한 원인 확인을 위해 잠시만 회선 점검 진행해도 괜찮을까요?'
-      },
-      {
-        title: '해지 의사 완화',
-        text: '해지를 결정하시기 전에 가능한 조치/보상과 혜택을 함께 안내드려도 될까요?'
-      },
-      {
-        title: '위약금 안내 전 단계',
-        text: '위약금은 약정/결합 여부에 따라 달라져서, 가입 정보를 확인 후 정확히 안내드리겠습니다.'
-      },
-      {
-        title: '진행 안내',
-        text: '지금 바로 점검 가능한 항목부터 확인 후, 필요 시 기사 방문까지 빠르게 도와드리겠습니다.'
-      },
-      {
-        title: '혜택 자연스럽게 연결',
-        text: '불편을 겪으신 만큼 가능한 혜택/할인도 함께 확인해서 부담을 줄여드릴게요.'
-      }
-    ],
+    mentSuggestions: currentMentSuggestions,
 
-    marketingProducts: [
-      {
-        name: '기가 와이파이(공유기) 업그레이드',
-        tag: '업셀링',
-        reason: '끊김/품질 이슈 언급 → 무선 환경 개선 제안',
-        benefit: '월 2,200원 추가로 최신 공유기 + 커버리지 개선, 품질 점검과 병행 제안'
-      },
-      {
-        name: '결합 할인(모바일 + 인터넷)',
-        tag: '리텐션',
-        reason: '해지 의사 표현 → 할인/혜택으로 유지 유도',
-        benefit: '가족 결합 시 월 최대 11,000원 할인 가능(조건 확인 필요)'
-      },
-      // 스크롤 확인용(원하면 삭제)
-      {
-        name: '속도 업그레이드 프로모션',
-        tag: '프로모션',
-        reason: '속도 불만/끊김 언급 고객 대상',
-        benefit: '3개월 할인 + 업그레이드 옵션 제안'
-      }
-    ],
+    marketingProducts: currentMarketingProducts,
 
     customerInfo: {
       basic: [
