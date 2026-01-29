@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Shield, Headset, Check } from 'lucide-react';
 
@@ -18,14 +18,13 @@ export default function SignUpPage() {
 
   const [showPw, setShowPw] = useState(false);
 
-  // ✅ 개인정보 동의 + 모달
-  const [privacyAgree, setPrivacyAgree] = useState(false);
+  // ✅ 개인정보 모달
   const [policyOpen, setPolicyOpen] = useState(false);
 
   // ✅ role 선택 (admin / assistant)
   const [role, setRole] = useState('assistant');
 
-  // ✅ Tenant 선택 (kt, skt, lgu) - Default to 'kt' or null
+  // ✅ Tenant 선택 (kt, skt, lgu)
   const [tenant, setTenant] = useState('kt');
 
   const [pending, setPending] = useState(false);
@@ -50,8 +49,7 @@ export default function SignUpPage() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setPwTouched(true);
+    console.log("submit fired");
 
     if (password.length < 8) {
       setError('비밀번호는 최소 8자 이상이어야 합니다.');
@@ -76,20 +74,20 @@ export default function SignUpPage() {
     setPending(true);
 
     try {
+      // ✅ 토큰 없이 PUBLIC 회원가입 요청
       await signupApi({
         name,
         email,
         password,
         role,
-        tenant, // ✅ Tenant 정보 추가
-        consents: { terms: agreedTerms, privacy: agreedPrivacy, marketing: agreedMarketing }
+        tenant,
+        consents: {
+          terms: agreedTerms,
+          privacy: agreedPrivacy,
+          marketing: agreedMarketing,
+        },
       });
 
-      /**
-       * ✅ TODO (백엔드 연동 시)
-       * - role=admin은 프론트 선택만으로 허용하면 위험합니다.
-       *   서버에서 초대코드/승인/도메인 제한 등으로 반드시 통제하세요.
-       */
       nav(ROUTES.LOGIN, { replace: true });
     } catch (err) {
       setError(err?.message || '회원가입에 실패했습니다.');
@@ -165,7 +163,7 @@ export default function SignUpPage() {
           </div>
         </Field>
 
-        {/* ✅ role 선택 UI (Compact Tab Style) */}
+        {/* ✅ role 선택 UI */}
         <Field label="Role">
           <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
             <RoleTab
@@ -225,17 +223,22 @@ export default function SignUpPage() {
           </Field>
         </div>
 
-        {/* Password Strength (Compact) */}
+        {/* Password Strength */}
         {password && (
           <div className="flex items-center gap-2 -mt-2">
             <div className="flex-1 flex gap-1 h-1">
               {[1, 2, 3, 4].map((level) => (
                 <div
                   key={level}
-                  className={`flex-1 rounded-full transition-all ${passwordStrength >= level
-                    ? (passwordStrength <= 2 ? 'bg-red-400' : passwordStrength === 3 ? 'bg-amber-400' : 'bg-green-500')
-                    : 'bg-slate-100'
-                    }`}
+                  className={`flex-1 rounded-full transition-all ${
+                    passwordStrength >= level
+                      ? (passwordStrength <= 2
+                          ? 'bg-red-400'
+                          : passwordStrength === 3
+                            ? 'bg-amber-400'
+                            : 'bg-green-500')
+                      : 'bg-slate-100'
+                  }`}
                 />
               ))}
             </div>
@@ -259,12 +262,22 @@ export default function SignUpPage() {
             checked={agreedTerms}
             onChange={setAgreedTerms}
           />
-          <Checkbox
-            id="privacy"
-            label="[필수] 개인정보 수집 및 이용 동의"
-            checked={agreedPrivacy}
-            onChange={setAgreedPrivacy}
-          />
+          <div className="flex items-center justify-between">
+            <Checkbox
+              id="privacy"
+              label="[필수] 개인정보 수집 및 이용 동의"
+              checked={agreedPrivacy}
+              onChange={setAgreedPrivacy}
+            />
+            <button
+              type="button"
+              onClick={() => setPolicyOpen(true)}
+              className="text-xs font-bold text-blue-600 hover:underline"
+            >
+              내용보기
+            </button>
+          </div>
+
           <Checkbox
             id="marketing"
             label="[선택] 마케팅 정보 수신 동의"
@@ -342,10 +355,11 @@ function RoleTab({ active, onClick, icon, label }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${active
-        ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
-        : 'text-slate-400 hover:text-slate-600'
-        }`}
+      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+        active
+          ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
+          : 'text-slate-400 hover:text-slate-600'
+      }`}
     >
       {icon}
       {label}
@@ -356,10 +370,12 @@ function RoleTab({ active, onClick, icon, label }) {
 function Checkbox({ id, label, checked, onChange }) {
   return (
     <label htmlFor={id} className="flex items-center gap-3 cursor-pointer group select-none">
-      <div className={`
-        w-5 h-5 rounded-md flex items-center justify-center border transition
-        ${checked ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}
-      `}>
+      <div
+        className={`
+          w-5 h-5 rounded-md flex items-center justify-center border transition
+          ${checked ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300 group-hover:border-blue-400'}
+        `}
+      >
         {checked && <Check size={14} className="text-white" strokeWidth={3} />}
       </div>
       <input

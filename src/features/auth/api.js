@@ -1,43 +1,54 @@
-import { request } from '../../services/http.js';
+import api from "../../app/apiClient";
 
 /**
- * Auth APIs.
- *
- * ✅ Backend 연동 시 변경 포인트
- * - 아래 mock 구현을 실제 엔드포인트로 교체하세요.
- * - 권장 응답 형태:
- *   - POST /auth/login  -> { accessToken, user: { id, name, email, role } }
- *   - POST /auth/signup -> { ok: true }
- *   - GET  /auth/me     -> { id, name, email, role }
+ * 회원가입 (PUBLIC)
  */
-
-export async function loginApi({ email, password }) {
-  // ✅ Backend 연동 시(예시)
-  // return request('/auth/login', { method: 'POST', body: { email, password } });
-
-  // ----- MOCK (삭제 예정) -----
-  await new Promise((r) => setTimeout(r, 450));
-  const role = email.toLowerCase().includes('admin') ? 'admin' : 'assistant';
-  return {
-    accessToken: 'demo-token',
-    user: { id: 'u1', name: email.split('@')[0] || 'user', email, role }
-  };
+export async function signupApi(payload) {
+  try {
+    const { data } = await api.post("/api/v1/auth/signup", payload);
+    return data;
+  } catch (err) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "회원가입에 실패했습니다.";
+    throw new Error(msg);
+  }
 }
 
-export async function signupApi({ name, email, password }) {
-  // ✅ Backend 연동 시(예시)
-  // return request('/auth/signup', { method: 'POST', body: { name, email, password } });
-
-  // ----- MOCK (삭제 예정) -----
-  await new Promise((r) => setTimeout(r, 450));
-  return { ok: true };
+/**
+ * 로그인 (PUBLIC) - 토큰은 보통 여기서 발급됨
+ * 백엔드 연결 전이면 호출 시 네트워크 에러가 날 수 있음(정상)
+ */
+export async function loginApi(payload) {
+  try {
+    const { data } = await api.post("/api/v1/auth/login", payload);
+    return data; // 예: { accessToken, user }
+  } catch (err) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "로그인에 실패했습니다.";
+    throw new Error(msg);
+  }
 }
 
+/**
+ * 내 정보 조회 (PROTECTED) - 토큰 붙이는 건 로그인 이후 단계에서 인터셉터로 처리하는게 일반적
+ * 지금은 백엔드 미연결이면 실패할 수 있음(정상)
+ */
 export async function meApi() {
-  // ✅ Backend 연동 시(예시)
-  // return request('/auth/me');
-
-  // ----- MOCK (삭제 예정) -----
-  // token이 있다면 로그인 상태라고 가정
-  return { id: 'u1', name: 'demo', email: 'demo@company.com', role: 'assistant' };
+  try {
+    const { data } = await api.get("/auth/me");
+    return data;
+  } catch (err) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      "사용자 정보를 불러오지 못했습니다.";
+    throw new Error(msg);
+  }
 }
