@@ -1,4 +1,5 @@
-import { getFastApiBaseUrl } from './client.js';
+import { getFastApiBaseUrl, getSpringApiBaseUrl } from './client.js';
+import { tokenStorage } from '../features/auth/tokenStorage.js';
 
 function buildUrl(path) {
   const baseUrl = getFastApiBaseUrl();
@@ -28,6 +29,26 @@ export async function createEduJob(file) {
   await assertOk(res);
   return res.json();
 }
+
+// POST /api/education/materials/secure-upload (Spring Boot)
+export async function uploadToSpringSecurely(file) {
+  const baseUrl = getSpringApiBaseUrl();
+  const token = tokenStorage.get();
+  const form = new FormData();
+  form.append('file', file);
+
+  const res = await fetch(`${baseUrl}/api/education/materials/secure-upload`, {
+    method: 'POST',
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: form,
+  });
+
+  await assertOk(res);
+  return res.json();
+}
+
 
 // GET /api/v1/edu/jobs/{job_id}
 export async function getEduJob(jobId) {
