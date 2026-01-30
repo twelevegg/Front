@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2, Search, Tag, AlertCircle, X } from 'lucide-react';
+import { Plus, Trash2, Search, Tag, AlertCircle, X, Pencil } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
 import { useToast } from '../components/common/ToastProvider.jsx';
 import {
   fetchCaseLibraryList,
   createCaseLibrary,
+  updateCaseLibrary,
   deleteCaseLibrary,
 } from '../api/caseLibraryService.js';
 
@@ -23,6 +24,7 @@ export default function CaseLibraryPage() {
 
   // modal state
   const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formTitle, setFormTitle] = useState('');
   const [formBody, setFormBody] = useState('');
   const [formTags, setFormTags] = useState([]); // Array of strings
@@ -38,7 +40,7 @@ export default function CaseLibraryPage() {
       .then((list) => {
         if (!active) return;
         setCaseList(list);
-        setSelectedId(list[0]?.id || null);
+        setSelectedId(list[0]?.caseLibraryId || null);
       })
       .catch(() => {
         if (!active) return;
@@ -62,17 +64,18 @@ export default function CaseLibraryPage() {
       c.title.toLowerCase().includes(query) ||
       c.body.toLowerCase().includes(query) ||
       c.tags?.some(t => t.toLowerCase().includes(query)) ||
-      c.id.toLowerCase().includes(query)
+      c.caseLibraryId.toLowerCase().includes(query)
     );
   }, [caseList, searchQuery]);
 
   const selected = useMemo(
-    () => caseList.find((c) => c.id === selectedId),
+    () => caseList.find((c) => c.caseLibraryId === selectedId),
     [caseList, selectedId]
   );
 
   const openModal = () => {
     setError('');
+    setEditingId(null);
     setFormTitle('');
     setFormBody('');
     setFormTags([]);
@@ -80,9 +83,20 @@ export default function CaseLibraryPage() {
     setIsOpen(true);
   };
 
+  const openEditModal = (c) => {
+    setError('');
+    setEditingId(c.caseLibraryId);
+    setFormTitle(c.title || '');
+    setFormBody(c.body || '');
+    setFormTags(c.tags || []);
+    setCustomTag('');
+    setIsOpen(true);
+  };
+
   const closeModal = () => {
     setIsOpen(false);
     setError('');
+    setEditingId(null);
   };
 
   const toggleTag = (tag) => {
@@ -113,16 +127,31 @@ export default function CaseLibraryPage() {
     setError('');
 
     try {
-      const saved = await createCaseLibrary({
-        title,
-        body,
-        tags: formTags,
-      });
+      if (editingId) {
+        const saved = await updateCaseLibrary(editingId, {
+          title,
+          body,
+          tags: formTags,
+        });
 
-      setCaseList((prev) => [saved, ...prev]); // 최신이 위로
-      setSelectedId(saved.id);
-      setIsOpen(false);
-      addToast('새로운 케이스가 추가되었습니다.', 'success');
+        setCaseList((prev) =>
+          prev.map((c) => (c.caseLibraryId === editingId ? saved : c))
+        );
+        setSelectedId(saved.caseLibraryId);
+        setIsOpen(false);
+        addToast('케이스가 수정되었습니다.', 'success');
+      } else {
+        const saved = await createCaseLibrary({
+          title,
+          body,
+          tags: formTags,
+        });
+
+        setCaseList((prev) => [saved, ...prev]); // 최신이 위로
+        setSelectedId(saved.caseLibraryId);
+        setIsOpen(false);
+        addToast('새로운 케이스가 추가되었습니다.', 'success');
+      }
     } catch {
       setError('저장에 실패했습니다.');
       addToast('저장에 실패했습니다.', 'error');
@@ -135,14 +164,14 @@ export default function CaseLibraryPage() {
       try {
         await deleteCaseLibrary(id);
         setCaseList(prev => {
-          const next = prev.filter(c => c.id !== id);
+          const next = prev.filter(c => c.caseLibraryId !== id);
           if (id === selectedId && next.length > 0) {
             // If deleted item was selected, try to select the first one from remaining
             // But wait, "next" is the new list. 
             // We should select from next. 
             // However filtered list logic might interfere if we just pick first of 'next'.
             // Simplest is to pick first of next.
-            setSelectedId(next[0]?.id || null);
+            setSelectedId(next[0]?.caseLibraryId || null);
           } else if (next.length === 0) {
             setSelectedId(null);
           }
@@ -209,21 +238,21 @@ export default function CaseLibraryPage() {
             ) : (
               filteredCases.map((c) => (
                 <div
-                  key={c.id}
-                  onClick={() => setSelectedId(c.id)}
-                  className={`group relative cursor-pointer w-full text-left rounded-2xl border px-5 py-5 transition-all duration-200 ${c.id === selectedId
-                      ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500'
-                      : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
-                    }`}
+                      key={c.caseLibraryId}
+                      onClick={() => setSelectedId(c.caseLibraryId)}
+                      className={`group relative cursor-pointer w-full text-left rounded-2xl border px-5 py-5 transition-all duration-200 ${c.caseLibraryId === selectedId
+                        ? 'border-blue-500 bg-blue-50/50 shadow-md ring-1 ring-blue-500'
+                        : 'border-slate-100 bg-white hover:border-blue-200 hover:shadow-sm'
+                      }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                      <div className={`font-extrabold text-base ${c.id === selectedId ? 'text-blue-700' : 'text-slate-800'}`}>
-                        {c.title}
-                      </div>
-                      <div className="text-xs text-slate-400 font-medium">
-                        {c.id} · {c.date}
-                      </div>
+                        <div className={`font-extrabold text-base ${c.caseLibraryId === selectedId ? 'text-blue-700' : 'text-slate-800'}`}>
+                          {c.title}
+                        </div>
+                        <div className="text-xs text-slate-400 font-medium">
+                          {c.caseLibraryId} · {c.date}
+                        </div>
 
                       {c.tags?.length ? (
                         <div className="pt-2 flex gap-1.5 flex-wrap">
@@ -236,12 +265,25 @@ export default function CaseLibraryPage() {
                       ) : null}
                     </div>
 
-                    <button
-                      onClick={(e) => deleteCase(c.id, e)}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(c);
+                        }}
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+                        aria-label="수정"
+                        title="수정"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => deleteCase(c.caseLibraryId, e)}
+                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))
@@ -257,7 +299,7 @@ export default function CaseLibraryPage() {
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-black">
-                      {selected.id}
+                      {selected.caseLibraryId}
                     </span>
                     <span className="text-xs text-slate-400 font-medium">Last updated: {selected.date}</span>
                   </div>
@@ -265,12 +307,22 @@ export default function CaseLibraryPage() {
                     {selected.title}
                   </h2>
                 </div>
-                <button
-                  onClick={(e) => deleteCase(selected.id, e)}
-                  className="p-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors"
-                >
-                  <Trash2 size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => openEditModal(selected)}
+                    className="p-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                    aria-label="수정"
+                    title="수정"
+                  >
+                    <Pencil size={20} />
+                  </button>
+                  <button
+                    onClick={(e) => deleteCase(selected.caseLibraryId, e)}
+                    className="p-3 rounded-xl border border-slate-200 text-slate-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 transition-colors"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
               </div>
 
               <div className="relative z-10 flex-1 overflow-y-auto p-8">
@@ -323,9 +375,13 @@ export default function CaseLibraryPage() {
           <div className="relative w-[640px] max-w-[calc(100vw-32px)] rounded-3xl bg-white shadow-2xl border border-slate-200 p-8 transform transition-all scale-100">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <div className="text-xl font-black text-slate-900">새로운 케이스 추가</div>
+                <div className="text-xl font-black text-slate-900">
+                  {editingId ? '케이스 수정' : '새로운 케이스 추가'}
+                </div>
                 <div className="text-sm text-slate-500 mt-1">
-                  상담 현장에서 발생한 새로운 케이스를 공유해주세요.
+                  {editingId
+                    ? '선택한 케이스 내용을 수정합니다.'
+                    : '상담 현장에서 발생한 새로운 케이스를 공유해주세요.'}
                 </div>
               </div>
 
@@ -432,7 +488,7 @@ export default function CaseLibraryPage() {
                 onClick={saveCase}
                 className="rounded-xl bg-slate-900 text-white px-8 py-3 text-sm font-bold shadow-lg shadow-slate-200 hover:bg-slate-800 hover:scale-[1.02] transition active:scale-95"
               >
-                저장하기
+                {editingId ? '수정하기' : '저장하기'}
               </button>
             </div>
           </div>
