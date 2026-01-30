@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { Upload, FileText, X, AlertTriangle } from "lucide-react";
 import Modal from "../../../components/Modal.jsx";
 import { motion } from "framer-motion";
-import { createEduJob } from "../../../api/eduService.js";
+import { createEduJob, uploadToSpringSecurely } from "../../../api/eduService.js";
 
 export default function PptUploadModal({ open, onClose, onUploaded }) {
   const inputRef = useRef(null);
@@ -41,8 +41,18 @@ export default function PptUploadModal({ open, onClose, onUploaded }) {
     setUploading(true);
     setError("");
     try {
-      const res = await createEduJob(file);
+      // 1. FastAPI (AI Processing)
+      const aiPromise = createEduJob(file);
+
+      // 2. Spring Boot (Secure Storage)
+      const dbPromise = uploadToSpringSecurely(file);
+
+      // Execute in parallel
+      const [res, dbRes] = await Promise.all([aiPromise, dbPromise]);
+
       setProgress(100);
+      console.log("Secure upload complete:", dbRes);
+
       // 백엔드 응답: { job_id, status }
       onUploaded?.({
         jobId: res.job_id,
@@ -53,6 +63,7 @@ export default function PptUploadModal({ open, onClose, onUploaded }) {
       });
       onClose();
     } catch (e) {
+      console.error(e);
       setError(e?.message || "업로드에 실패했습니다.");
       setUploading(false);
       setProgress(0);
