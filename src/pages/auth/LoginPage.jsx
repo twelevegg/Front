@@ -15,6 +15,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [tenant, setTenant] = useState('kt');
 
   const [showPw, setShowPw] = useState(false);
 
@@ -29,7 +30,7 @@ export default function LoginPage() {
     setPending(true);
 
     try {
-      const user = await login({ email, password });
+      const user = await login({ tenantName: tenant, email, password });
 
       if (from) {
         nav(from, { replace: true });
@@ -66,6 +67,33 @@ export default function LoginPage() {
               required
             />
           </IconInput>
+        </Field>
+
+        <Field label="Organization">
+          <div className="grid grid-cols-3 gap-3 mb-1">
+            <TenantButton
+              active={tenant === 'kt'}
+              onClick={() => setTenant('kt')}
+              src="/logos/kt.png"
+              alt="KT"
+              color="ring-[#ED1C24] bg-[#ED1C24]/5 hover:bg-[#ED1C24]/10"
+            />
+            <TenantButton
+              active={tenant === 'skt'}
+              onClick={() => setTenant('skt')}
+              src="/logos/skt.png"
+              alt="SKT"
+              color="ring-[#3617CE] bg-[#3617CE]/5 hover:bg-[#3617CE]/10"
+            />
+            <TenantButton
+              active={tenant === 'lgu'}
+              onClick={() => setTenant('lgu')}
+              src="/logos/lgu.png"
+              alt="LG U+"
+              color="ring-[#D0006F] bg-[#D0006F]/5 hover:bg-[#D0006F]/10"
+              imgClass="h-[75%] w-auto object-contain mix-blend-multiply"
+            />
+          </div>
         </Field>
 
         <Field label="Password">
@@ -112,9 +140,6 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="text-xs text-slate-400 text-center">
-          (데모) 이메일에 <span className="font-semibold">admin</span> 포함 시 admin 로그인으로 처리됩니다.
-        </div>
       </form>
     </AuthShell>
   );
@@ -161,6 +186,24 @@ function PwToggleButton({ show, onToggle }) {
       ) : (
         <Eye size={18} className="text-slate-400" />
       )}
+    </button>
+  );
+}
+
+function TenantButton({ active, onClick, src, alt, color, imgClass = "h-[60%] w-auto object-contain" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`
+        h-14 rounded-2xl flex items-center justify-center border transition-all overflow-hidden relative w-full
+        ${active
+          ? `ring-4 ring-offset-2 ${color} border-transparent`
+          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+        }
+      `}
+    >
+      <img src={src} alt={alt} className={`${imgClass} mix-blend-multiply`} />
     </button>
   );
 }

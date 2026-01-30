@@ -44,11 +44,12 @@ export function AuthProvider({ children }) {
     if (!tokenStorage.get()) setLoading(false);
   }, []);
 
-  const login = async ({ email, password }) => {
-    const res = await loginApi({ email, password });
+  const login = async ({ tenantName, email, password }) => {
+    const res = await loginApi({ tenantName, email, password });
     tokenStorage.set(res.accessToken);
-    setUser(res.user);
-    return res.user;
+    const me = await meApi();
+    setUser(me);
+    return me;
   };
 
   const logout = () => {

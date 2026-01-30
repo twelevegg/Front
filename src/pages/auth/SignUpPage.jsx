@@ -49,7 +49,7 @@ export default function SignUpPage() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    console.log("submit fired");
+    setError('');
 
     if (password.length < 8) {
       setError('비밀번호는 최소 8자 이상이어야 합니다.');
@@ -76,16 +76,10 @@ export default function SignUpPage() {
     try {
       // ✅ 토큰 없이 PUBLIC 회원가입 요청
       await signupApi({
-        name,
+        memberName: name,
         email,
         password,
-        role,
-        tenant,
-        consents: {
-          terms: agreedTerms,
-          privacy: agreedPrivacy,
-          marketing: agreedMarketing,
-        },
+        tenantName: tenant
       });
 
       nav(ROUTES.LOGIN, { replace: true });

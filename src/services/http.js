@@ -1,7 +1,7 @@
 import { tokenStorage } from '../features/auth/tokenStorage.js';
 
-// ✅ Backend 연동 시: .env에 VITE_API_BASE="https://api.yourdomain.com" 처럼 넣고 사용하세요.
-const API_BASE = import.meta.env.VITE_API_BASE || '';
+// ✅ Backend 연동 시: .env에 VITE_API_BASE_URL 또는 VITE_API_BASE 설정
+const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE || '';
 
 /**
  * Small fetch wrapper.

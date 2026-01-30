@@ -1,53 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2, Search, Tag, AlertCircle, X } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
 import { useToast } from '../components/common/ToastProvider.jsx';
-
-const initialCases = [
-  {
-    id: 'K-012',
-    title: '민원 언급 시 응대',
-    date: '2026-01-07',
-    tags: ['고위험', '표현주의'],
-    body: '확정/과장 표현 금지, 근거 문서 기반 안내'
-  },
-  {
-    id: 'K-009',
-    title: '중복 결제 의심',
-    date: '2026-01-05',
-    tags: ['환불', '정책'],
-    body: '결제 내역 확인 후 정책에 따라 환불 절차 안내'
-  }
-];
+import {
+  fetchCaseLibraryList,
+  createCaseLibrary,
+  deleteCaseLibrary,
+} from '../api/caseLibraryService.js';
 
 const RECOMMENDED_TAGS = [
   '고위험', '환불', '정책', '결제', '배송', '서비스', '불만', '칭찬', '시스템', '기타'
 ];
 
-function todayYYYYMMDD() {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function nextCaseId(list) {
-  // K-### 최대값 + 1
-  const maxNum = list
-    .map((c) => Number(String(c.id).replace('K-', '')))
-    .filter((n) => Number.isFinite(n))
-    .reduce((a, b) => Math.max(a, b), 0);
-
-  return `K-${String(maxNum + 1).padStart(3, '0')}`;
-}
-
 export default function CaseLibraryPage() {
   const { addToast } = useToast();
-  const [caseList, setCaseList] = useState(initialCases);
-  const [selectedId, setSelectedId] = useState(initialCases[0]?.id);
+  const [caseList, setCaseList] = useState([]);
+  const [selectedId, setSelectedId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState('');
 
   // modal state
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +28,32 @@ export default function CaseLibraryPage() {
   const [formTags, setFormTags] = useState([]); // Array of strings
   const [customTag, setCustomTag] = useState(''); // Input for new manual tags
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    setIsLoading(true);
+    setFetchError('');
+
+    fetchCaseLibraryList()
+      .then((list) => {
+        if (!active) return;
+        setCaseList(list);
+        setSelectedId(list[0]?.id || null);
+      })
+      .catch(() => {
+        if (!active) return;
+        setFetchError('케이스 목록을 불러오지 못했습니다.');
+        addToast('케이스 목록을 불러오지 못했습니다.', 'error');
+      })
+      .finally(() => {
+        if (!active) return;
+        setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [addToast]);
 
   const filteredCases = useMemo(() => {
     if (!searchQuery.trim()) return caseList;
@@ -105,45 +103,55 @@ export default function CaseLibraryPage() {
     }
   };
 
-  const saveCase = () => {
+  const saveCase = async () => {
     const title = formTitle.trim();
     const body = formBody.trim();
 
     if (!title) return setError('제목을 입력해 주세요.');
     if (!body) return setError('내용을 입력해 주세요.');
 
-    const newCase = {
-      id: nextCaseId(caseList),
-      title,
-      date: todayYYYYMMDD(),
-      tags: formTags,
-      body
-    };
+    setError('');
 
-    setCaseList((prev) => [newCase, ...prev]); // 최신이 위로
-    setSelectedId(newCase.id);
-    setIsOpen(false);
-    addToast('새로운 케이스가 추가되었습니다.', 'success');
+    try {
+      const saved = await createCaseLibrary({
+        title,
+        body,
+        tags: formTags,
+      });
+
+      setCaseList((prev) => [saved, ...prev]); // 최신이 위로
+      setSelectedId(saved.id);
+      setIsOpen(false);
+      addToast('새로운 케이스가 추가되었습니다.', 'success');
+    } catch {
+      setError('저장에 실패했습니다.');
+      addToast('저장에 실패했습니다.', 'error');
+    }
   };
 
-  const deleteCase = (id, e) => {
+  const deleteCase = async (id, e) => {
     e?.stopPropagation();
     if (window.confirm('정말 삭제하시겠습니까?')) {
-      setCaseList(prev => {
-        const next = prev.filter(c => c.id !== id);
-        if (id === selectedId && next.length > 0) {
-          // If deleted item was selected, try to select the first one from remaining
-          // But wait, "next" is the new list. 
-          // We should select from next. 
-          // However filtered list logic might interfere if we just pick first of 'next'.
-          // Simplest is to pick first of next.
-          setSelectedId(next[0]?.id || null);
-        } else if (next.length === 0) {
-          setSelectedId(null);
-        }
-        return next;
-      });
-      addToast('케이스가 삭제되었습니다.', 'info');
+      try {
+        await deleteCaseLibrary(id);
+        setCaseList(prev => {
+          const next = prev.filter(c => c.id !== id);
+          if (id === selectedId && next.length > 0) {
+            // If deleted item was selected, try to select the first one from remaining
+            // But wait, "next" is the new list. 
+            // We should select from next. 
+            // However filtered list logic might interfere if we just pick first of 'next'.
+            // Simplest is to pick first of next.
+            setSelectedId(next[0]?.id || null);
+          } else if (next.length === 0) {
+            setSelectedId(null);
+          }
+          return next;
+        });
+        addToast('케이스가 삭제되었습니다.', 'info');
+      } catch {
+        addToast('삭제에 실패했습니다.', 'error');
+      }
     }
   };
 
@@ -183,7 +191,17 @@ export default function CaseLibraryPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {filteredCases.length === 0 ? (
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-2">
+                <AlertCircle size={32} />
+                <span className="text-sm font-medium">케이스를 불러오는 중...</span>
+              </div>
+            ) : fetchError ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-2">
+                <AlertCircle size={32} />
+                <span className="text-sm font-medium">{fetchError}</span>
+              </div>
+            ) : filteredCases.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-slate-400 space-y-2">
                 <AlertCircle size={32} />
                 <span className="text-sm font-medium">검색 결과가 없습니다.</span>

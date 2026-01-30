@@ -1,7 +1,11 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import { getFastApiBaseUrl } from './client.js';
 
 function buildUrl(path) {
-  return `${API_BASE_URL}${path}`;
+  const baseUrl = getFastApiBaseUrl();
+  if (!baseUrl) {
+    throw new Error('FAST API base URL is not configured');
+  }
+  return `${baseUrl}${path}`;
 }
 
 async function assertOk(res) {
