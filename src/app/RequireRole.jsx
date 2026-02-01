@@ -12,7 +12,7 @@ import { ROUTES } from './routeConstants.js';
 export default function RequireRole({ allow = [], children }) {
   // DEV ONLY: 백엔드 권한이 아직 붙지 않았을 때도 화면을 확인할 수 있도록 우회합니다.
   // TODO(Backend 연동 후): 아래 값을 false로 바꾸거나, env로 제어하세요.
-  const DEV_BYPASS_AUTH = true;
+  const DEV_BYPASS_AUTH = false;
   if (DEV_BYPASS_AUTH) return children;
 
   const { loading, role } = useAuth();

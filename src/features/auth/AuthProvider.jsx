@@ -47,6 +47,9 @@ export function AuthProvider({ children }) {
   const login = async ({ tenantName, email, password }) => {
     const res = await loginApi({ tenantName, email, password });
     tokenStorage.set(res.accessToken);
+    if (res.refreshToken) {
+      tokenStorage.setRefresh(res.refreshToken);
+    }
     const me = await meApi();
     setUser(me);
     return me;

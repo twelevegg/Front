@@ -9,17 +9,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_B
  * - 401이면 토큰 제거
  */
 export async function request(path, { method = 'GET', body, headers } = {}) {
-  const token = tokenStorage.get();
-
-  const res = await fetch(`${API_BASE}${path}`, {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(headers || {})
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
+  const res = await fetchWithAuth(path, { method, body, headers });
 
   // ✅ Backend 연동 시: 401 정책(리프레시 토큰 등)에 따라 로직을 조정하세요.
   if (res.status === 401) {
@@ -35,4 +25,58 @@ export async function request(path, { method = 'GET', body, headers } = {}) {
   }
 
   return data;
+}
+
+async function fetchWithAuth(path, { method = 'GET', body, headers } = {}, retried = false) {
+  const token = tokenStorage.get();
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(headers || {})
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+
+  if (res.status !== 401 || retried || path === '/api/v1/auth/refresh') {
+    return res;
+  }
+
+  const refreshed = await refreshAccessToken();
+  if (!refreshed) {
+    tokenStorage.clear();
+    return res;
+  }
+
+  return fetchWithAuth(path, { method, body, headers }, true);
+}
+
+async function refreshAccessToken() {
+  const refreshToken = tokenStorage.getRefresh();
+  if (!refreshToken) return null;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refreshToken })
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json().catch(() => null);
+    if (!data?.accessToken) return null;
+
+    tokenStorage.set(data.accessToken);
+    if (data.refreshToken) {
+      tokenStorage.setRefresh(data.refreshToken);
+    }
+    return data.accessToken;
+  } catch {
+    return null;
+  }
 }

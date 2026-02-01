@@ -1,4 +1,5 @@
-const KEY = 'access_token';
+const ACCESS_KEY = 'access_token';
+const REFRESH_KEY = 'refresh_token';
 
 /**
  * Token storage.
@@ -9,12 +10,19 @@ const KEY = 'access_token';
  */
 export const tokenStorage = {
   get() {
-    return localStorage.getItem(KEY);
+    return localStorage.getItem(ACCESS_KEY);
   },
   set(token) {
-    localStorage.setItem(KEY, token);
+    localStorage.setItem(ACCESS_KEY, token);
+  },
+  getRefresh() {
+    return localStorage.getItem(REFRESH_KEY);
+  },
+  setRefresh(token) {
+    localStorage.setItem(REFRESH_KEY, token);
   },
   clear() {
-    localStorage.removeItem(KEY);
+    localStorage.removeItem(ACCESS_KEY);
+    localStorage.removeItem(REFRESH_KEY);
   }
 };

@@ -11,10 +11,10 @@ export async function loginApi({ tenantName, email, password }) {
   });
 }
 
-export async function signupApi({ tenantName, email, password, memberName }) {
+export async function signupApi({ tenantName, email, password, memberName, role }) {
   return request('/api/v1/auth/signup', {
     method: 'POST',
-    body: { tenantName, email, password, memberName }
+    body: { tenantName, email, password, memberName, role }
   });
 }
 

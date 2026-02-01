@@ -79,7 +79,8 @@ export default function SignUpPage() {
         memberName: name,
         email,
         password,
-        tenantName: tenant
+        tenantName: tenant,
+        role
       });
 
       nav(ROUTES.LOGIN, { replace: true });

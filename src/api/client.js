@@ -24,16 +24,7 @@ async function requestJson(baseUrl, path, options) {
         throw new Error('API base URL is not configured');
     }
 
-    const token = tokenStorage.get();
-    const res = await fetch(`${baseUrl}${path}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...options.headers,
-        },
-        credentials: 'include', // 🔑 인증 대비
-        ...options,
-    });
+    const res = await fetchWithAuth(baseUrl, path, options);
 
     if (!res.ok) {
         const error = await res.text();
@@ -49,4 +40,58 @@ async function requestJson(baseUrl, path, options) {
         return null;
     }
     return JSON.parse(text);
+}
+
+async function fetchWithAuth(baseUrl, path, options, retried = false) {
+    const token = tokenStorage.get();
+    const res = await fetch(`${baseUrl}${path}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...options.headers,
+        },
+        credentials: 'include', // 🔑 인증 대비
+        ...options,
+    });
+
+    if (res.status !== 401 || retried || path === '/api/v1/auth/refresh') {
+        return res;
+    }
+
+    const refreshed = await refreshAccessToken();
+    if (!refreshed) {
+        tokenStorage.clear();
+        return res;
+    }
+
+    return fetchWithAuth(baseUrl, path, options, true);
+}
+
+async function refreshAccessToken() {
+    if (!SPRING_API_BASE_URL) return null;
+    const refreshToken = tokenStorage.getRefresh();
+    if (!refreshToken) return null;
+
+    try {
+        const res = await fetch(`${SPRING_API_BASE_URL}/api/v1/auth/refresh`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ refreshToken })
+        });
+
+        if (!res.ok) return null;
+
+        const data = await res.json().catch(() => null);
+        if (!data?.accessToken) return null;
+
+        tokenStorage.set(data.accessToken);
+        if (data.refreshToken) {
+            tokenStorage.setRefresh(data.refreshToken);
+        }
+        return data.accessToken;
+    } catch {
+        return null;
+    }
 }
