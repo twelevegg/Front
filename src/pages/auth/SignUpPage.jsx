@@ -225,15 +225,14 @@ export default function SignUpPage() {
               {[1, 2, 3, 4].map((level) => (
                 <div
                   key={level}
-                  className={`flex-1 rounded-full transition-all ${
-                    passwordStrength >= level
-                      ? (passwordStrength <= 2
-                          ? 'bg-red-400'
-                          : passwordStrength === 3
-                            ? 'bg-amber-400'
-                            : 'bg-green-500')
-                      : 'bg-slate-100'
-                  }`}
+                  className={`flex-1 rounded-full transition-all ${passwordStrength >= level
+                    ? (passwordStrength <= 2
+                      ? 'bg-red-400'
+                      : passwordStrength === 3
+                        ? 'bg-amber-400'
+                        : 'bg-green-500')
+                    : 'bg-slate-100'
+                    }`}
                 />
               ))}
             </div>
@@ -350,11 +349,10 @@ function RoleTab({ active, onClick, icon, label }) {
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
-        active
-          ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
-          : 'text-slate-400 hover:text-slate-600'
-      }`}
+      className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${active
+        ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
+        : 'text-slate-400 hover:text-slate-600'
+        }`}
     >
       {icon}
       {label}

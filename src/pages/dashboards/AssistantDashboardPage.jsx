@@ -7,6 +7,7 @@ import { mockCalls } from '../../features/calls/mockCalls.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
 import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones, TrendingUp, TrendingDown } from 'lucide-react';
 import { useCoPilot } from '../../features/copilot/CoPilotProvider.jsx';
+import { dashboardService } from '../../api/dashboardService.js';
 
 const dataWeek = [
   { label: 'W-4', qa: 80, success: 81, adherence: 90 },
@@ -27,6 +28,22 @@ export default function AssistantDashboardPage() {
   const [chartType, setChartType] = useState('line'); // 'line' | 'bar'
   const [period, setPeriod] = useState('week'); // 'week' | 'month'
   const [status, setStatus] = useState('online'); // online | busy | offline
+
+  // [NEW] Member KPI Data State
+  const [kpiData, setKpiData] = useState(null);
+
+  useEffect(() => {
+    const fetchMemberKpis = async () => {
+      try {
+        // Test Member ID used for dev
+        const data = await dashboardService.getMemberKpi(1);
+        setKpiData(data);
+      } catch (error) {
+        console.error("Failed to fetch Member KPIs", error);
+      }
+    };
+    fetchMemberKpis();
+  }, []);
 
   const openCopilot = (payload) => {
     // emitCallConnected(payload); // 기존 pending 로직 대신
@@ -127,24 +144,24 @@ export default function AssistantDashboardPage() {
 
       <div className="grid grid-cols-3 gap-4">
         <Kpi
-          title="오늘 통화"
-          value="17"
+          title="오늘 총 통화"
+          value={kpiData?.operations?.totalCallsProcessed ? `${kpiData.operations.totalCallsProcessed}건` : '-'}
           icon={<Phone size={20} className="text-indigo-500" />}
           trend
           trendValue="+12%"
           trendUp={true}
         />
         <Kpi
-          title="QA(최근)"
-          value="82"
+          title="CSAT (만족도)"
+          value={kpiData?.summary?.csat ? `${kpiData.summary.csat}점` : '-'}
           icon={<CheckCircle size={20} className="text-emerald-500" />}
           trend
           trendValue="+5pts"
           trendUp={true}
         />
         <Kpi
-          title="가이드라인 준수"
-          value="92%"
+          title="일정 준수율"
+          value={kpiData?.agentProductivity?.scheduleAdherence ? `${kpiData.agentProductivity.scheduleAdherence}%` : '-'}
           icon={<BookOpen size={20} className="text-purple-500" />}
           trend
           trendValue="-2%"

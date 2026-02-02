@@ -146,3 +146,19 @@ SignUpPage.jsx
 #### 📁 관련 파일:
 
 LoginPage.jsx / PrivacyPolicyPage.jsx / PrivacyPolicyContent.jsx
+
+## 🛠️ Troubleshooting Log (2026.02)
+
+### 1. 화면이 하얗게 나오는 현상 (White Screen Issue)
+
+**증상**: 서버를 모두 실행했음에도 불구하고 브라우저에서 아무런 화면이 나오지 않음 (Blank Page).
+
+**원인 및 해결 과정**:
+1.  **환경 이슈 확인**: 프론트엔드 서버(`npm run dev`) 미실행 확인 -> 실행했으나 해결되지 않음.
+2.  **문법 오류 수정**: `AssistantDashboardPage.jsx` 수정 중 코드 중복 발생 -> 수정 시도 중 컴포넌트(`Kpi`, `CallItem`)가 오삭제됨 -> 컴포넌트 복구.
+3.  **최종 원인 파악**: `dashboardService.js`에서 `client.js`를 import 할 때 잘못된 방식 사용.
+    -   *AS-IS*: `import client from './client'` (default export 없음)
+    -   *TO-BE*: `import { apiFetch } from './client'` (Correct Named Import)
+
+**결과**: 올바른 import 방식으로 수정 후 정상 작동 확인.
+

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import Card from '../../components/Card.jsx';
 import Badge from '../../components/Badge.jsx';
@@ -6,6 +6,7 @@ import Pill from '../../components/Pill.jsx';
 import SearchInput from '../../components/SearchInput.jsx';
 import EmptyState from '../../components/common/EmptyState.jsx';
 import { useToast } from '../../components/common/ToastProvider.jsx';
+import { dashboardService } from '../../api/dashboardService.js';
 
 import { TrendingUp, TrendingDown, Users } from 'lucide-react';
 
@@ -38,6 +39,22 @@ export default function AdminDashboardPage() {
   const [teamFilter, setTeamFilter] = useState('All');
   const [selected, setSelected] = useState(counselors[3]);
 
+  // [NEW] Real KPI Data State
+  const [kpiData, setKpiData] = useState(null);
+
+  useEffect(() => {
+    const fetchKpis = async () => {
+      try {
+        const data = await dashboardService.getGlobalKpi();
+        setKpiData(data);
+      } catch (error) {
+        console.error("Failed to fetch KPIs", error);
+        // addToast('KPI 데이터를 불러오는데 실패했습니다.', 'error'); // Optional: notify on error
+      }
+    };
+    fetchKpis();
+  }, []);
+
   const filtered = useMemo(() => {
     let list = counselors;
     if (teamFilter !== 'All') {
@@ -63,39 +80,38 @@ export default function AdminDashboardPage() {
         <div className="text-sm text-slate-500 mt-1">신입 이탈 징후 · 스트레스 지수 · 폭언/욕설 알림</div>
       </div>
 
+      {/* KPI Cards Section */}
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-4 flex-wrap w-full md:w-auto">
           <Kpi
-            title="대상"
-            value="4명"
+            title="FCR (최초 해결률)"
+            value={kpiData?.summary?.fcr ? `${kpiData.summary.fcr}%` : '-'}
             trend
-            trendValue="+1"
+            trendValue="+1.2%"
             trendUp={true}
           />
           <Kpi
-            title="평균 이탈 징후"
-            value="61"
+            title="Avg CSAT (만족도)"
+            value={kpiData?.summary?.csat ? `${kpiData.summary.csat}점` : '-'}
             trend
-            trendValue="+4pts"
-            trendUp={false}
-          />
-          <Kpi
-            title="평균 스트레스"
-            value="58"
-            trend
-            trendValue="-2pts"
+            trendValue="+2.1"
             trendUp={true}
           />
           <Kpi
-            title="폭언 알림(7일)"
-            value="6건"
+            title="NPS (추천 지수)"
+            value={kpiData?.summary?.nps ? `${kpiData.summary.nps}점` : '-'}
             trend
-            trendValue="+2건"
-            trendUp={false}
+            trendValue="+0.5"
+            trendUp={true}
+          />
+          <Kpi
+            title="Sentiment (감정)"
+            value={kpiData?.summary?.sentimentScore ? `${kpiData.summary.sentimentScore}` : '-'}
+            trend
+            trendValue="+0.1"
+            trendUp={true}
           />
         </div>
-
-
       </div>
 
       <div className="grid grid-cols-[360px_1fr] gap-6">
@@ -288,3 +304,4 @@ function Kpi({ title, value, trend, trendValue, trendUp }) {
     </div>
   );
 }
+
