@@ -43,7 +43,11 @@ const ParticleBackground = () => {
     }, []);
 
     return (
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
+            {/* Stronger Nebula/Cosmic Gradient */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(59,130,246,0.15),_rgba(0,0,0,0)_60%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_rgba(124,58,237,0.1),_rgba(0,0,0,0)_40%)]" />
+
             {particles.map((p) => (
                 <motion.div
                     key={p.id}
@@ -342,36 +346,51 @@ const DashboardPreview = () => {
 
 // --- Hero Section ---
 const HeroSection = () => {
-    // We use a fixed positioned text that gets covered by the next section
-    // The next section needs a z-index higher than this text.
-
     return (
         <section className="relative min-h-screen z-0">
             {/* Sticky Container for Text */}
             <div className="fixed top-0 left-0 right-0 h-screen flex flex-col items-center justify-center pointer-events-none z-0">
                 <div className="text-center px-4 max-w-5xl mx-auto mb-10">
+
+                    {/* 1. Badge */}
                     <motion.div
-                        initial={{ opacity: 0, y: 30 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                        transition={{ delay: 2.1, duration: 0.8, ease: "easeOut" }}
+                        className="mb-6"
                     >
-                        <div className="mb-4">
-                            <span className="inline-block px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm font-bold tracking-wide backdrop-blur-md mb-6">
-                                Next Generation Contact Center
-                            </span>
-                        </div>
-                        <h1 className="text-6xl md:text-8xl font-black mb-8 tracking-tight leading-tight text-white shadow-2xl">
-                            미래형 AI 고객센터<br />
-                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x">
-                                AICC NAVIGATOR
-                            </span>
-                        </h1>
+                        <span className="inline-block px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm font-bold tracking-wide backdrop-blur-md">
+                            Next Generation Contact Center
+                        </span>
                     </motion.div>
 
+                    {/* 2. Main Title Line 1 */}
+                    <motion.h1
+                        className="text-6xl md:text-8xl font-black tracking-tight leading-tight text-white shadow-2xl mb-2"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.8, duration: 0.8, ease: "easeOut" }}
+                    >
+                        미래형 AI 고객센터
+                    </motion.h1>
+
+                    {/* 3. Main Title Line 2 */}
+                    <motion.div
+                        className="text-6xl md:text-8xl font-black tracking-tight leading-tight mb-10"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.5, duration: 0.8, ease: "easeOut" }}
+                    >
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x">
+                            AICC NAVIGATOR
+                        </span>
+                    </motion.div>
+
+                    {/* 0. Bottom Text (Appears First as requested) */}
                     <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8, duration: 1 }}
+                        transition={{ delay: 0.5, duration: 1 }}
                         className="text-xl md:text-2xl text-gray-400 font-light tracking-widest"
                     >
                         스크롤하여 AI의 가능성을 탐험하세요
@@ -379,15 +398,11 @@ const HeroSection = () => {
                 </div>
             </div>
 
-            {/* Spacer to allow scrolling before the next section covers */}
+            {/* Spacer */}
             <div className="h-screen w-full bg-transparent relative z-0" />
 
             {/* Rising Cosmic Mask */}
-            {/* This starts immediately after the screen height. 
-                 It acts as the "lid" that pulls the background up. 
-                 We add the 'vertical cosmic stripe' here. */}
             <div className="h-[200px] w-full bg-gradient-to-b from-transparent to-black relative z-10 flex justify-center">
-                {/* Cosmic Stripe */}
                 <div className="w-[1px] h-full bg-gradient-to-b from-transparent via-blue-500 to-transparent opacity-80" />
             </div>
         </section>
@@ -601,31 +616,29 @@ const PreviewCTASection = () => {
 // --- Footer ---
 const Footer = () => {
     return (
-        <footer className="relative z-20 bg-black py-12 px-6 border-t border-white/5 text-gray-500 text-sm">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+        <footer className="relative z-20 bg-[#050510] border-t border-white/5 text-gray-400 text-sm">
+            <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
 
                 {/* Brand */}
-                <div className="text-center md:text-left">
-                    <h4 className="text-white font-bold text-lg mb-2">AICC NAVIGATOR</h4>
-                    <p>Experience the future of customer service.</p>
+                <div className="flex-1 text-center md:text-left">
+                    <h4 className="text-white font-bold text-lg mb-2 tracking-tight">AICC NAVIGATOR</h4>
+                    <p className="opacity-70">Experience the future of customer service.</p>
                 </div>
 
                 {/* Links */}
-                <div className="flex gap-8">
+                <div className="flex-1 flex justify-center gap-8 font-medium">
                     <a href={ROUTES.PRIVACY} className="hover:text-white transition-colors">Privacy Policy</a>
                     <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
                     <a href="#" className="hover:text-white transition-colors">Contact</a>
                 </div>
 
                 {/* Socials */}
-                <div className="flex gap-4">
+                <div className="flex-1 flex justify-end gap-4">
                     <a href="https://github.com/twelevegg" target="_blank" rel="noopener noreferrer" className="p-2 bg-white/5 rounded-full hover:bg-white/10 hover:text-white transition-all"><Github className="w-5 h-5" /></a>
-                    <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 hover:text-white transition-all"><Twitter className="w-5 h-5" /></a>
-                    <a href="#" className="p-2 bg-white/5 rounded-full hover:bg-white/10 hover:text-white transition-all"><Linkedin className="w-5 h-5" /></a>
                 </div>
             </div>
-            <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 text-center text-xs opacity-50">
-                &copy; 2024 TwelveGG AICC. All rights reserved.
+            <div className="bg-black/20 py-6 text-center text-xs opacity-40">
+                &copy; 2026 TwelveGG AICC. All rights reserved.
             </div>
         </footer>
     );
