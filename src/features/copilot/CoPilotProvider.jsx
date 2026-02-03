@@ -64,7 +64,9 @@ export function CoPilotProvider({ children }) {
     };
 
     const endHandler = () => {
-      setOpen(false);
+      // ✅ 통화가 종료되더라도 팝업을 바로 닫지 않고, 사용자가 닫을 수 있게 유지
+      // setOpen(false); 
+      console.log("Call Ended received. Keeping popup open for review.");
       setPendingCall(null);
     };
 
@@ -89,7 +91,7 @@ export function CoPilotProvider({ children }) {
 
     // 실제 환경에서는 환경변수나 base URL 사용 권장
     // 나중에 실제 base URL로 변경해야함.
-    const wsUrl = `ws://localhost:8000/api/v1/agent/monitor/${call.callId}`;
+    const wsUrl = `ws://localhost:8000/ai/api/v1/agent/monitor/${call.callId}`;
     console.log(`CoPilotProvider: Connecting to Monitor WS: ${wsUrl}`);
 
     let socket;
