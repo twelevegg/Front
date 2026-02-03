@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'fram
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { ROUTES } from '../app/routeConstants';
+import logoCustom from '../assets/logo_custom.jpg';
 import {
     Bot,
     Zap,
@@ -620,9 +621,25 @@ const Footer = () => {
             <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
 
                 {/* Brand */}
-                <div className="flex-1 text-center md:text-left">
-                    <h4 className="text-white font-bold text-lg mb-2 tracking-tight">AICC NAVIGATOR</h4>
-                    <p className="opacity-70">Experience the future of customer service.</p>
+                <div className="flex-1 text-center md:text-left flex flex-col items-center md:items-start">
+                    <div className="flex items-center gap-2 mb-2">
+                        {/* Custom Logo Container */}
+                        <div className="w-8 h-8 rounded-md overflow-hidden relative border border-white/20 shadow-sm shrink-0 flex items-center justify-center bg-white">
+                            <img
+                                src={logoCustom}
+                                alt="Logo"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
+                        <span className="font-extrabold text-white text-lg tracking-tight">AICC NAVIGATOR</span>
+                    </div>
+                    <p className="opacity-70 text-sm mb-4">Experience the future of customer service.</p>
+
+                    <div className="flex flex-col gap-1 text-xs text-gray-500 font-medium">
+                        <span>서울특별시 강남구 개포로 310 (개포동)</span>
+                        <span>Tel. 010-5609-3387</span>
+                        <span>Email. daegyuchang@gmail.com</span>
+                    </div>
                 </div>
 
                 {/* Links */}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Github } from 'lucide-react';
 import PrivacyPolicyModal from './legal/PrivacyPolicyModal.jsx';
 import logoCustom from '../assets/logo_custom.jpg';
 
@@ -25,7 +26,7 @@ export default function Footer() {
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center gap-y-1 gap-x-4 text-[11px] text-slate-400 font-medium">
-              <span>서울특별시 강남구 개포로 310 (개포동) KT 강남 IDC</span>
+              <span>서울특별시 강남구 개포로 310 (개포동)</span>
               <span className="hidden md:inline w-[1px] h-2.5 bg-slate-300"></span>
               <span>Tel. 010-5609-3387</span>
               <span className="hidden md:inline w-[1px] h-2.5 bg-slate-300"></span>
@@ -44,6 +45,9 @@ export default function Footer() {
                 개인정보처리방침
               </button>
               <a href="#" className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">이용약관</a>
+              <a href="https://github.com/twelevegg" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-slate-800 transition-colors">
+                <Github size={14} />
+              </a>
             </div>
             <div className="text-[10px] text-slate-400">
               © {new Date().getFullYear()} Aivle School Team 12. All rights reserved.
