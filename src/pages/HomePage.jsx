@@ -356,7 +356,7 @@ const HeroSection = () => {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 2.1, duration: 0.8, ease: "easeOut" }}
+                        transition={{ delay: 1.5, duration: 0.8, ease: "easeOut" }}
                         className="mb-6"
                     >
                         <span className="inline-block px-4 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm font-bold tracking-wide backdrop-blur-md">
@@ -369,7 +369,7 @@ const HeroSection = () => {
                         className="text-6xl md:text-8xl font-black tracking-tight leading-tight text-white shadow-2xl mb-2"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.8, duration: 0.8, ease: "easeOut" }}
+                        transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
                     >
                         미래형 AI 고객센터
                     </motion.h1>
@@ -379,7 +379,7 @@ const HeroSection = () => {
                         className="text-6xl md:text-8xl font-black tracking-tight leading-tight mb-10"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 1.5, duration: 0.8, ease: "easeOut" }}
+                        transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }}
                     >
                         <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x">
                             AICC NAVIGATOR
