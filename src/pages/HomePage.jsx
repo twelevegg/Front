@@ -33,15 +33,8 @@ import {
 
 // --- Background Particles Component ---
 const ParticleBackground = () => {
-    const particles = useMemo(() => {
-        return [...Array(20)].map((_, i) => ({
-            id: i,
-            x: Math.random() * 100,
-            y: Math.random() * 100,
-            size: Math.random() * 4 + 1,
-            duration: Math.random() * 10 + 10,
-        }));
-    }, []);
+    // Particles removed as requested
+    const particles = [];
 
     return (
         <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
@@ -346,11 +339,21 @@ const DashboardPreview = () => {
 };
 
 // --- Hero Section ---
+// --- Hero Section ---
 const HeroSection = () => {
+    const { scrollY } = useScroll();
+    const opacity = useTransform(scrollY, [0, 800], [1, 0]);
+    const y = useTransform(scrollY, [0, 800], [0, -100]);
+    const blurVal = useTransform(scrollY, [0, 800], [0, 10]);
+    const filter = useTransform(blurVal, (v) => `blur(${v}px)`);
+
     return (
         <section className="relative min-h-screen z-0">
             {/* Sticky Container for Text */}
-            <div className="fixed top-0 left-0 right-0 h-screen flex flex-col items-center justify-center pointer-events-none z-0">
+            <motion.div
+                style={{ opacity, y, filter }}
+                className="fixed top-0 left-0 right-0 h-screen flex flex-col items-center justify-center pointer-events-none z-0 will-change-transform"
+            >
                 <div className="text-center px-4 max-w-5xl mx-auto mb-10">
 
                     {/* 1. Badge */}
@@ -397,7 +400,7 @@ const HeroSection = () => {
                         스크롤하여 AI의 가능성을 탐험하세요
                     </motion.p>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Spacer */}
             <div className="h-screen w-full bg-transparent relative z-0" />
