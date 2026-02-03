@@ -8,6 +8,7 @@ import { ROUTES } from './routeConstants.js';
 
 import LoginPage from '../pages/auth/LoginPage.jsx';
 import SignUpPage from '../pages/auth/SignUpPage.jsx';
+import HomePage from '../pages/HomePage.jsx';
 
 import AdminDashboardPage from '../pages/dashboards/AdminDashboardPage.jsx';
 import AssistantDashboardPage from '../pages/dashboards/AssistantDashboardPage.jsx';
@@ -25,6 +26,9 @@ import PrivacyPolicyPage from '../pages/PrivacyPolicyPage.jsx';
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
+      <Route path={ROUTES.HOME} element={<HomePage />} />
+
       {/* Public Routes with Animation */}
       <Route element={<AuthLayout />}>
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
@@ -41,7 +45,7 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route path="/" element={<HomeRedirect />} />
+
 
         <Route
           path={ROUTES.DASH_ADMIN}

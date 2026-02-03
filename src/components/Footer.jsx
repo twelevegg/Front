@@ -1,21 +1,55 @@
 import { useState } from 'react';
-import PrivacyPolicyModal from './legal/PrivacyPolicyModal.jsx'; 
+import PrivacyPolicyModal from './legal/PrivacyPolicyModal.jsx';
+import logoCustom from '../assets/logo_custom.jpg';
 
 export default function Footer() {
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <footer className="h-11 border-t border-slate-100 bg-white/80 backdrop-blur flex items-center justify-between px-6 text-xs text-slate-400">
-        <div>© {new Date().getFullYear()} Aivle 12조</div>
+      <footer className="border-t border-slate-100 bg-white/80 backdrop-blur px-8 py-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
 
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="font-bold text-slate-500 hover:text-slate-800 hover:underline"
-        >
-          개인정보처리방침
-        </button>
+          {/* Brand & Info */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              {/* Custom Logo Container - Cropping Text */}
+              <div className="w-8 h-8 rounded-md overflow-hidden relative border border-slate-200 shadow-sm shrink-0 flex items-center justify-center bg-white">
+                <img
+                  src={logoCustom}
+                  alt="Logo"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <span className="font-extrabold text-slate-700 tracking-tight">Aivle 12</span>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-center gap-y-1 gap-x-4 text-[11px] text-slate-400 font-medium">
+              <span>서울특별시 강남구 개포로 310 (개포동) KT 강남 IDC</span>
+              <span className="hidden md:inline w-[1px] h-2.5 bg-slate-300"></span>
+              <span>Tel. 010-5609-3387</span>
+              <span className="hidden md:inline w-[1px] h-2.5 bg-slate-300"></span>
+              <span>Email. daegyuchang@gmail.com</span>
+            </div>
+          </div>
+
+          {/* Links & Copyright */}
+          <div className="flex flex-col md:items-end gap-2">
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                개인정보처리방침
+              </button>
+              <a href="#" className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">이용약관</a>
+            </div>
+            <div className="text-[10px] text-slate-400">
+              © {new Date().getFullYear()} Aivle School Team 12. All rights reserved.
+            </div>
+          </div>
+        </div>
       </footer>
 
       <PrivacyPolicyModal open={open} onClose={() => setOpen(false)} />

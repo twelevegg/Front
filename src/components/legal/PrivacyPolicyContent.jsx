@@ -2,13 +2,13 @@ export default function PrivacyPolicyContent() {
   const meta = {
     companyName: 'Aivle 12조',
     serviceName: 'CS Assistant',
-    effectiveDate: '2026-01-21',
-    lastUpdated: '2026-01-21',
-    dpoName: '홍길동',
+    effectiveDate: '2026-02-03',
+    lastUpdated: '2026-02-03',
+    dpoName: '장대규',
     dept: '개인정보보호부서',
-    email: 'aivle12@aivle.kt.co.kr',
-    tel: '010-1234-5678',
-    address: '서울시 OO구 OO-O 13층'
+    email: 'jdg.secure@gmail.com',
+    tel: '010-5609-3387',
+    address: '서울시 강남구 개포동'
   };
 
   // ✅ 목차/섹션 정의를 배열로 만들어 map에서 index를 안전하게 사용
