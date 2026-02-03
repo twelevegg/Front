@@ -1,0 +1,14 @@
+// vite.config.js
+import { defineConfig } from "file:///C:/Users/User/Desktop/%EC%97%90%EC%9D%B4%EB%B8%94%EC%8A%A4%EC%BF%A8/%EB%B9%85%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8/cs-2/Front/node_modules/vite/dist/node/index.js";
+import react from "file:///C:/Users/User/Desktop/%EC%97%90%EC%9D%B4%EB%B8%94%EC%8A%A4%EC%BF%A8/%EB%B9%85%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8/cs-2/Front/node_modules/@vitejs/plugin-react/dist/index.js";
+import tailwindcss from "file:///C:/Users/User/Desktop/%EC%97%90%EC%9D%B4%EB%B8%94%EC%8A%A4%EC%BF%A8/%EB%B9%85%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8/cs-2/Front/node_modules/@tailwindcss/vite/dist/index.mjs";
+var vite_config_default = defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    port: 5173
+  }
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcuanMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCJDOlxcXFxVc2Vyc1xcXFxVc2VyXFxcXERlc2t0b3BcXFxcXHVDNUQwXHVDNzc0XHVCRTE0XHVDMkE0XHVDRkU4XFxcXFx1QkU0NVx1RDUwNFx1Qjg1Q1x1QzgxRFx1RDJCOFxcXFxjcy0yXFxcXEZyb250XCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ZpbGVuYW1lID0gXCJDOlxcXFxVc2Vyc1xcXFxVc2VyXFxcXERlc2t0b3BcXFxcXHVDNUQwXHVDNzc0XHVCRTE0XHVDMkE0XHVDRkU4XFxcXFx1QkU0NVx1RDUwNFx1Qjg1Q1x1QzgxRFx1RDJCOFxcXFxjcy0yXFxcXEZyb250XFxcXHZpdGUuY29uZmlnLmpzXCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ltcG9ydF9tZXRhX3VybCA9IFwiZmlsZTovLy9DOi9Vc2Vycy9Vc2VyL0Rlc2t0b3AvJUVDJTk3JTkwJUVDJTlEJUI0JUVCJUI4JTk0JUVDJThBJUE0JUVDJUJGJUE4LyVFQiVCOSU4NSVFRCU5NCU4NCVFQiVBMSU5QyVFQyVBMCU5RCVFRCU4QSVCOC9jcy0yL0Zyb250L3ZpdGUuY29uZmlnLmpzXCI7aW1wb3J0IHsgZGVmaW5lQ29uZmlnIH0gZnJvbSAndml0ZSc7XHJcbmltcG9ydCByZWFjdCBmcm9tICdAdml0ZWpzL3BsdWdpbi1yZWFjdCc7XHJcbmltcG9ydCB0YWlsd2luZGNzcyBmcm9tICdAdGFpbHdpbmRjc3Mvdml0ZSc7XHJcblxyXG5leHBvcnQgZGVmYXVsdCBkZWZpbmVDb25maWcoe1xyXG4gIHBsdWdpbnM6IFtyZWFjdCgpLCB0YWlsd2luZGNzcygpXSxcclxuICBzZXJ2ZXI6IHtcclxuICAgIHBvcnQ6IDUxNzNcclxuICB9XHJcbn0pO1xyXG4iXSwKICAibWFwcGluZ3MiOiAiO0FBQXNaLFNBQVMsb0JBQW9CO0FBQ25iLE9BQU8sV0FBVztBQUNsQixPQUFPLGlCQUFpQjtBQUV4QixJQUFPLHNCQUFRLGFBQWE7QUFBQSxFQUMxQixTQUFTLENBQUMsTUFBTSxHQUFHLFlBQVksQ0FBQztBQUFBLEVBQ2hDLFFBQVE7QUFBQSxJQUNOLE1BQU07QUFBQSxFQUNSO0FBQ0YsQ0FBQzsiLAogICJuYW1lcyI6IFtdCn0K
