@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { tokenStorage } from './tokenStorage.js';
 import { loginApi, meApi } from './api.js';
+import { notificationService } from '../../services/NotificationService.js';
+import { emitCallRinging } from '../calls/callEvents.js';
 
 const AuthContext = createContext(null);
 
@@ -43,6 +45,37 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!tokenStorage.get()) setLoading(false);
   }, []);
+
+  // [NEW] WebSocket Connection for Notifications
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Connect to WebSocket using user ID
+    // (FastAPI broadcasts to ALL connected users anyway, but ID is used for connection)
+    notificationService.connect(user.id);
+
+    // Listen for CALL_STARTED event from backend
+    const handleCallStarted = (payload) => {
+      console.log("AuthProvider: CALL_STARTED received", payload);
+
+      // Trigger the ringing UI (IncomingCallToast)
+      emitCallRinging({
+        callId: payload.callId,
+        customerName: payload.customer_info?.name || 'Unknown',
+        customerPhone: payload.customer_number || 'Unknown',
+        issue: '상담 요청',
+        ...payload
+      });
+    };
+
+    notificationService.on('CALL_STARTED', handleCallStarted);
+
+    return () => {
+      // Cleanup on logout or unmount
+      notificationService.off('CALL_STARTED', handleCallStarted);
+      notificationService.disconnect();
+    };
+  }, [user?.id]);
 
   const login = async ({ tenantName, email, password }) => {
     const res = await loginApi({ tenantName, email, password });
