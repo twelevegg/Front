@@ -12,7 +12,7 @@ import { maskName } from '../../utils/mask.js';
  * - Initial Mock Data Removed (Starts empty).
  */
 export function CoPilotModal() {
-  const { open, setOpen, call, compact, setCompact, transcript, agentResults } = useCoPilot();
+  const { open, setOpen, call, compact, setCompact, transcript, agentResults, sendCallEnd } = useCoPilot();
   const session = useMemo(() => buildMockSession(call, transcript, agentResults), [call, transcript, agentResults]);
 
   // Auto-scroll logic
@@ -179,11 +179,15 @@ export function CoPilotModal() {
                     </div>
 
                     <div className="mt-4 flex items-center justify-end gap-2">
-                      <button className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50">
-                        케이스 저장
-                      </button>
-                      <button className="rounded-2xl border border-blue-200 bg-blue-50 text-blue-700 px-4 py-2 text-sm font-extrabold hover:bg-blue-100">
-                        추천 적용
+                      <button
+                        onClick={() => {
+                          if (window.confirm("통화를 종료하고 분석을 시작하시겠습니까?")) {
+                            sendCallEnd();
+                          }
+                        }}
+                        className="rounded-2xl border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-sm font-extrabold hover:bg-red-100"
+                      >
+                        전화 종료
                       </button>
                     </div>
                   </Card>

@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { callEventBus } from '../calls/callEvents.js';
+import { useAuth } from '../auth/AuthProvider.jsx';
 
 const CoPilotContext = createContext(null);
 
 export function CoPilotProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [call, setCall] = useState(null);
+  const { user } = useAuth();
 
   // ✅ 전화가 왔을 때(울림) 잠시 대기하는 콜(수신/무시 팝업에서 사용)
   const [pendingCall, setPendingCall] = useState(null);
@@ -85,39 +87,56 @@ export function CoPilotProvider({ children }) {
   const [transcript, setTranscript] = useState([]);
   const [agentResults, setAgentResults] = useState([]);
 
+  // [NEW] WebSocket Reference for sending messages
+  const socketRef = React.useRef(null);
+
   // [NEW] Monitor WebSocket Connection
   useEffect(() => {
     if (!call?.callId) return;
 
-    // 실제 환경에서는 환경변수나 base URL 사용 권장
-    // 나중에 실제 base URL로 변경해야함.
     const wsUrl = `ws://localhost:8000/ai/api/v1/agent/monitor/${call.callId}`;
     console.log(`CoPilotProvider: Connecting to Monitor WS: ${wsUrl}`);
 
     let socket;
     try {
       socket = new WebSocket(wsUrl);
+      socketRef.current = socket;
 
       socket.onopen = () => {
         console.log("CoPilotProvider: Monitor WS Connected");
+        // [NEW] Identify the agent monitoring this call
+        if (user?.id) {
+          const identifyMsg = {
+            type: "IDENTIFY",
+            memberId: user.id,
+            tenantName: user.tenantName || "default" // Assuming user object might have tenant info, fallback to default
+          };
+          console.log("Sending IDENTIFY:", identifyMsg);
+          socket.send(JSON.stringify(identifyMsg));
+        }
       };
 
       socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log("Monitor WS Received:", data);
+          // console.log("Monitor WS Received:", data);
 
           if (data.type === 'transcript_update') {
             setTranscript(prev => [...prev, data.data]);
           } else if (data.type === 'result') {
             setAgentResults(prev => [...prev, data]);
+          } else if (data.type === 'CALL_ENDED') {
+            console.log("CoPilotProvider: Server confirmed CALL_ENDED");
           }
         } catch (e) {
           console.error("Monitor WS Error parsing:", e);
         }
       };
 
-      socket.onclose = () => console.log("CoPilotProvider: Monitor WS Disconnected");
+      socket.onclose = () => {
+        console.log("CoPilotProvider: Monitor WS Disconnected");
+        socketRef.current = null;
+      };
       socket.onerror = (err) => console.error("CoPilotProvider: Monitor WS Error:", err);
 
     } catch (e) {
@@ -128,10 +147,21 @@ export function CoPilotProvider({ children }) {
       if (socket) {
         socket.close();
       }
+      socketRef.current = null;
       setTranscript([]);
       setAgentResults([]);
     };
-  }, [call?.callId]);
+  }, [call?.callId, user?.id]);
+
+  // [NEW] Send Call End Event
+  const sendCallEnd = () => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      console.log("Sending CALL_ENDED event to backend...");
+      socketRef.current.send(JSON.stringify({ type: "CALL_ENDED", callId: call?.callId }));
+    } else {
+      console.error("Cannot send CALL_ENDED: WebSocket is not open.");
+    }
+  };
 
   const value = useMemo(
     () => ({
@@ -157,7 +187,10 @@ export function CoPilotProvider({ children }) {
 
       // [NEW] Real-time Data
       transcript,
-      agentResults
+      agentResults,
+
+      // [NEW] Actions
+      sendCallEnd
     }),
     [open, call, pendingCall, compact, sttOn, diarizationOn, summaryOn, transcript, agentResults]
   );
