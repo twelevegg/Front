@@ -18,6 +18,7 @@ export async function request(path, { method = 'GET', body, headers } = {}) {
 
   const isJson = res.headers.get('content-type')?.includes('application/json');
   const data = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
+  console.log(data);
 
   if (!res.ok) {
     const message = (data && data.message) || `HTTP ${res.status}`;

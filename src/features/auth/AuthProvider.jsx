@@ -79,10 +79,11 @@ export function AuthProvider({ children }) {
 
   const login = async ({ tenantName, email, password }) => {
     const res = await loginApi({ tenantName, email, password });
-    console.log(res);
-    tokenStorage.set(res.accessToken);
-    if (res.refreshToken) {
-      tokenStorage.setRefresh(res.refreshToken);
+    const data = await res.json();
+    console.log(data);
+    tokenStorage.set(data.accessToken);
+    if (data.refreshToken) {
+      tokenStorage.setRefresh(data.refreshToken);
     }
     const me = await meApi();
     setUser(me);
