@@ -2,12 +2,15 @@ import { useState, useEffect } from 'react';
 import { notificationService } from '../../services/NotificationService.js';
 import Card from '../../components/Card.jsx';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { emitCallConnected } from '../../features/calls/callEvents.js';
-import { mockCalls } from '../../features/calls/mockCalls.js';
+import { callEventBus } from '../../features/calls/callEvents.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
+import EmptyState from '../../components/common/EmptyState.jsx';
 import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones, TrendingUp, TrendingDown } from 'lucide-react';
 import { useCoPilot } from '../../features/copilot/CoPilotProvider.jsx';
 import { dashboardService } from '../../api/dashboardService.js';
+import { request } from '../../services/http.js';
+import { useAuth } from '../../features/auth/AuthProvider.jsx';
+import CallLogModal from '../../features/calls/CallLogModal.jsx';
 
 const dataWeek = [
   { label: 'W-4', qa: 80, success: 81, adherence: 90 },
@@ -23,11 +26,19 @@ const dataMonth = [
 ];
 
 export default function AssistantDashboardPage() {
+  const { user } = useAuth();
   const { openWithCall } = useCoPilot();
   const { addToast } = useToast();
   const [chartType, setChartType] = useState('line'); // 'line' | 'bar'
   const [period, setPeriod] = useState('week'); // 'week' | 'month'
   const [status, setStatus] = useState('online'); // online | busy | offline
+  const [recentCalls, setRecentCalls] = useState([]);
+  const [recentCallsLoading, setRecentCallsLoading] = useState(true);
+  const [recentCallsError, setRecentCallsError] = useState('');
+  const [callLogOpen, setCallLogOpen] = useState(false);
+  const [callLogDetail, setCallLogDetail] = useState(null);
+  const [callLogLoading, setCallLogLoading] = useState(false);
+  const [callLogError, setCallLogError] = useState('');
 
   // [NEW] Member KPI Data State
   const [kpiData, setKpiData] = useState(null);
@@ -35,15 +46,65 @@ export default function AssistantDashboardPage() {
   useEffect(() => {
     const fetchMemberKpis = async () => {
       try {
-        // Test Member ID used for dev
-        const data = await dashboardService.getMemberKpi(1);
+        if (!user?.id) return;
+        const data = await dashboardService.getMemberKpi(user.id);
         setKpiData(data);
       } catch (error) {
         console.error("Failed to fetch Member KPIs", error);
       }
     };
     fetchMemberKpis();
-  }, []);
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchRecentCalls = async () => {
+      if (!user?.id) {
+        setRecentCalls([]);
+        setRecentCallsLoading(false);
+        return;
+      }
+
+      setRecentCallsLoading(true);
+      setRecentCallsError('');
+
+      try {
+        const data = await request(`/api/v1/members/${user.id}/stats`);
+        const calls = Array.isArray(data?.recentCalls) ? data.recentCalls : [];
+        setRecentCalls(calls);
+      } catch (error) {
+        setRecentCalls([]);
+        setRecentCallsError(error?.message || '최근 통화를 불러오지 못했습니다.');
+      } finally {
+        setRecentCallsLoading(false);
+      }
+    };
+
+    fetchRecentCalls();
+  }, [user?.id]);
+
+  const syncStatus = async (nextStatus) => {
+    const prevStatus = status;
+    setStatus(nextStatus);
+
+    if (!user?.id) return;
+
+    const mapped = mapStatusToApi(nextStatus);
+    if (!mapped) return;
+
+    try {
+      await request(`/api/v1/members/${user.id}/status`, {
+        method: 'PUT',
+        body: { status: mapped }
+      });
+
+      const refreshed = await request(`/api/v1/members/${user.id}`);
+      const normalized = mapStatusFromApi(refreshed?.status);
+      setStatus(normalized || nextStatus);
+    } catch (error) {
+      setStatus(prevStatus);
+      addToast('상태 변경에 실패했습니다.', 'error');
+    }
+  };
 
   const openCopilot = (payload) => {
     // emitCallConnected(payload); // 기존 pending 로직 대신
@@ -51,7 +112,40 @@ export default function AssistantDashboardPage() {
     addToast('CoPilot 가이드가 실행되었습니다.', 'success');
   };
 
+  const openCallLog = async (callId) => {
+    setCallLogOpen(true);
+    setCallLogLoading(true);
+    setCallLogError('');
+    setCallLogDetail(null);
+
+    try {
+      const detail = await request(`/api/v1/calls/${callId}/detail`);
+      setCallLogDetail(detail);
+    } catch (error) {
+      setCallLogError(error?.message || '통화 기록을 불러오지 못했습니다.');
+    } finally {
+      setCallLogLoading(false);
+    }
+  };
+
   // [NEW] Notification Service Integration
+  useEffect(() => {
+    const fetchStatus = async () => {
+      if (!user?.id) return;
+      try {
+        const member = await request(`/api/v1/members/${user.id}`);
+        const normalized = mapStatusFromApi(member?.status);
+        if (normalized) {
+          setStatus(normalized);
+        }
+      } catch (error) {
+        addToast('상태 정보를 불러오지 못했습니다.', 'error');
+      }
+    };
+
+    fetchStatus();
+  }, [user?.id]);
+
   useEffect(() => {
     // 임시 User ID 사용 (실제로는 로그인 정보에서 가져와야 함)
     const userId = "agent_user_01";
@@ -62,6 +156,8 @@ export default function AssistantDashboardPage() {
 
       // 알림 메시지 표시
       addToast(`새로운 상담 전화가 연결되었습니다. (Call ID: ${data.callId})`, 'info');
+
+      syncStatus('busy');
 
       // CoPilot 자동 실행
       openCopilot({
@@ -78,7 +174,20 @@ export default function AssistantDashboardPage() {
       notificationService.off("CALL_STARTED", handleCallStart);
       notificationService.disconnect();
     };
-  }, []);
+  }, [user?.id]);
+
+  useEffect(() => {
+    const handleConnected = () => syncStatus('busy');
+    const handleEnded = () => syncStatus('online');
+
+    callEventBus.addEventListener('CALL_CONNECTED', handleConnected);
+    callEventBus.addEventListener('CALL_ENDED', handleEnded);
+
+    return () => {
+      callEventBus.removeEventListener('CALL_CONNECTED', handleConnected);
+      callEventBus.removeEventListener('CALL_ENDED', handleEnded);
+    };
+  }, [user?.id]);
 
   const handleQuickAction = (action) => {
     addToast(`${action} 기능이 실행되었습니다. (Dev Mock)`, 'info');
@@ -100,7 +209,8 @@ export default function AssistantDashboardPage() {
   const currentData = period === 'week' ? dataWeek : dataMonth;
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-sm text-slate-500 font-bold">Dashboard</div>
@@ -110,7 +220,7 @@ export default function AssistantDashboardPage() {
         {/* Status Toggle */}
         <div className="flex items-center gap-2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
           <button
-            onClick={() => setStatus('online')}
+            onClick={() => syncStatus('online')}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'online'
               ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm font-bold'
               : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
@@ -120,7 +230,7 @@ export default function AssistantDashboardPage() {
             <span className="text-xs">상담 대기</span>
           </button>
           <button
-            onClick={() => setStatus('busy')}
+            onClick={() => syncStatus('busy')}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'busy'
               ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm font-bold'
               : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
@@ -130,7 +240,7 @@ export default function AssistantDashboardPage() {
             <span className="text-xs">용무 중</span>
           </button>
           <button
-            onClick={() => setStatus('offline')}
+            onClick={() => syncStatus('offline')}
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'offline'
               ? 'bg-slate-100 border-slate-300 text-slate-700 shadow-sm font-bold'
               : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
@@ -174,24 +284,24 @@ export default function AssistantDashboardPage() {
           <Card className="p-6">
             <div className="flex items-center justify-between">
               <div className="text-sm font-extrabold">최근 통화</div>
-              <button className="text-xs font-bold text-indigo-600 hover:underline">전체보기</button>
             </div>
             <div className="mt-4 space-y-3">
-              {mockCalls.slice(0, 3).map((call) => (
-                <CallItem
-                  key={call.id}
-                  title={call.title}
-                  meta={`${call.id} · ${call.datetime.split(' ')[1]}`}
-                  onOpen={() =>
-                    openCopilot({
-                      callId: call.id,
-                      customerName: '홍길동',
-                      issue: call.title,
-                      channel: '전화(CTI)'
-                    })
-                  }
-                />
-              ))}
+              {recentCallsLoading ? (
+                <EmptyState title="불러오는 중" description="최근 통화를 불러오고 있습니다." className="py-8" />
+              ) : recentCallsError ? (
+                <EmptyState title="불러오기 실패" description={recentCallsError} className="py-8" />
+              ) : recentCalls.length === 0 ? (
+                <EmptyState title="최근 통화 없음" description="표시할 최근 통화가 없습니다." className="py-8" />
+              ) : (
+                recentCalls.slice(0, 3).map((call) => (
+                  <CallItem
+                    key={call.callId}
+                    title={call.summaryText || '최근 통화'}
+                    meta={`${call.callId} · ${formatTime(call.startTime)}`}
+                    onOpen={() => openCallLog(call.callId)}
+                  />
+                ))
+              )}
             </div>
           </Card>
 
@@ -276,44 +386,16 @@ export default function AssistantDashboardPage() {
           </div>
         </Card>
 
-        {/* Action Items Section */}
-        <Card className="p-6 col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-extrabold flex items-center gap-2">
-              <AlertCircle size={18} className="text-orange-500" />
-              <span>필수 조치 항목 (My Action Items)</span>
-            </div>
-            <div className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-lg">3건 남음</div>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-indigo-200 hover:bg-white transition cursor-pointer">
-              <div className="flex items-start justify-between mb-2">
-                <div className="px-2 py-1 bg-rose-100 text-rose-600 rounded text-[10px] font-bold">긴급</div>
-                <CheckCircle size={16} className="text-slate-300 group-hover:text-indigo-500" />
-              </div>
-              <div className="text-sm font-bold text-slate-800 mb-1">QA 피드백 확인 필요</div>
-              <div className="text-xs text-slate-500">어제 16:30분 건에 대한 개선 피드백이 도착했습니다.</div>
-            </div>
-            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-indigo-200 hover:bg-white transition cursor-pointer">
-              <div className="flex items-start justify-between mb-2">
-                <div className="px-2 py-1 bg-indigo-100 text-indigo-600 rounded text-[10px] font-bold">교육</div>
-                <CheckCircle size={16} className="text-slate-300 group-hover:text-indigo-500" />
-              </div>
-              <div className="text-sm font-bold text-slate-800 mb-1">신규 상품 안내 교육</div>
-              <div className="text-xs text-slate-500">신규 인터넷 결합 상품에 대한 온라인 교육을 이수하세요.</div>
-            </div>
-            <div className="p-4 rounded-2xl border border-slate-100 bg-slate-50 relative group hover:border-indigo-200 hover:bg-white transition cursor-pointer">
-              <div className="flex items-start justify-between mb-2">
-                <div className="px-2 py-1 bg-slate-200 text-slate-600 rounded text-[10px] font-bold">일반</div>
-                <CheckCircle size={16} className="text-slate-300 group-hover:text-indigo-500" />
-              </div>
-              <div className="text-sm font-bold text-slate-800 mb-1">콜백 요청 (2건)</div>
-              <div className="text-xs text-slate-500">부재중 요청 고객에 대한 콜백이 필요합니다.</div>
-            </div>
-          </div>
-        </Card>
       </div>
-    </div>
+      </div>
+      <CallLogModal
+        open={callLogOpen}
+        onOpenChange={setCallLogOpen}
+        call={callLogDetail}
+        loading={callLogLoading}
+        error={callLogError}
+      />
+    </>
   );
 }
 
@@ -347,4 +429,29 @@ function CallItem({ title, meta, onOpen }) {
       <div className="text-xs text-slate-500 mt-1">{meta}</div>
     </button>
   );
+}
+
+
+function formatTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleTimeString('ko-KR', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function mapStatusToApi(status) {
+  if (status === 'online') return 'ACTIVE';
+  if (status === 'busy') return 'ON_CALL';
+  if (status === 'offline') return 'AWAY';
+  return null;
+}
+
+function mapStatusFromApi(status) {
+  if (status === 'ACTIVE') return 'online';
+  if (status === 'ON_CALL') return 'busy';
+  if (status === 'AWAY') return 'offline';
+  return null;
 }

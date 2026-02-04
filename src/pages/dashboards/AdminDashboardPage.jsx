@@ -204,27 +204,6 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="mt-4 flex gap-2 justify-end">
-                <button
-                  onClick={() => handleAction('코칭')}
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50 active:scale-95 transition"
-                >
-                  코칭
-                </button>
-                <button
-                  onClick={() => handleAction('배치 조정')}
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50 active:scale-95 transition"
-                >
-                  배치 조정
-                </button>
-                <button
-                  onClick={() => handleAction('케어 기록')}
-                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-extrabold hover:bg-slate-50 active:scale-95 transition"
-                >
-                  케어 기록
-                </button>
-              </div>
-
               <div className="mt-6 rounded-2xl border border-slate-100 h-[260px] p-4 relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={mockTrendData}>
@@ -304,4 +283,3 @@ function Kpi({ title, value, trend, trendValue, trendUp }) {
     </div>
   );
 }
-

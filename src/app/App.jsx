@@ -17,9 +17,8 @@ import CaseLibraryPage from '../pages/CaseLibraryPage.jsx';
 import PptTrainingPage from '../pages/training/PptTrainingPage.jsx';
 import RolePlayingPage from '../pages/training/RolePlayingPage.jsx';
 
-import AttritionPredictionPage from '../pages/dashboards/AttritionPredictionPage.jsx';
+import AdminAnalyticsPage from '../pages/dashboards/AdminAnalyticsPage.jsx';
 import AuthLayout from '../layouts/AuthLayout.jsx';
-import BurnoutAnalysisPage from '../pages/dashboards/BurnoutAnalysisPage.jsx';
 
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage.jsx';
 
@@ -56,20 +55,12 @@ export default function App() {
           }
         />
 
-        {/* Admin Analysis Routes */}
+        {/* Admin Analytics */}
         <Route
-          path={ROUTES.ADMIN_ATTRITION}
+          path={ROUTES.ADMIN_ANALYTICS}
           element={
             <RequireRole allow={['admin']}>
-              <AttritionPredictionPage />
-            </RequireRole>
-          }
-        />
-        <Route
-          path={ROUTES.ADMIN_BURNOUT}
-          element={
-            <RequireRole allow={['admin']}>
-              <BurnoutAnalysisPage />
+              <AdminAnalyticsPage />
             </RequireRole>
           }
         />

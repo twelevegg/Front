@@ -2,7 +2,6 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutGrid, PhoneCall, Library, GraduationCap, FileText, Users, Activity, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../features/auth/AuthProvider.jsx';
-import NotificationBell from './common/NotificationBell.jsx';
 import { ROUTES } from '../app/routeConstants.js';
 import UserProfileModal from './common/UserProfileModal.jsx';
 import { useState } from 'react';
@@ -36,15 +35,7 @@ export default function Sidebar() {
           <>
             <SideLink to="/dashboard/admin" icon={LayoutGrid} label="Admin Dashboard" />
 
-            {/* Admin Analytics Dropdown */}
-            <SidebarDropdown
-              icon={Activity}
-              label="Admin Analytics"
-              routes={[
-                { to: "/admin/attrition-prediction", label: "Attrition Prediction", icon: Users },
-                { to: "/admin/burnout-analysis", label: "Burnout Analysis", icon: Activity }
-              ]}
-            />
+            <SideLink to={ROUTES.ADMIN_ANALYTICS} icon={Activity} label="Admin Analytics" />
           </>
         )}
 
@@ -67,7 +58,6 @@ export default function Sidebar() {
       <div className="mt-4 pt-4 border-t border-slate-100/50 shrink-0">
         <div className="flex items-center justify-between mb-4 px-2">
           <div className="text-xs font-bold text-slate-400">USER PROFILE</div>
-          <NotificationBell />
         </div>
 
         <motion.div

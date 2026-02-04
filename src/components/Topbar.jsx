@@ -11,8 +11,7 @@ const titleMap = {
   [ROUTES.CASE_LIBRARY]: 'Case library',
   [ROUTES.TRAIN_PPT]: 'Training Center · PPT 교육',
   [ROUTES.TRAIN_ROLEPLAY]: 'Training Center · RolePlaying',
-  [ROUTES.ADMIN_ATTRITION]: 'Admin · Attrition Prediction',
-  [ROUTES.ADMIN_BURNOUT]: 'Admin · Burnout Analysis'
+  [ROUTES.ADMIN_ANALYTICS]: 'Admin Analytics'
 };
 
 export default function Topbar({ pathname }) {

@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, Calendar, Filter, PlayCircle, BarChart2 } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-import { mockCalls } from '../features/calls/mockCalls.js';
-import { emitCallConnected } from '../features/calls/callEvents.js';
+import { request } from '../services/http.js';
+import { useAuth } from '../features/auth/AuthProvider.jsx';
 import { maskName } from '../utils/mask.js';
 
 const TABS = [
@@ -16,22 +15,91 @@ const TABS = [
 ];
 
 export default function CallHistoryPage() {
-  const [selectedId, setSelectedId] = useState(mockCalls[0].id);
+  const { user } = useAuth();
+  const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState('summary');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSentiment, setFilterSentiment] = useState('All'); // All | Positive | Negative | Neutral
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [calls, setCalls] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const fetchCalls = async () => {
+      if (!user?.id) {
+        setCalls([]);
+        setSelectedId(null);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setErrorMessage('');
+
+      try {
+        const data = await request(`/api/v1/members/${user.id}/calls?size=200`);
+        const items = Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+        const mapped = items.map((call) => {
+          const keywords = call.keyword
+            ? String(call.keyword)
+              .split(',')
+              .map((item) => item.trim())
+              .filter(Boolean)
+            : [];
+
+          const log = Array.isArray(call.transcripts)
+            ? call.transcripts.map((entry) => ({
+              speaker: entry.speaker,
+              text: entry.content || ''
+            }))
+            : [];
+
+          return {
+            id: call.id,
+            title: call.summaryText || (call.callType ? `${call.callType} 통화` : '통화 기록'),
+            datetime: formatDateTime(call.startTime || call.endTime),
+            summary: call.summaryText || '',
+            qa: '',
+            log,
+            sentiment: 'Neutral',
+            customerName: call.customerName || '',
+            customerPhone: call.customerPhone || '',
+            phoneNumber: call.phoneNumber || '',
+            callType: call.callType || '',
+            transferCount: call.transferCount ?? null,
+            estimatedCost: call.estimatedCost ?? null,
+            startTime: call.startTime || null,
+            endTime: call.endTime || null,
+            audioPath: call.audioPath || '',
+            duration: formatDuration(call.duration),
+            keywords
+          };
+        });
+
+        setCalls(mapped);
+        setSelectedId((prev) => (prev ? prev : mapped[0]?.id ?? null));
+      } catch (error) {
+        setCalls([]);
+        setSelectedId(null);
+        setErrorMessage(error?.message || '통화 이력을 불러오지 못했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCalls();
+  }, [user?.id]);
 
   const filteredCalls = useMemo(() => {
     const q = String(searchQuery || '').trim();
-    return mockCalls.filter((c) => {
-      const customer = c.customerName || '';
-      const customerMasked = maskName(customer);
+      return calls.filter((c) => {
+        const customer = c.customerName || '';
+        const customerMasked = maskName(customer);
 
       const matchesSearch =
         !q ||
         c.title?.includes(q) ||
-        c.id?.includes(q) ||
+        String(c.id || '').includes(q) ||
         customer.includes(q) ||
         customerMasked.includes(q); // 마스킹된 이름으로도 검색 가능
 
@@ -40,27 +108,9 @@ export default function CallHistoryPage() {
 
       return matchesSearch && matchesSentiment;
     });
-  }, [searchQuery, filterSentiment]);
+  }, [calls, searchQuery, filterSentiment]);
 
-  const selected = useMemo(
-    () => mockCalls.find((c) => c.id === selectedId),
-    [selectedId]
-  );
-
-  const simulate = () => {
-    if (selected) {
-      emitCallConnected({
-        callId: selected.id,
-        customerName: selected.customerName,
-        customerPhone: selected.customerPhone,
-        issue: selected.title,
-        channel: '전화(DEV)'
-      });
-      alert(`Simulating call connection for ID: ${selected.id}`);
-    } else {
-      alert('No call selected to simulate.');
-    }
-  };
+  const selected = useMemo(() => calls.find((c) => c.id === selectedId), [calls, selectedId]);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -216,7 +266,11 @@ export default function CallHistoryPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {filteredCalls.length === 0 ? (
+            {loading ? (
+              <EmptyState title="불러오는 중" description="통화 이력을 불러오고 있습니다." className="h-40" />
+            ) : errorMessage ? (
+              <EmptyState title="불러오기 실패" description={errorMessage} className="h-40" />
+            ) : filteredCalls.length === 0 ? (
               <EmptyState
                 title="검색 결과 없음"
                 description="다른 키워드로 검색해보세요."
@@ -250,7 +304,7 @@ export default function CallHistoryPage() {
                   </div>
                   <div className="font-extrabold text-slate-800 line-clamp-1">{c.title}</div>
                   <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    <span className="font-bold">{maskName(c.customerName || '고객')}</span>
+                    <span className="font-bold">{c.customerName ? maskName(c.customerName) : '-'}</span>
                     <span>·</span>
                     <span>{c.duration || '00:00'}</span>
                   </div>
@@ -267,28 +321,12 @@ export default function CallHistoryPage() {
               <div className="text-xs text-slate-500 mt-1">
                 선택된 통화: <span className="font-extrabold text-slate-900">{selected?.id}</span>
               </div>
-              <div className="text-xs text-slate-500 mt-1">
-                고객: <span className="font-extrabold text-slate-900">{maskName(selected?.customerName || '고객')}</span>
+               <div className="text-xs text-slate-500 mt-1">
+                고객: <span className="font-extrabold text-slate-900">{selected?.customerName ? maskName(selected.customerName) : '-'}</span>
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => setIsDetailOpen(true)}
-                className="rounded-full border border-slate-200 bg-white text-slate-600 px-4 py-2 text-sm font-bold hover:bg-slate-50 flex items-center gap-2"
-                type="button"
-              >
-                <BarChart2 size={16} />
-                <span>심층 분석</span>
-              </button>
-              {/* <button
-                onClick={simulate}
-                className="rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 px-4 py-2 text-sm font-bold hover:bg-indigo-100"
-                type="button"
-              >
-                📞 CoPilot 열기(DEV)
-              </button> */}
-            </div>
+            <div className="flex gap-2" />
           </div>
 
           <div className="mt-4 inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1 shrink-0 self-start">
@@ -314,91 +352,27 @@ export default function CallHistoryPage() {
         </Card>
       </div>
 
-      {isDetailOpen && selected ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsDetailOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white shrink-0">
-              <div>
-                <div className="text-xs font-bold text-slate-500 mb-1">AI Insight</div>
-                <h2 className="text-2xl font-black text-slate-900">심층 분석 리포트</h2>
-                <div className="text-xs text-slate-500 mt-1">
-                  고객: <span className="font-extrabold text-slate-900">{maskName(selected?.customerName || '고객')}</span>
-                </div>
-              </div>
-              <button onClick={() => setIsDetailOpen(false)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
-            </div>
-
-            <div className="p-8 space-y-8 overflow-y-auto flex-1">
-              <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div className="text-xs font-bold text-slate-500 mb-2">종합 점수</div>
-                  <div className="text-3xl font-black text-slate-800">
-                    85<span className="text-sm font-medium text-slate-400">/100</span>
-                  </div>
-                </div>
-                <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-100">
-                  <div className="text-xs font-bold text-indigo-600 mb-2">공감도</div>
-                  <div className="text-2xl font-black text-indigo-800">Excellent</div>
-                </div>
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                  <div className="text-xs font-bold text-slate-500 mb-2">해결력</div>
-                  <div className="text-2xl font-black text-slate-800">Good</div>
-                </div>
-                <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100">
-                  <div className="text-xs font-bold text-orange-600 mb-2">개선 필요</div>
-                  <div className="text-sm font-bold text-orange-800">마무리 인사 누락</div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-slate-800 mb-4">평가 상세 항목</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100">
-                    <span className="font-bold text-slate-700">고객 맞이 및 첫인상</span>
-                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">PASS</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100">
-                    <span className="font-bold text-slate-700">고객 문제 파악 및 경청</span>
-                    <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold">PASS</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-100">
-                    <span className="font-bold text-slate-700">해결책 제시의 정확성</span>
-                    <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">보통</span>
-                  </div>
-                  <div className="flex items-center justify-between p-4 rounded-2xl border border-rose-100 bg-rose-50/50">
-                    <span className="font-bold text-slate-700">통화 종료 및 친절한 마무리</span>
-                    <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs font-bold">FAIL</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-slate-800 mb-4">감정 변화 흐름</h3>
-                <div className="h-[200px] w-full bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={[
-                      { time: '00:30', val: 30 }, { time: '01:00', val: 40 }, { time: '01:30', val: 35 },
-                      { time: '02:00', val: 50 }, { time: '02:30', val: 70 }, { time: '03:00', val: 85 }
-                    ]}>
-                      <defs>
-                        <linearGradient id="sentimentGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2} />
-                          <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                      <YAxis hide domain={[0, 100]} />
-                      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                      <Area type="monotone" dataKey="val" stroke="#4f46e5" strokeWidth={3} fillUrl="url(#sentimentGradient)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
+}
+
+function formatDateTime(value) {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+function formatDuration(seconds) {
+  if (typeof seconds !== 'number' || Number.isNaN(seconds)) return '00:00';
+  const total = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(total / 60);
+  const secs = total % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
