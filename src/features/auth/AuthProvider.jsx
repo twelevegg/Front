@@ -78,8 +78,7 @@ export function AuthProvider({ children }) {
   }, [user?.id]);
 
   const login = async ({ tenantName, email, password }) => {
-    const res = await loginApi({ tenantName, email, password });
-    const data = await res.json();
+    const data = await loginApi({ tenantName, email, password });
     console.log(data);
     tokenStorage.set(data.accessToken);
     if (data.refreshToken) {
