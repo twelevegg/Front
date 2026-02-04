@@ -273,13 +273,6 @@ function Kpi({ title, value, trend, trendValue, trendUp }) {
     <div className="rounded-2xl border border-slate-100 bg-white px-5 py-4 min-w-[190px] shadow-soft">
       <div className="text-xs text-slate-500 font-semibold">{title}</div>
       <div className="mt-1 text-2xl font-extrabold text-slate-900">{value}</div>
-      {trend && (
-        <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${trendUp ? 'text-emerald-600' : 'text-rose-600'}`}>
-          {trendUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-          <span>{trendValue}</span>
-          <span className="text-slate-400 font-medium ml-1">vs last week</span>
-        </div>
-      )}
     </div>
   );
 }
