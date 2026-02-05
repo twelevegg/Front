@@ -385,20 +385,65 @@ const HeroSection = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }}
                     >
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x">
+                        <motion.span
+                            animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
+                            transition={{
+                                duration: 8,
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
+                            style={{ backgroundSize: "200% auto" }}
+                            className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400"
+                        >
                             AICC NAVIGATOR
-                        </span>
+                        </motion.span>
                     </motion.div>
 
-                    {/* 0. Bottom Text (Appears First as requested) */}
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 1 }}
-                        className="text-xl md:text-2xl text-gray-400 font-light tracking-widest"
-                    >
-                        스크롤하여 AI의 가능성을 탐험하세요
-                    </motion.p>
+                    {/* 0. Bottom Text (Appears First, then Shimmers) */}
+                    {/* 0. Bottom Text (Layered Shimmer with Bloom) */}
+                    <div className="relative inline-block">
+                        {/* Base Layer (Dimmed) */}
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5, duration: 1 }}
+                            className="text-xl md:text-2xl font-light tracking-widest text-gray-600"
+                        >
+                            스크롤하여 AI의 가능성을 탐험하세요
+                        </motion.p>
+
+                        {/* Shimmer Overlay (Extreme Brightness + Double Bloom) */}
+                        <motion.p
+                            initial={{ backgroundPosition: "200% 0", opacity: 0 }}
+                            animate={{ backgroundPosition: "-200% 0", opacity: [0, 1, 1, 0] }}
+                            transition={{
+                                backgroundPosition: {
+                                    delay: 1.0,
+                                    duration: 7,
+                                    repeat: Infinity,
+                                    repeatType: "loop",
+                                    ease: "linear",
+                                    repeatDelay: 1
+                                },
+                                opacity: {
+                                    delay: 1.0,
+                                    duration: 7,
+                                    repeat: Infinity,
+                                    repeatType: "loop",
+                                    ease: "easeInOut",
+                                    times: [0, 0.4, 0.6, 1],
+                                    repeatDelay: 1
+                                }
+                            }}
+                            style={{
+                                backgroundSize: "200% auto",
+                                filter: "brightness(3) drop-shadow(0 0 10px rgba(255,255,255,1)) drop-shadow(0 0 50px rgba(255,255,255,0.8))"
+                            }}
+                            className="absolute inset-0 text-xl md:text-2xl font-light tracking-widest bg-gradient-to-r from-transparent via-white via-50% to-transparent bg-clip-text text-transparent will-change-[background-position]"
+                        >
+                            스크롤하여 AI의 가능성을 탐험하세요
+                        </motion.p>
+                    </div>
                 </div>
             </motion.div>
 
@@ -515,15 +560,15 @@ const FeatureSection = () => {
         {
             icon: Zap,
             title: "AI 맞춤 마케팅 추천",
-            desc: "구매 전환율이 가장 높은 타이밍에 최적의 상품을 제안합니다.",
+            desc: "구매 전환율이 가장 높은 타이밍에 고객에게 맞는 최적의 상품을 실시간으로 제안합니다.",
             colorClass: "group-hover:bg-purple-500/20",
             iconColorClass: "text-purple-400",
             gradientClass: "from-purple-500"
         },
         {
             icon: Database,
-            title: "지능형 지식 검색 (QA)",
-            desc: "사내 규정을 AI가 학습하여, 질문 즉시 정확한 답을 찾아줍니다.",
+            title: "AI 규정/지식 자동 검색",
+            desc: "Qdrant VectorDB를 기반으로, 대화 상황에 맞는 사내 규정과 상품 정보를 AI가 실시간으로 찾아 띄워줍니다.",
             colorClass: "group-hover:bg-indigo-500/20",
             iconColorClass: "text-indigo-400",
             gradientClass: "from-indigo-500"
