@@ -32,7 +32,8 @@ import {
     LayoutGrid,
     PhoneCall,
     Library,
-    GraduationCap
+    GraduationCap,
+    Presentation
 } from 'lucide-react';
 
 // --- Background Particles Component ---
@@ -594,9 +595,9 @@ const FeatureSection = () => {
             gradientClass: "from-amber-500"
         },
         {
-            icon: BarChart,
-            title: "상담 품질 자동 평가",
-            desc: "모든 통화를 전수 분석하여 응대 태도와 필수 안내 준수를 평가합니다.",
+            icon: Presentation,
+            title: "PPT 기반 AI 교육/콘텐츠 생성",
+            desc: "업로드한 매뉴얼(PPT)을 분석하여, AI 강사의 진행이 담긴 몰입형 교육 영상과 평가 퀴즈를 자동으로 생성합니다.",
             colorClass: "group-hover:bg-emerald-500/20",
             iconColorClass: "text-emerald-400",
             gradientClass: "from-emerald-500"
