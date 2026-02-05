@@ -7,6 +7,7 @@ import { ROUTES } from '../../app/routeConstants.js';
 import { useAuth } from '../../features/auth/AuthProvider.jsx';
 import TermsOfServiceModal from '../../components/legal/TermsOfServiceModal.jsx';
 import ContactModal from '../../components/ContactModal.jsx';
+import PrivacyPolicyModal from '../../components/legal/PrivacyPolicyModal.jsx';
 
 
 
@@ -27,6 +28,7 @@ export default function LoginPage() {
   // Modals
   const [termsOpen, setTermsOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const from = useMemo(() => loc.state?.from, [loc.state]);
 
@@ -181,6 +183,9 @@ export default function LoginPage() {
           <button type="button" onClick={() => setTermsOpen(true)} className="hover:text-slate-900 transition-colors">
             이용약관
           </button>
+          <button type="button" onClick={() => setPrivacyOpen(true)} className="hover:text-slate-900 transition-colors">
+            개인정보처리방침
+          </button>
           <button type="button" onClick={() => setContactOpen(true)} className="hover:text-slate-900 transition-colors">
             문의하기
           </button>
@@ -190,6 +195,7 @@ export default function LoginPage() {
 
       <TermsOfServiceModal open={termsOpen} onClose={() => setTermsOpen(false)} />
       <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
+      <PrivacyPolicyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </AuthShell>
   );
 }

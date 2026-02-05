@@ -277,7 +277,7 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={() => setTermsOpen(true)}
-              className="text-xs font-bold text-blue-600 hover:underline"
+              className="text-xs font-bold text-blue-600 hover:underline px-2 py-1 relative z-10"
             >
               내용보기
             </button>
@@ -293,7 +293,7 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={() => setPolicyOpen(true)}
-              className="text-xs font-bold text-blue-600 hover:underline"
+              className="text-xs font-bold text-blue-600 hover:underline px-2 py-1 relative z-10"
             >
               내용보기
             </button>
