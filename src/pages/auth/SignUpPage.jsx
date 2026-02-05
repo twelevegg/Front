@@ -6,6 +6,7 @@ import AuthShell from './AuthShell.jsx';
 import { ROUTES } from '../../app/routeConstants.js';
 import { signupApi } from '../../features/auth/api.js';
 import PrivacyPolicyModal from '../../components/legal/PrivacyPolicyModal.jsx';
+import TermsOfServiceModal from '../../components/legal/TermsOfServiceModal.jsx';
 
 export default function SignUpPage() {
   const nav = useNavigate();
@@ -20,6 +21,7 @@ export default function SignUpPage() {
 
   // ✅ 개인정보 모달
   const [policyOpen, setPolicyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   // ✅ role 선택 (admin / assistant)
   const [role, setRole] = useState('assistant');
@@ -264,13 +266,22 @@ export default function SignUpPage() {
           />
           <div className="h-px bg-slate-100 my-2" />
 
-          <Checkbox
-            id="terms"
-            label="[필수] 서비스 이용약관 동의"
-            checked={agreedTerms}
-            onChange={setAgreedTerms}
-            customLabelClass="text-xs text-slate-500"
-          />
+          <div className="flex items-center justify-between">
+            <Checkbox
+              id="terms"
+              label="[필수] 서비스 이용약관 동의"
+              checked={agreedTerms}
+              onChange={setAgreedTerms}
+              customLabelClass="text-xs text-slate-500"
+            />
+            <button
+              type="button"
+              onClick={() => setTermsOpen(true)}
+              className="text-xs font-bold text-blue-600 hover:underline"
+            >
+              내용보기
+            </button>
+          </div>
           <div className="flex items-center justify-between">
             <Checkbox
               id="privacy"
@@ -313,6 +324,7 @@ export default function SignUpPage() {
       </form>
 
       <PrivacyPolicyModal open={policyOpen} onClose={() => setPolicyOpen(false)} />
+      <TermsOfServiceModal open={termsOpen} onClose={() => setTermsOpen(false)} />
     </AuthShell>
   );
 }

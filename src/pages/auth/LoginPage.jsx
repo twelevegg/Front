@@ -5,6 +5,8 @@ import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import AuthShell from './AuthShell.jsx';
 import { ROUTES } from '../../app/routeConstants.js';
 import { useAuth } from '../../features/auth/AuthProvider.jsx';
+import TermsOfServiceModal from '../../components/legal/TermsOfServiceModal.jsx';
+import ContactModal from '../../components/ContactModal.jsx';
 
 
 
@@ -21,6 +23,10 @@ export default function LoginPage() {
 
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
+
+  // Modals
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   const from = useMemo(() => loc.state?.from, [loc.state]);
 
@@ -172,18 +178,18 @@ export default function LoginPage() {
         </div>
 
         <div className="pt-4 border-t border-slate-100 flex items-center justify-center gap-4 text-xs font-bold text-slate-500">
-          <Link to={ROUTES.TERMS} className="hover:text-slate-900 transition-colors">
+          <button type="button" onClick={() => setTermsOpen(true)} className="hover:text-slate-900 transition-colors">
             이용약관
-          </Link>
-          <Link to={ROUTES.PRIVACY} className="hover:text-slate-900 transition-colors">
-            개인정보처리방침
-          </Link>
-          <button type="button" className="hover:text-slate-900 transition-colors">
+          </button>
+          <button type="button" onClick={() => setContactOpen(true)} className="hover:text-slate-900 transition-colors">
             문의하기
           </button>
         </div>
 
       </form>
+
+      <TermsOfServiceModal open={termsOpen} onClose={() => setTermsOpen(false)} />
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </AuthShell>
   );
 }
