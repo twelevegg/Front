@@ -94,7 +94,7 @@ export function CoPilotProvider({ children }) {
   useEffect(() => {
     if (!call?.callId) return;
 
-    const wsUrl = `ws://localhost:8000/ai/api/v1/agent/monitor/${call.callId}`;
+    const wsUrl = `ws://k8s-default-aiccingr-9a828090cc-358415700.ap-northeast-2.elb.amazonaws.com/ai/api/v1/agent/monitor/${call.callId}`;
     console.log(`CoPilotProvider: Connecting to Monitor WS: ${wsUrl}`);
 
     let socket;
