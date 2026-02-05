@@ -59,7 +59,7 @@ export default function AdminAnalyticsPage() {
         ) : filtered.length === 0 ? (
           <EmptyState title="검색 결과 없음" description="조건에 맞는 상담사가 없습니다." className="py-10" />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[416px] overflow-y-auto">
             <table className="w-full text-left border border-slate-100 rounded-xl overflow-hidden">
               <thead className="bg-slate-50 text-xs font-bold text-slate-500">
                 <tr>
