@@ -6,7 +6,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContai
 import { callEventBus } from '../../features/calls/callEvents.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
 import EmptyState from '../../components/common/EmptyState.jsx';
-import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones, TrendingUp, TrendingDown } from 'lucide-react';
+import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones, TrendingUp, TrendingDown, Calendar, StickyNote, CalendarCheck } from 'lucide-react';
 import { useCoPilot } from '../../features/copilot/CoPilotProvider.jsx';
 import { dashboardService } from '../../api/dashboardService.js';
 import { request } from '../../services/http.js';
@@ -41,12 +41,33 @@ export default function AssistantDashboardPage() {
   const [callLogDetail, setCallLogDetail] = useState(null);
   const [callLogLoading, setCallLogLoading] = useState(false);
   const [callLogError, setCallLogError] = useState('');
-  const [isTeamChatView, setIsTeamChatView] = useState(false);
+  const [quickView, setQuickView] = useState('grid');
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState([
     { id: 1, author: '영호', text: '팀채팅은 개발이 완료 된건가요?' },
     { id: 2, author: '대규', text: '아니요, 시간 부족으로 UI만 구현된 상태입니다.' }
   ]);
+  const [scheduleItems, setScheduleItems] = useState([
+    { time: '', title: '개발 마감', tag: '팀', dueDate: '2026-02-06' }
+  ]);
+  const [scheduleDraft, setScheduleDraft] = useState({ tag: '개인', title: '', dueDate: '' });
+  const [memoItems, setMemoItems] = useState([
+    { id: 1, text: '빨리 끝나면 좋겠다!' }
+  ]);
+  const [memoInput, setMemoInput] = useState('');
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const today = new Date();
+  const isCalendarMonth =
+    today.getFullYear() === calendarMonth.getFullYear() &&
+    today.getMonth() === calendarMonth.getMonth();
+  const todayDate = isCalendarMonth ? today.getDate() : null;
+  const calendarLabel = `${calendarMonth.getFullYear()}년 ${calendarMonth.getMonth() + 1}월`;
+  const daysInMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate();
+  const firstDayOfWeek = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1).getDay();
+  const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
 
   // [NEW] Member KPI Data State
   const [kpiData, setKpiData] = useState(null);
@@ -211,6 +232,30 @@ export default function AssistantDashboardPage() {
     setChatInput('');
   };
 
+  const handleAddSchedule = () => {
+    if (!scheduleDraft.title.trim()) return;
+    setScheduleItems((prev) => [
+      ...prev,
+      {
+        time: '',
+        title: scheduleDraft.title.trim(),
+        tag: scheduleDraft.tag || '개인',
+        dueDate: scheduleDraft.dueDate
+      }
+    ]);
+    setScheduleDraft({ tag: '개인', title: '', dueDate: '' });
+  };
+
+  const handleAddMemo = () => {
+    const trimmed = memoInput.trim();
+    if (!trimmed) return;
+    setMemoItems((prev) => [
+      { id: Date.now(), text: trimmed },
+      ...prev
+    ]);
+    setMemoInput('');
+  };
+
   const StatusButton = ({ type, label, icon: Icon, color }) => (
     <button
       onClick={() => setStatus(type)}
@@ -325,25 +370,37 @@ export default function AssistantDashboardPage() {
 
           {/* Quick Actions */}
           <Card className="p-6">
-            {!isTeamChatView ? (
+            {quickView === 'grid' ? (
               <>
-                <div className="text-sm font-extrabold mb-4">빠른 실행 (Quick Actions)</div>
+                <div className="text-sm font-extrabold mb-4">빠른 실행</div>
                 <div className="grid grid-cols-2 gap-3">
-                  <button onClick={() => navigate('/call-history')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
-                    <FileText size={20} />
-                    <span className="text-xs font-bold">Call history</span>
-                  </button>
-                  <button onClick={() => navigate('/case-library')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
-                    <BookOpen size={20} />
-                    <span className="text-xs font-bold">Case library</span>
-                  </button>
-                  <button onClick={() => navigate('/training/ppt')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
-                    <AlertCircle size={20} />
-                    <span className="text-xs font-bold">Training center</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuickView('calendar')}
+                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                  >
+                    <Calendar size={20} />
+                    <span className="text-xs font-bold">캘린더</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setIsTeamChatView(true)}
+                    onClick={() => setQuickView('memo')}
+                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                  >
+                    <StickyNote size={20} />
+                    <span className="text-xs font-bold">메모장</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickView('schedule')}
+                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                  >
+                    <CalendarCheck size={20} />
+                    <span className="text-xs font-bold">일정 관리</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuickView('chat')}
                     className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
                   >
                     <MessageSquare size={20} />
@@ -356,47 +413,181 @@ export default function AssistantDashboardPage() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setIsTeamChatView(false)}
+                    onClick={() => setQuickView('grid')}
                     className="h-7 w-7 rounded-xl border border-slate-200 text-xs hover:bg-slate-50"
                   >
                     ←
                   </button>
-                  <div className="text-sm font-extrabold">팀 채팅</div>
+                  <div className="text-sm font-extrabold">
+                    {quickView === 'calendar' && '캘린더'}
+                    {quickView === 'memo' && '메모장'}
+                    {quickView === 'schedule' && '일정 관리'}
+                    {quickView === 'chat' && '팀 채팅'}
+                  </div>
                 </div>
-                <div className="space-y-2 max-h-[160px] overflow-y-auto">
-                  {chatMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`rounded-xl border px-3 py-2 text-xs ${msg.author === '나'
-                        ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
-                        : 'bg-white border-slate-100 text-slate-700'
-                        }`}
-                    >
-                      <div className="font-bold text-[11px] mb-0.5">{msg.author}</div>
-                      <div>{msg.text}</div>
+                {quickView === 'calendar' && (
+                    <div className="rounded-2xl border border-slate-100 bg-white/80 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-xs font-bold text-slate-500">{calendarLabel}</div>
+                        <div className="flex items-center gap-1 text-xs text-slate-400">
+                          <button
+                            type="button"
+                            onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                            className="px-2 py-1 rounded-lg border hover:bg-slate-50"
+                          >
+                            ◀
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                            className="px-2 py-1 rounded-lg border hover:bg-slate-50"
+                          >
+                            ▶
+                          </button>
+                        </div>
+                      </div>
+                    <div className="grid grid-cols-7 gap-2 text-[11px] text-slate-400 font-semibold">
+                      {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                        <div key={day} className="text-center">{day}</div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                    placeholder="메시지 입력..."
-                    value={chatInput}
-                    onChange={(event) => setChatInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-                        handleChatSubmit();
-                      }
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleChatSubmit}
-                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
-                  >
-                    전송
-                  </button>
-                </div>
+                    <div className="mt-2 grid grid-cols-7 gap-2 text-[11px] text-slate-600">
+                      {Array.from({ length: totalCells }).map((_, idx) => {
+                        const dayNumber = idx - firstDayOfWeek + 1;
+                        const isInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+                        const isToday = isInMonth && todayDate === dayNumber;
+                        return (
+                          <div
+                            key={idx}
+                            className={`h-8 rounded-lg border ${isInMonth ? (isToday ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-extrabold ring-2 ring-indigo-100' : 'bg-slate-50 border-slate-100') : 'border-transparent'}`}
+                          >
+                            <div className="text-center leading-8">{isInMonth ? dayNumber : ''}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {quickView === 'memo' && (
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-slate-100 bg-white/80 p-3">
+                      <div className="text-xs font-bold text-slate-600 mb-2">메모 작성</div>
+                      <textarea
+                        className="w-full min-h-[90px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                        placeholder="메모를 입력하세요..."
+                        value={memoInput}
+                        onChange={(event) => setMemoInput(event.target.value)}
+                      />
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={handleAddMemo}
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
+                        >
+                          메모 추가
+                        </button>
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-slate-100 bg-white/80 p-3">
+                      <div className="text-xs font-bold text-slate-600 mb-2">내 메모</div>
+                      <div className="space-y-2 max-h-[140px] overflow-y-auto">
+                        {memoItems.map((memo) => (
+                          <div key={memo.id} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                            {memo.text}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {quickView === 'schedule' && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-bold text-slate-500">일정 추가</div>
+                      <button
+                        type="button"
+                        onClick={handleAddSchedule}
+                        className="h-7 w-7 rounded-full border border-slate-200 text-xs font-bold hover:bg-slate-50"
+                        title="일정 추가"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                        placeholder="내용 입력"
+                        value={scheduleDraft.title}
+                        onChange={(event) => setScheduleDraft((prev) => ({ ...prev, title: event.target.value }))}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                        value={scheduleDraft.dueDate}
+                        onChange={(event) => setScheduleDraft((prev) => ({ ...prev, dueDate: event.target.value }))}
+                      />
+                      <select
+                        className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100 text-slate-600 bg-white"
+                        value={scheduleDraft.tag}
+                        onChange={(event) => setScheduleDraft((prev) => ({ ...prev, tag: event.target.value }))}
+                      >
+                        <option value="개인">개인</option>
+                        <option value="팀">팀</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      {scheduleItems.map((item, index) => (
+                        <div key={`${item.time}-${item.tag}`} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/80 px-3 py-2">
+                          <div>
+                            <div className="text-xs font-bold text-slate-700">{item.title}</div>
+                            <div className="text-[11px] text-slate-400 mt-0.5">{item.dueDate || `#${index + 1}`}</div>
+                          </div>
+                          <span className="text-[10px] font-bold rounded-full bg-indigo-50 text-indigo-600 px-2 py-1">{item.tag}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {quickView === 'chat' && (
+                  <>
+                    <div className="space-y-2 max-h-[160px] overflow-y-auto">
+                      {chatMessages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`rounded-xl border px-3 py-2 text-xs ${msg.author === '나'
+                            ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                            : 'bg-white border-slate-100 text-slate-700'
+                            }`}
+                        >
+                          <div className="font-bold text-[11px] mb-0.5">{msg.author}</div>
+                          <div>{msg.text}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                        placeholder="메시지 입력..."
+                        value={chatInput}
+                        onChange={(event) => setChatInput(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                            handleChatSubmit();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleChatSubmit}
+                        className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
+                      >
+                        전송
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </Card>
