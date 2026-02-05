@@ -11,7 +11,6 @@ phases:
   build:
     commands:
       - echo "Creating .env file from environment variables..."
-      - export VITE_API_BASE_URL="https://k8s-default-aiccingr-9a828090cc-358415700.ap-northeast-2.elb.amazonaws.com"
       - echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" > .env.production
       - echo "Building React app..."
       - npm run build
