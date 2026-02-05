@@ -44,6 +44,24 @@ export default function LoginPage() {
     }
   };
 
+  const onQuickLogin = async ({ tenantName: nextTenant, email: nextEmail, password: nextPassword }) => {
+    setError('');
+    setPending(true);
+
+    try {
+      setTenant(nextTenant);
+      setEmail(nextEmail);
+      setPassword(nextPassword);
+
+      const user = await login({ tenantName: nextTenant, email: nextEmail, password: nextPassword });
+      nav(user.role === 'admin' ? ROUTES.DASH_ADMIN : ROUTES.DASH_ASSISTANT, { replace: true });
+    } catch (err) {
+      setError(err.message || '빠른 로그인에 실패했습니다.');
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
     <AuthShell
       mode="login"
@@ -126,6 +144,25 @@ export default function LoginPage() {
         >
           {pending ? 'Signing in...' : 'Sign In'}
         </button>
+
+        <div className="grid grid-cols-1 gap-2">
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => onQuickLogin({ tenantName: 'kt', email: 'admin@test.com', password: 'password' })}
+            className="w-full rounded-full border border-rose-200 bg-rose-100/80 py-3 font-extrabold text-rose-700 hover:bg-rose-100 transition btn-press disabled:opacity-60"
+          >
+            심사위원 로그인용 (관리자)
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => onQuickLogin({ tenantName: 'kt', email: 'user@test.com', password: 'password' })}
+            className="w-full rounded-full border border-sky-200 bg-sky-100/80 py-3 font-extrabold text-sky-700 hover:bg-sky-100 transition btn-press disabled:opacity-60"
+          >
+            심사위원 로그인용 (상담사)
+          </button>
+        </div>
 
         <div className="text-center text-sm text-slate-600">
           계정이 없나요?{' '}
