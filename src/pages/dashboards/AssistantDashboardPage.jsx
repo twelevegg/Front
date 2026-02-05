@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { notificationService } from '../../services/NotificationService.js';
 import Card from '../../components/Card.jsx';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -27,6 +28,7 @@ const dataMonth = [
 
 export default function AssistantDashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { openWithCall } = useCoPilot();
   const { addToast } = useToast();
   const [chartType, setChartType] = useState('line'); // 'line' | 'bar'
@@ -39,6 +41,12 @@ export default function AssistantDashboardPage() {
   const [callLogDetail, setCallLogDetail] = useState(null);
   const [callLogLoading, setCallLogLoading] = useState(false);
   const [callLogError, setCallLogError] = useState('');
+  const [isTeamChatView, setIsTeamChatView] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, author: '영호', text: '팀채팅은 개발이 완료 된건가요?' },
+    { id: 2, author: '대규', text: '아니요, 시간 부족으로 UI만 구현된 상태입니다.' }
+  ]);
 
   // [NEW] Member KPI Data State
   const [kpiData, setKpiData] = useState(null);
@@ -193,6 +201,16 @@ export default function AssistantDashboardPage() {
     addToast(`${action} 기능이 실행되었습니다. (Dev Mock)`, 'info');
   };
 
+  const handleChatSubmit = () => {
+    const trimmed = chatInput.trim();
+    if (!trimmed) return;
+    setChatMessages((prev) => [
+      ...prev,
+      { id: Date.now(), author: '나', text: trimmed }
+    ]);
+    setChatInput('');
+  };
+
   const StatusButton = ({ type, label, icon: Icon, color }) => (
     <button
       onClick={() => setStatus(type)}
@@ -307,25 +325,80 @@ export default function AssistantDashboardPage() {
 
           {/* Quick Actions */}
           <Card className="p-6">
-            <div className="text-sm font-extrabold mb-4">빠른 실행 (Quick Actions)</div>
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => handleQuickAction('스크립트 조회')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
-                <FileText size={20} />
-                <span className="text-xs font-bold">스크립트</span>
-              </button>
-              <button onClick={() => handleQuickAction('지식 베이스 검색')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
-                <BookOpen size={20} />
-                <span className="text-xs font-bold">지식 베이스</span>
-              </button>
-              <button onClick={() => handleQuickAction('이슈 리포팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
-                <AlertCircle size={20} />
-                <span className="text-xs font-bold">이슈 리포트</span>
-              </button>
-              <button onClick={() => handleQuickAction('상담원 채팅')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
-                <MessageSquare size={20} />
-                <span className="text-xs font-bold">팀 채팅</span>
-              </button>
-            </div>
+            {!isTeamChatView ? (
+              <>
+                <div className="text-sm font-extrabold mb-4">빠른 실행 (Quick Actions)</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button onClick={() => navigate('/call-history')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
+                    <FileText size={20} />
+                    <span className="text-xs font-bold">Call history</span>
+                  </button>
+                  <button onClick={() => navigate('/case-library')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
+                    <BookOpen size={20} />
+                    <span className="text-xs font-bold">Case library</span>
+                  </button>
+                  <button onClick={() => navigate('/training/ppt')} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100">
+                    <AlertCircle size={20} />
+                    <span className="text-xs font-bold">Training center</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsTeamChatView(true)}
+                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                  >
+                    <MessageSquare size={20} />
+                    <span className="text-xs font-bold">팀 채팅</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsTeamChatView(false)}
+                    className="h-7 w-7 rounded-xl border border-slate-200 text-xs hover:bg-slate-50"
+                  >
+                    ←
+                  </button>
+                  <div className="text-sm font-extrabold">팀 채팅</div>
+                </div>
+                <div className="space-y-2 max-h-[160px] overflow-y-auto">
+                  {chatMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`rounded-xl border px-3 py-2 text-xs ${msg.author === '나'
+                        ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                        : 'bg-white border-slate-100 text-slate-700'
+                        }`}
+                    >
+                      <div className="font-bold text-[11px] mb-0.5">{msg.author}</div>
+                      <div>{msg.text}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                    placeholder="메시지 입력..."
+                    value={chatInput}
+                    onChange={(event) => setChatInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                        handleChatSubmit();
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleChatSubmit}
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
+                  >
+                    전송
+                  </button>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
 
@@ -405,13 +478,6 @@ function Kpi({ title, value, icon, trend, trendValue, trendUp }) {
       <div>
         <div className="text-xs text-slate-500 font-semibold">{title}</div>
         <div className="mt-1 text-2xl font-extrabold text-slate-900">{value}</div>
-        {trend && (
-          <div className={`mt-2 flex items-center gap-1 text-xs font-bold ${trendUp ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {trendUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-            <span>{trendValue}</span>
-            <span className="text-slate-400 font-medium ml-1">vs last week</span>
-          </div>
-        )}
       </div>
       {icon && <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 shadow-sm">{icon}</div>}
     </div>
