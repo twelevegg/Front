@@ -36,10 +36,6 @@ export default function AuthShell({
             </div>
 
             <div className="mt-7">{children}</div>
-
-            <div className="mt-8 text-xs text-slate-400">
-              로그인/회원가입 UI는 데모입니다. 실서비스에서는 OAuth 버튼/비밀번호 재설정 등을 백엔드 정책에 맞게 연결하세요.
-            </div>
           </div>
 
           {/* Right: CTA panel */}
