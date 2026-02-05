@@ -175,7 +175,7 @@ export default function SignUpPage() {
             />
           </div>
           <div className="mt-1.5 text-[11px] text-slate-400 text-center">
-            운영환경 체크: 관리자 가입은 서버 정책으로 제한하세요.
+            {/* 운영환경 체크: 관리자 가입은 서버 정책으로 제한하세요. */}
           </div>
         </Field>
 
@@ -249,12 +249,27 @@ export default function SignUpPage() {
         )}
 
         {/* ✅ Legal Consents */}
-        <div className="space-y-3 pt-2">
+        <div className="space-y-2 pt-2">
+          {/* 전체 동의 */}
+          <Checkbox
+            id="all"
+            label="약관 전체 동의"
+            checked={agreedTerms && agreedPrivacy && agreedMarketing}
+            onChange={(val) => {
+              setAgreedTerms(val);
+              setAgreedPrivacy(val);
+              setAgreedMarketing(val);
+            }}
+            customLabelClass="text-sm font-extrabold text-slate-800"
+          />
+          <div className="h-px bg-slate-100 my-2" />
+
           <Checkbox
             id="terms"
             label="[필수] 서비스 이용약관 동의"
             checked={agreedTerms}
             onChange={setAgreedTerms}
+            customLabelClass="text-xs text-slate-500"
           />
           <div className="flex items-center justify-between">
             <Checkbox
@@ -262,6 +277,7 @@ export default function SignUpPage() {
               label="[필수] 개인정보 수집 및 이용 동의"
               checked={agreedPrivacy}
               onChange={setAgreedPrivacy}
+              customLabelClass="text-xs text-slate-500"
             />
             <button
               type="button"
@@ -277,6 +293,7 @@ export default function SignUpPage() {
             label="[선택] 마케팅 정보 수신 동의"
             checked={agreedMarketing}
             onChange={setAgreedMarketing}
+            customLabelClass="text-xs text-slate-500"
           />
         </div>
 
@@ -288,9 +305,9 @@ export default function SignUpPage() {
         </button>
 
         <div className="text-center text-sm text-slate-600">
-          Already have an account?{' '}
+          이미 계정이 있으신가요?{' '}
           <Link className="font-extrabold text-blue-600" to={ROUTES.LOGIN}>
-            Sign in
+            로그인
           </Link>
         </div>
       </form>
@@ -360,7 +377,7 @@ function RoleTab({ active, onClick, icon, label }) {
   );
 }
 
-function Checkbox({ id, label, checked, onChange }) {
+function Checkbox({ id, label, checked, onChange, customLabelClass }) {
   return (
     <label htmlFor={id} className="flex items-center gap-3 cursor-pointer group select-none">
       <div
@@ -378,7 +395,7 @@ function Checkbox({ id, label, checked, onChange }) {
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
       />
-      <span className={`text-sm ${checked ? 'text-slate-700 font-semibold' : 'text-slate-500'}`}>
+      <span className={`${customLabelClass || (checked ? 'text-slate-700 font-semibold text-sm' : 'text-slate-500 text-sm')}`}>
         {label}
       </span>
     </label>

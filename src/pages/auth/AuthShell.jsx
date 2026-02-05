@@ -31,7 +31,7 @@ export default function AuthShell({
                 <div className="text-sm text-slate-500 mt-2">{subtitle}</div>
               </div>
               <div className="hidden md:block text-right">
-                <div className="text-xs text-slate-400">v0.1</div>
+                {/* <div className="text-xs text-slate-400">v0.1</div> */}
               </div>
             </div>
 
@@ -67,7 +67,7 @@ export default function AuthShell({
 
                 <div className="mt-6 text-xs text-white/70">
                   {isLogin
-                    ? '팁: 데모에서는 이메일에 admin이 포함되면 관리자 권한으로 로그인됩니다.'
+                    ? ''
                     : '회원가입 후 로그인 페이지로 이동합니다.'}
                 </div>
               </div>

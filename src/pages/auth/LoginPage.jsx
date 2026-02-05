@@ -171,10 +171,16 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="pt-4 border-t border-slate-100 text-center text-xs text-slate-500">
-          <Link to={ROUTES.PRIVACY} className="font-extrabold text-slate-600 hover:text-slate-900">
+        <div className="pt-4 border-t border-slate-100 flex items-center justify-center gap-4 text-xs font-bold text-slate-500">
+          <Link to={ROUTES.TERMS} className="hover:text-slate-900 transition-colors">
+            이용약관
+          </Link>
+          <Link to={ROUTES.PRIVACY} className="hover:text-slate-900 transition-colors">
             개인정보처리방침
           </Link>
+          <button type="button" className="hover:text-slate-900 transition-colors">
+            문의하기
+          </button>
         </div>
 
       </form>
