@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, LabelList } from 'recharts';
 import Card from '../../components/Card.jsx';
 import Badge from '../../components/Badge.jsx';
@@ -9,7 +9,7 @@ import { useToast } from '../../components/common/ToastProvider.jsx';
 import { dashboardService } from '../../api/dashboardService.js';
 import { memberService } from '../../api/memberService.js';
 
-import { TrendingUp, TrendingDown, Users } from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, ChevronDown } from 'lucide-react';
 
 export default function AdminDashboardPage() {
   const { addToast } = useToast();
@@ -24,6 +24,11 @@ export default function AdminDashboardPage() {
   const [newHireKpis, setNewHireKpis] = useState({});
   const [newHireKpisLoading, setNewHireKpisLoading] = useState(false);
   const [newHireKpisError, setNewHireKpisError] = useState('');
+
+  // Dropdown State
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropUp, setDropUp] = useState(false);
+  const dropdownRef = useRef(null);
 
   // [NEW] Real KPI Data State
   const [kpiData, setKpiData] = useState(null);
@@ -244,6 +249,30 @@ export default function AdminDashboardPage() {
     fetchNewHireKpis();
   }, [compareMetricKey, newHires]);
 
+  const toggleDropdown = (e) => {
+    if (!isDropdownOpen) {
+      // Check space below
+      const rect = e.currentTarget.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      // If less than 220px below, open upwards
+      setDropUp(spaceBelow < 220);
+    }
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  // Click outside handler for dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleAction = (action) => {
     if (!selected) {
       return;
@@ -253,11 +282,11 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-        <div>
-          <div className="text-sm text-slate-500">Dashboard</div>
-          <div className="text-xl font-extrabold mt-1">관리자 대시보드</div>
-          <div className="text-sm text-slate-500 mt-1">신입 사원 현황 · 스트레스 지수 · 폭언/욕설 알림</div>
-        </div>
+      <div>
+        <div className="text-sm text-slate-500">Dashboard</div>
+        <div className="text-xl font-extrabold mt-1">관리자 대시보드</div>
+        <div className="text-sm text-slate-500 mt-1">신입 사원 현황 · 스트레스 지수 · 폭언/욕설 알림</div>
+      </div>
 
       {/* KPI Cards Section */}
       <div className="flex flex-wrap gap-4 items-center justify-between">
@@ -450,22 +479,49 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      <Card className="p-5">
+      <Card className="p-5" noHover>
         <div className="flex items-center justify-between">
           <div className="text-sm font-extrabold">
             {compareMetric ? '신입 사원 KPI 비교' : '폭언/욕설 실시간 알림'}
           </div>
           {compareMetric ? (
             <div className="flex items-center gap-2">
-              <select
-                className="rounded-full border border-slate-200 px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100 text-slate-600 bg-white"
-                value={compareMetricKey}
-                onChange={(event) => setCompareMetricKey(event.target.value)}
-              >
-                {kpiMetricOptions.map((metric) => (
-                  <option key={metric.key} value={metric.key}>{metric.label}</option>
-                ))}
-              </select>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={toggleDropdown}
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white pl-4 pr-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:border-indigo-200 transition-all shadow-sm outline-none focus:ring-2 focus:ring-indigo-100/50"
+                >
+                  <span className="truncate max-w-[120px]">
+                    {kpiMetricOptions.find((metric) => metric.key === compareMetricKey)?.label || 'KPI 선택'}
+                  </span>
+                  <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className={`absolute right-0 w-56 max-h-[320px] overflow-y-auto rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl z-50 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent ${dropUp ? 'bottom-full mb-2' : 'top-full mt-2'
+                    }`}>
+                    <div className="grid grid-cols-1 gap-0.5">
+                      {kpiMetricOptions.map((metric) => (
+                        <button
+                          key={metric.key}
+                          type="button"
+                          onClick={() => {
+                            setCompareMetricKey(metric.key);
+                            setIsDropdownOpen(false);
+                          }}
+                          className={`flex items-center w-full rounded-lg px-3 py-2 text-xs font-bold transition-all text-left ${compareMetricKey === metric.key
+                            ? 'bg-indigo-50 text-indigo-600'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            }`}
+                        >
+                          {metric.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-2">
