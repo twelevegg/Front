@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Github } from 'lucide-react';
 import PrivacyPolicyModal from './legal/PrivacyPolicyModal.jsx';
+import TermsOfServiceModal from './legal/TermsOfServiceModal.jsx';
+import ContactModal from './ContactModal.jsx';
 import logoCustom from '../assets/logo_custom.jpg';
 
 export default function Footer() {
-  const [open, setOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
 
   return (
     <>
@@ -39,12 +43,25 @@ export default function Footer() {
             <div className="flex items-center gap-4">
               <button
                 type="button"
-                onClick={() => setOpen(true)}
+                onClick={() => setPrivacyOpen(true)}
                 className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
               >
                 개인정보처리방침
               </button>
-              <a href="#" className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">이용약관</a>
+              <button
+                type="button"
+                onClick={() => setTermsOpen(true)}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                이용약관
+              </button>
+              <button
+                type="button"
+                onClick={() => setContactOpen(true)}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                문의하기
+              </button>
               <a href="https://github.com/twelevegg" target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-slate-800 transition-colors">
                 <Github size={14} />
               </a>
@@ -56,7 +73,9 @@ export default function Footer() {
         </div>
       </footer>
 
-      <PrivacyPolicyModal open={open} onClose={() => setOpen(false)} />
+      <PrivacyPolicyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+      <TermsOfServiceModal open={termsOpen} onClose={() => setTermsOpen(false)} />
+      <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
     </>
   );
 }

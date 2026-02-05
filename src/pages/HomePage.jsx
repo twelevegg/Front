@@ -1,9 +1,13 @@
 
 import { useRef, useMemo, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { ROUTES } from '../app/routeConstants';
+import PrivacyPolicyModal from '../components/legal/PrivacyPolicyModal.jsx';
+import TermsOfServiceModal from '../components/legal/TermsOfServiceModal.jsx';
+import ContactModal from '../components/ContactModal.jsx';
 import logoCustom from '../assets/logo_custom.jpg';
 import {
     Bot,
@@ -664,6 +668,10 @@ const PreviewCTASection = () => {
 
 // --- Footer ---
 const Footer = () => {
+    const [privacyOpen, setPrivacyOpen] = useState(false);
+    const [termsOpen, setTermsOpen] = useState(false);
+    const [contactOpen, setContactOpen] = useState(false);
+
     return (
         <footer className="relative z-20 bg-[#050510] border-t border-white/5 text-gray-400 text-sm">
             <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
@@ -692,9 +700,9 @@ const Footer = () => {
 
                 {/* Links */}
                 <div className="flex-1 flex justify-center gap-8 font-medium">
-                    <a href={ROUTES.PRIVACY} className="hover:text-white transition-colors">Privacy Policy</a>
-                    <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-                    <a href="#" className="hover:text-white transition-colors">Contact</a>
+                    <button onClick={() => setPrivacyOpen(true)} className="hover:text-white transition-colors">Privacy Policy</button>
+                    <button onClick={() => setTermsOpen(true)} className="hover:text-white transition-colors">Terms of Service</button>
+                    <button onClick={() => setContactOpen(true)} className="hover:text-white transition-colors">Contact</button>
                 </div>
 
                 {/* Socials */}
@@ -705,6 +713,16 @@ const Footer = () => {
             <div className="bg-black/20 py-6 text-center text-xs opacity-40">
                 &copy; 2026 TwelveGG AICC. All rights reserved.
             </div>
+
+            {/* Render Modals */}
+            {createPortal(
+                <>
+                    <PrivacyPolicyModal open={privacyOpen} onClose={() => setPrivacyOpen(false)} />
+                    <TermsOfServiceModal open={termsOpen} onClose={() => setTermsOpen(false)} />
+                    <ContactModal open={contactOpen} onClose={() => setContactOpen(false)} />
+                </>,
+                document.body
+            )}
         </footer>
     );
 };
