@@ -11,8 +11,15 @@ export default function Modal({ open, title, children, onClose }) {
       />
 
       {/* Dialog */}
-      <div className="absolute inset-0 grid place-items-center p-6">
-        <div className="w-full max-w-[760px] rounded-3xl bg-white border border-slate-100 shadow-xl">
+      {/* Dialog Wrapper - handles outside clicks */}
+      <div
+        className="absolute inset-0 grid place-items-center p-6"
+        onClick={onClose}
+      >
+        <div
+          className="w-full max-w-[760px] rounded-3xl bg-white border border-slate-100 shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div className="text-lg font-extrabold">{title}</div>
             <button
