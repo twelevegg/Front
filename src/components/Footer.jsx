@@ -67,7 +67,7 @@ export default function Footer() {
               </a>
             </div>
             <div className="text-[10px] text-slate-400">
-              © {new Date().getFullYear()} Aivle School Team 12. All rights reserved.
+              © {new Date().getFullYear()} Aivle12. All rights reserved.
             </div>
           </div>
         </div>

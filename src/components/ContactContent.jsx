@@ -5,7 +5,7 @@ export default function ContactContent() {
         <div className="text-slate-700 leading-relaxed text-sm p-4 space-y-6">
             <div className="text-center border-b pb-6 mb-6">
                 <h2 className="text-2xl font-bold text-slate-900">문의하기</h2>
-                <p className="text-slate-500 mt-2">AICC NAVIGATOR 서비스 이용 관련 문의처입니다.</p>
+                <p className="text-slate-500 mt-2">CS NAVIGATOR 서비스 이용 관련 문의처입니다.</p>
             </div>
 
             <div className="space-y-6">
@@ -18,11 +18,11 @@ export default function ContactContent() {
                     <ul className="space-y-3">
                         <li className="flex items-start gap-3">
                             <span className="font-semibold w-24 shrink-0 text-slate-600">팀 명</span>
-                            <span>Aivle School Team 12</span>
+                            <span>Aivle12</span>
                         </li>
                         <li className="flex items-start gap-3">
                             <span className="font-semibold w-24 shrink-0 text-slate-600">대표 서비스</span>
-                            <span>AICC NAVIGATOR</span>
+                            <span>CS NAVIGATOR</span>
                         </li>
                         <li className="flex items-start gap-3">
                             <span className="font-semibold w-24 shrink-0 text-slate-600 flex items-center gap-1">

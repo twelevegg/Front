@@ -14,7 +14,7 @@ export default function TermsOfServiceContent() {
                 <div className="space-y-4">
                     <div>
                         <h4 className="font-bold text-slate-800 mb-1">제1조 (목적)</h4>
-                        <p>본 약관은 <strong>Aivle School Team 12</strong>(이하 "회사" 또는 "팀")가 제공하는 <strong>AICC NAVIGATOR</strong> 플랫폼 관련 온라인 교육 서비스(이하 “서비스”)를 이용함에 있어 회사와 회원과의 권리, 의무, 이용조건 및 절차에 관한 사항과 기타 이용에 필요한 사항 등을 규정함을 목적으로 합니다.</p>
+                        <p>본 약관은 <strong>Aivle12</strong>(이하 "회사" 또는 "팀")가 제공하는 <strong>CS NAVIGATOR</strong> 플랫폼 관련 온라인 교육 서비스(이하 “서비스”)를 이용함에 있어 회사와 회원과의 권리, 의무, 이용조건 및 절차에 관한 사항과 기타 이용에 필요한 사항 등을 규정함을 목적으로 합니다.</p>
                     </div>
 
                     <div>
@@ -39,7 +39,7 @@ export default function TermsOfServiceContent() {
                         <p>본 약관에서 사용하는 용어의 정의는 다음과 같습니다.</p>
                         <ul className="list-disc pl-5 mt-2 space-y-1 text-slate-600">
                             <li>“회원”이라 함은 회사에서 제공하는 사이트에 접속하여 본 약관과 개인정보처리방침에 동의하고, 아이디와 비밀번호를 발급받아 회사가 제공하는 서비스를 이용하는 자를 말합니다.</li>
-                            <li>“AICC NAVIGATOR 플랫폼”이라 함은 서비스의 제공을 위하여 회사가 구축한 온라인 교육 시스템을 말합니다.</li>
+                            <li>“CS NAVIGATOR 플랫폼”이라 함은 서비스의 제공을 위하여 회사가 구축한 온라인 교육 시스템을 말합니다.</li>
                             <li>“사이트”라 함은 서비스를 제공하기 위해 회사가 운영하는 웹사이트를 말합니다.</li>
                             <li>“서비스”라 함은 회사가 회원에게 플랫폼 내에서 제공하는 출결, 교육, 커뮤니티 등 모든 서비스를 말합니다.</li>
                             <li>“아이디(ID)”라 함은 회사가 회원의 식별과 회원의 서비스 이용을 위해 필요한 식별자를 의미하며, 회원이 지정하고 회사가 승인하는 Text ID를 의미합니다.</li>
@@ -153,7 +153,7 @@ export default function TermsOfServiceContent() {
                 <h3 className="text-lg font-bold text-slate-900 mb-2">문의처</h3>
                 <p className="text-sm text-slate-600 mb-4">서비스 이용과 관련하여 궁금한 점이 있으시면 아래 연락처로 문의해 주세요.</p>
                 <ul className="list-disc pl-5 space-y-1 text-sm font-medium text-slate-700">
-                    <li>상호명: Aivle School Team 12</li>
+                    <li>상호명: Aivle12</li>
                     <li>주소: 서울특별시 강남구 개포로 310 (개포동)</li>
                     <li>Tel: 010-5609-3387</li>
                     <li>Email: daegyuchang@gmail.com</li>

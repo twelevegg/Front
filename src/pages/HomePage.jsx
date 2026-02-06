@@ -133,7 +133,7 @@ const Navbar = () => {
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
                     <Bot className="text-white w-5 h-5" />
                 </div>
-                <span className="text-lg font-bold text-white tracking-tight">AICC NAVIGATOR</span>
+                <span className="text-lg font-bold text-white tracking-tight">CS NAVIGATOR</span>
             </div>
 
             <MagneticButton
@@ -195,7 +195,7 @@ const DashboardPreview = () => {
                     <div>
                         <div className="mb-8">
                             <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                                CS-Navigator
+                                CS Navigator
                             </div>
                             <div className="text-xs text-slate-400 font-bold uppercase mt-1">Console</div>
                         </div>
@@ -400,7 +400,7 @@ const HeroSection = () => {
                             style={{ backgroundSize: "200% auto" }}
                             className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400"
                         >
-                            AICC NAVIGATOR
+                            CS NAVIGATOR
                         </motion.span>
                     </motion.div>
 
@@ -688,7 +688,7 @@ const Footer = () => {
                                 className="w-full h-full object-cover"
                             />
                         </div>
-                        <span className="font-extrabold text-white text-lg tracking-tight">AICC NAVIGATOR</span>
+                        <span className="font-extrabold text-white text-lg tracking-tight">CS NAVIGATOR</span>
                     </div>
                     <p className="opacity-70 text-sm mb-4">Experience the future of customer service.</p>
 
@@ -712,7 +712,7 @@ const Footer = () => {
                 </div>
             </div>
             <div className="bg-black/20 py-6 text-center text-xs opacity-40">
-                &copy; 2026 TwelveGG AICC. All rights reserved.
+                &copy; 2026 Aivle12. All rights reserved.
             </div>
 
             {/* Render Modals */}
