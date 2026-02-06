@@ -1,7 +1,7 @@
 export default function PrivacyPolicyContent() {
   const meta = {
-    companyName: 'Aivle 12조',
-    serviceName: 'CS Assistant',
+    companyName: 'Aivle12',
+    serviceName: 'CS Navigator',
     effectiveDate: '2026-02-03',
     lastUpdated: '2026-02-03',
     dpoName: '장대규',
