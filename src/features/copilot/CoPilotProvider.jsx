@@ -95,8 +95,26 @@ export function CoPilotProvider({ children }) {
   useEffect(() => {
     if (!call?.callId) return;
 
-    // ✅ URL 결정 (유틸 사용)
-    const wsUrl = getWebSocketUrl(`/ai/api/v1/agent/monitor/${call.callId}`);
+    // ✅ URL 결정 로직 (환경변수 기반)
+    // ✅ URL 결정 로직 (환경변수 기반 - FastAPI 연결용)
+    const getWsBase = () => {
+      // 이 서비스는 FastAPI(/ai)에 연결되므로 FAST_API_BASE_URL 우선 사용
+      let apiBase = import.meta.env.VITE_FAST_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || '';
+
+      // http -> ws, https -> wss 자동 변환
+      if (apiBase.startsWith('http')) {
+        apiBase = apiBase.replace(/^http/, 'ws');
+      }
+
+      // URL 결합 시 /ai 중복 방지 (기존 하드코딩된 suffix가 /ai를 포함하므로, base에서는 제거)
+      if (apiBase.endsWith('/ai')) {
+        apiBase = apiBase.slice(0, -3);
+      }
+      return apiBase;
+    };
+
+    const wsBase = getWsBase();
+    const wsUrl = `${wsBase}/ai/api/v1/agent/monitor/${call.callId}`;
 
     console.log(`CoPilotProvider: Connecting to Monitor WS: ${wsUrl}`);
 

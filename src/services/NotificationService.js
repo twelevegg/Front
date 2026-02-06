@@ -13,8 +13,26 @@ export class NotificationService {
 
         this.userId = userId;
 
-        // ✅ URL 결정 (유틸 사용)
-        const wsUrl = getWebSocketUrl(`/ai/api/v1/agent/notifications/${userId}`);
+        // ✅ URL 결정 로직 (환경변수 기반)
+        const getWsBase = () => {
+            // 이 서비스는 FastAPI(/ai)에 연결되므로 FAST_API_BASE_URL 우선 사용
+            let apiBase = import.meta.env.VITE_FAST_API_BASE_URL || import.meta.env.VITE_API_BASE_URL || '';
+
+            // http -> ws, https -> wss 자동 변환
+            if (apiBase.startsWith('http')) {
+                apiBase = apiBase.replace(/^http/, 'ws');
+            }
+
+            // URL 결합 시 /ai 중복 방지 (Base URL에 이미 /ai가 있다면 제거)
+            if (apiBase.endsWith('/ai')) {
+                apiBase = apiBase.slice(0, -3);
+            }
+
+            return apiBase;
+        };
+
+        const wsBase = getWsBase();
+        const wsUrl = `${wsBase}/ai/api/v1/agent/notifications/${userId}`;
 
         console.log(`NotificationService: Connecting to ${wsUrl}`);
         this.socket = new WebSocket(wsUrl);
