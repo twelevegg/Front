@@ -11,7 +11,7 @@ export class NotificationService {
 
         this.userId = userId;
         // production 환경에서는 환경변수나 base URL을 사용하세요.
-        const wsUrl = `ws://k8s-default-aiccingr-9a828090cc-358415700.ap-northeast-2.elb.amazonaws.com/ai/api/v1/agent/notifications/${userId}`;
+        const wsUrl = `wss://k8s-default-aiccingr-9a828090cc-358415700.ap-northeast-2.elb.amazonaws.com/ai/api/v1/agent/notifications/${userId}`;
 
         console.log(`NotificationService: Connecting to ${wsUrl}`);
         this.socket = new WebSocket(wsUrl);
