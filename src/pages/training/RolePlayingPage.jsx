@@ -9,33 +9,33 @@ import { useToast } from '../../components/common/ToastProvider.jsx';
 
 
 const PERSONAS = [
-  {
-    id: 'angry',
-    name: '악성 민원 고객',
-    desc: '배송 지연에 대해 매우 화가 난 상태입니다. 욕설을 할 수도 있습니다.',
-    difficulty: 'Hard',
-    tone: 'Aggressive',
-    color: 'bg-red-500',
-    icon: <Volume2 size={32} />
-  },
-  {
-    id: 'vip',
-    name: 'VIP 고객 (김철수님)',
-    desc: '특별한 대우를 원하며, 절차를 건너뛰고 싶어합니다.',
-    difficulty: 'Normal',
-    tone: 'Demanding',
-    color: 'bg-purple-500',
-    icon: <User size={32} />
-  },
-  {
-    id: 'elderly',
-    name: '고령 고객',
-    desc: '앱 사용이 익숙지 않아 천천히 반복적인 설명이 필요합니다.',
-    difficulty: 'Easy',
-    tone: 'Confused',
-    color: 'bg-emerald-500',
-    icon: <Globe size={32} />
-  }
+    {
+        id: 'angry',
+        name: '악성 민원 고객',
+        desc: '배송 지연에 대해 매우 화가 난 상태입니다. 욕설을 할 수도 있습니다.',
+        difficulty: 'Hard',
+        tone: 'Aggressive',
+        color: 'bg-red-500',
+        icon: <Volume2 size={32} />
+    },
+    {
+        id: 'vip',
+        name: 'VIP 고객 (김철수님)',
+        desc: '특별한 대우를 원하며, 절차를 건너뛰고 싶어합니다.',
+        difficulty: 'Normal',
+        tone: 'Demanding',
+        color: 'bg-purple-500',
+        icon: <User size={32} />
+    },
+    {
+        id: 'elderly',
+        name: '고령 고객',
+        desc: '앱 사용이 익숙지 않아 천천히 반복적인 설명이 필요합니다.',
+        difficulty: 'Easy',
+        tone: 'Confused',
+        color: 'bg-emerald-500',
+        icon: <Globe size={32} />
+    }
 ];
 
 export default function RolePlayingPage() {
@@ -43,7 +43,7 @@ export default function RolePlayingPage() {
     const [input, setInput] = useState('');
     const bottomRef = useRef(null);
 
-    const {addToast} = useToast();
+    const { addToast } = useToast();
     const [selectedPersona, setSelectedPersona] = useState(null);
     const [callStatus, setCallStatus] = useState('idle'); // idle | connecting | active | ended
     const [micOn, setMicOn] = useState(true);
@@ -57,7 +57,7 @@ export default function RolePlayingPage() {
 
 
     const sendMessage = async (text) => {
-        const userMsg = {role: 'user', content: text};
+        const userMsg = { role: 'user', content: text };
         setMessages(prev => [...prev, userMsg]);
 
         try {
@@ -68,10 +68,11 @@ export default function RolePlayingPage() {
 
             setMessages(prev => [
                 ...prev,
-                {role: 'assistant', content: data.message},
+                { role: 'assistant', content: data.message },
             ]);
         } catch (e) {
-            addToast('AI 응답 오류가 발생했습니다.', 'error');
+            console.error("RP Error Details:", e);
+            addToast(`AI 응답 오류: ${e.message}`, 'error');
         }
     };
 
@@ -150,7 +151,7 @@ export default function RolePlayingPage() {
                 {callStatus === 'idle' ? (
                     <motion.div
                         key="selection"
-                        initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} exit={{opacity: 0, scale: 0.95}}
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
                         className="grid grid-cols-1 md:grid-cols-3 gap-6"
                     >
                         {PERSONAS.map(persona => (
@@ -160,7 +161,7 @@ export default function RolePlayingPage() {
                                 className="group relative cursor-pointer overflow-hidden rounded-3xl bg-white border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1"
                             >
                                 <div
-                                    className={`absolute top-0 right-0 p-32 rounded-full opacity-5 blur-3xl group-hover:opacity-10 transition-opacity ${persona.color}`}/>
+                                    className={`absolute top-0 right-0 p-32 rounded-full opacity-5 blur-3xl group-hover:opacity-10 transition-opacity ${persona.color}`} />
 
                                 <div
                                     className={`w-16 h-16 rounded-2xl ${persona.color} bg-opacity-10 flex items-center justify-center text-slate-700 mb-6 group-hover:scale-110 transition-transform`}>
@@ -170,19 +171,19 @@ export default function RolePlayingPage() {
                                 </div>
 
                                 <div className="mb-2 flex items-center justify-between">
-                  <span
-                      className={`px-2 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${persona.difficulty === 'Hard' ? 'bg-red-100 text-red-600' :
-                          persona.difficulty === 'Normal' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
-                      }`}>
-                    {persona.difficulty}
-                  </span>
+                                    <span
+                                        className={`px-2 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-wider ${persona.difficulty === 'Hard' ? 'bg-red-100 text-red-600' :
+                                            persona.difficulty === 'Normal' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'
+                                            }`}>
+                                        {persona.difficulty}
+                                    </span>
                                 </div>
 
                                 <h3 className="text-xl font-extrabold text-slate-900 mb-2">{persona.name}</h3>
                                 <p className="text-sm text-slate-500 leading-relaxed mb-6 h-10">{persona.desc}</p>
 
                                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                                    <BarChart2 size={14}/>
+                                    <BarChart2 size={14} />
                                     <span>성향: {persona.tone}</span>
                                 </div>
                             </div>
@@ -191,13 +192,13 @@ export default function RolePlayingPage() {
                 ) : (
                     <motion.div
                         key="call"
-                        initial={{opacity: 0, scale: 0.95}} animate={{opacity: 1, scale: 1}}
-                        exit={{opacity: 0, scale: 0.9}}
+                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
                         className="flex-1 flex flex-col rounded-3xl bg-slate-900 text-white shadow-2xl overflow-hidden relative"
                     >
                         {/* Background Ambience */}
                         <div
-                            className={`absolute inset-0 opacity-20 bg-gradient-to-br from-slate-900 via-slate-800 to-black pointer-events-none`}/>
+                            className={`absolute inset-0 opacity-20 bg-gradient-to-br from-slate-900 via-slate-800 to-black pointer-events-none`} />
 
                         {/* Header */}
                         <div className="relative z-10 flex justify-between items-center p-8">
@@ -210,7 +211,7 @@ export default function RolePlayingPage() {
                                     <div className="font-extrabold text-lg">{selectedPersona.name}</div>
                                     <div className="flex items-center gap-2 text-slate-400 text-sm">
                                         <span
-                                            className={`w-2 h-2 rounded-full ${callStatus === 'active' ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`}/>
+                                            className={`w-2 h-2 rounded-full ${callStatus === 'active' ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`} />
                                         {callStatus === 'connecting' ? '연결 중...' :
                                             callStatus === 'ended' ? '통화 종료' :
                                                 formatTime(duration)}
@@ -230,11 +231,10 @@ export default function RolePlayingPage() {
                                 {messages.map((msg, idx) => (
                                     <div
                                         key={idx}
-                                        className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm ${
-                                            msg.role === 'user'
+                                        className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm ${msg.role === 'user'
                                                 ? 'ml-auto bg-blue-500 text-white'
                                                 : 'mr-auto bg-slate-700 text-white'
-                                        }`}
+                                            }`}
                                     >
                                         {msg.content}
                                     </div>
@@ -277,9 +277,9 @@ export default function RolePlayingPage() {
                                 <button
                                     onClick={() => setMicOn(!micOn)}
                                     className={`p-6 rounded-full transition-all duration-300 ${micOn ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white text-slate-900 hover:bg-slate-200'
-                                    }`}
+                                        }`}
                                 >
-                                    {micOn ? <Mic size={32}/> : <MicOff size={32}/>}
+                                    {micOn ? <Mic size={32} /> : <MicOff size={32} />}
                                 </button>
 
                                 <button
@@ -287,7 +287,7 @@ export default function RolePlayingPage() {
 
                                     className="p-8 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 hover:scale-105 transition-all active:scale-95"
                                 >
-                                    <PhoneOff size={40}/>
+                                    <PhoneOff size={40} />
                                 </button>
 
                                 <button

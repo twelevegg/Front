@@ -36,10 +36,16 @@ async function requestJson(baseUrl, path, options) {
     }
 
     const text = await res.text();
+    // console.log("API Response Text:", text); // Debug log
     if (!text) {
         return null;
     }
-    return JSON.parse(text);
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        console.error("JSON Parse Error:", e, "Raw Text:", text);
+        throw new Error("Invalid JSON response");
+    }
 }
 
 async function fetchWithAuth(baseUrl, path, options, retried = false) {
