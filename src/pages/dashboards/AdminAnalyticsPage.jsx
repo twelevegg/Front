@@ -43,7 +43,7 @@ export default function AdminAnalyticsPage() {
       <div>
         <div className="text-sm text-slate-500">Admin Analytics</div>
         <div className="text-xl font-extrabold mt-1">상담원 지표</div>
-        <div className="text-sm text-slate-500 mt-1">이름 · 상태 · 지표 기준으로 확인</div>
+        <div className="text-sm text-slate-500 mt-1">이름 · 상태 · 통화 수 기준으로 확인</div>
       </div>
 
       <Card className="p-6">

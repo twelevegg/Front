@@ -1,29 +1,45 @@
-import { useState, useEffect, useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { notificationService } from '../../services/NotificationService.js';
 import Card from '../../components/Card.jsx';
 import { callEventBus } from '../../features/calls/callEvents.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
 import EmptyState from '../../components/common/EmptyState.jsx';
-import { CheckCircle, Clock, Moon, AlertCircle, Phone, BookOpen, FileText, Zap, MessageSquare, Headphones, TrendingUp, TrendingDown, Calendar, StickyNote, CalendarCheck } from 'lucide-react';
+import { CheckCircle, Clock, Phone, MessageSquare, Calendar, StickyNote, CalendarCheck, ChevronDown } from 'lucide-react';
 import { useCoPilot } from '../../features/copilot/CoPilotProvider.jsx';
 import { dashboardService } from '../../api/dashboardService.js';
 import { request } from '../../services/http.js';
 import { useAuth } from '../../features/auth/AuthProvider.jsx';
 import CallLogModal from '../../features/calls/CallLogModal.jsx';
 
-const perfWeek = [
-  { label: 'W-4', calls: 102, csat: 79, avgDuration: 330 },
-  { label: 'W-3', calls: 118, csat: 81, avgDuration: 315 },
-  { label: 'W-2', calls: 124, csat: 83, avgDuration: 305 },
-  { label: 'W-1', calls: 136, csat: 85, avgDuration: 298 }
-];
-
-const perfMonth = [
-  { label: 'Jan', calls: 412, csat: 78, avgDuration: 322 },
-  { label: 'Feb', calls: 438, csat: 82, avgDuration: 310 },
-  { label: 'Mar', calls: 466, csat: 86, avgDuration: 295 }
+const KPI_METRIC_OPTIONS = [
+  { key: 'fcr', label: '최초 해결률', path: ['summary', 'fcr'], unit: '%' },
+  { key: 'nps', label: '순추천 지수', path: ['summary', 'nps'], unit: '점' },
+  { key: 'ces', label: '고객 노력 지수', path: ['summary', 'ces'], unit: '점' },
+  { key: 'csat', label: '만족도', path: ['summary', 'csat'], unit: '점' },
+  { key: 'sentiment', label: '감정 점수', path: ['summary', 'sentimentScore'], unit: '점' },
+  { key: 'frt', label: '최초 응답 시간', path: ['callPerformance', 'frt'], unit: '초' },
+  { key: 'blockedRate', label: '통화 차단율', path: ['callPerformance', 'blockedCallRate'], unit: '%' },
+  { key: 'abandonRate', label: '통화 포기율', path: ['callPerformance', 'abandonmentRate'], unit: '%' },
+  { key: 'activeWaiting', label: '대기 통화', path: ['callPerformance', 'activeWaitingCalls'], unit: '건' },
+  { key: 'totalCalls', label: '총 처리 통화', path: ['operations', 'totalCallsProcessed'], unit: '건' },
+  { key: 'cpc', label: '통화당 비용', path: ['operations', 'cpc'], unit: '원' },
+  { key: 'callArrival', label: '통화 착신율', path: ['operations', 'callArrivalRate'], unit: '건/시간' },
+  { key: 'maxWait', label: '최장 대기', path: ['operations', 'maxWaitTime'], unit: '초' },
+  { key: 'avgDuration', label: '평균 통화 시간', path: ['operations', 'avgCallDuration'], unit: '초' },
+  { key: 'avgResolution', label: '평균 처리 시간', path: ['operations', 'avgResolutionTime'], unit: '초' },
+  { key: 'repeatCall', label: '반복 통화율', path: ['operations', 'repeatCallRate'], unit: '%' },
+  { key: 'selfService', label: '셀프서비스 비율', path: ['operations', 'selfServiceRate'], unit: '%' },
+  { key: 'attrition', label: '이직률', path: ['agentProductivity', 'attritionRate'], unit: '%' },
+  { key: 'occupancy', label: '상담원 활용률', path: ['agentProductivity', 'occupancyRate'], unit: '%' },
+  { key: 'adherence', label: '일정 준수율', path: ['agentProductivity', 'scheduleAdherence'], unit: '%' },
+  { key: 'callsPerHour', label: '시간당 통화', path: ['agentProductivity', 'callsPerHour'], unit: '건/시간' },
+  { key: 'asa', label: '평균 응답 속도', path: ['agentProductivity', 'asa'], unit: '초' },
+  { key: 'aht', label: '평균 처리 시간(AHT)', path: ['agentProductivity', 'aht'], unit: '초' },
+  { key: 'avgHold', label: '평균 보류 시간', path: ['agentProductivity', 'avgHoldTime'], unit: '초' },
+  { key: 'transferRate', label: '호 전환율', path: ['agentProductivity', 'transferRate'], unit: '%' },
+  { key: 'avgAcw', label: '평균 후처리 시간', path: ['agentProductivity', 'avgAcwTime'], unit: '초' }
 ];
 
 export default function AssistantDashboardPage() {
@@ -31,7 +47,6 @@ export default function AssistantDashboardPage() {
   const navigate = useNavigate();
   const { openWithCall } = useCoPilot();
   const { addToast } = useToast();
-  const [period, setPeriod] = useState('week'); // 'week' | 'month'
   const [status, setStatus] = useState('online'); // online | busy | offline
   const [recentCalls, setRecentCalls] = useState([]);
   const [recentCallsLoading, setRecentCallsLoading] = useState(true);
@@ -70,6 +85,11 @@ export default function AssistantDashboardPage() {
 
   // [NEW] Member KPI Data State
   const [kpiData, setKpiData] = useState(null);
+  const [teamKpiData, setTeamKpiData] = useState(null);
+  const [compareMetricKey, setCompareMetricKey] = useState('csat');
+  const [isMetricDropdownOpen, setIsMetricDropdownOpen] = useState(false);
+  const [metricDropUp, setMetricDropUp] = useState(false);
+  const metricDropdownRef = useRef(null);
 
   useEffect(() => {
     const fetchMemberKpis = async () => {
@@ -83,6 +103,67 @@ export default function AssistantDashboardPage() {
     };
     fetchMemberKpis();
   }, [user?.id]);
+
+  useEffect(() => {
+    const fetchTeamKpis = async () => {
+      try {
+        const data = await dashboardService.getGlobalKpi();
+        setTeamKpiData(data);
+      } catch (error) {
+        console.error('Failed to fetch team KPIs', error);
+      }
+    };
+
+    fetchTeamKpis();
+  }, []);
+
+  const selectedMetric = useMemo(
+    () => KPI_METRIC_OPTIONS.find((metric) => metric.key === compareMetricKey) || KPI_METRIC_OPTIONS[0],
+    [compareMetricKey]
+  );
+
+  const realtimeMetricValue = getMetricValue(kpiData, selectedMetric);
+  const teamAverageMetricValue = getMetricValue(teamKpiData, selectedMetric);
+
+  const compareChartData = useMemo(
+    () => [
+      {
+        period: '팀 평균',
+        value: toNumeric(teamAverageMetricValue),
+        rawValue: teamAverageMetricValue,
+        missing: teamAverageMetricValue === null || teamAverageMetricValue === undefined
+      },
+      {
+        period: '내 실시간',
+        value: toNumeric(realtimeMetricValue),
+        rawValue: realtimeMetricValue,
+        missing: realtimeMetricValue === null || realtimeMetricValue === undefined
+      }
+    ],
+    [teamAverageMetricValue, realtimeMetricValue]
+  );
+
+  const toggleMetricDropdown = (event) => {
+    if (!isMetricDropdownOpen) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setMetricDropUp(spaceBelow < 220);
+    }
+    setIsMetricDropdownOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (metricDropdownRef.current && !metricDropdownRef.current.contains(event.target)) {
+        setIsMetricDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchRecentCalls = async () => {
@@ -255,55 +336,6 @@ export default function AssistantDashboardPage() {
     setMemoInput('');
   };
 
-  const StatusButton = ({ type, label, icon: Icon, color }) => (
-    <button
-      onClick={() => setStatus(type)}
-      className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === type
-        ? `bg-${color}-50 border-${color}-200 text-${color}-700 ring-2 ring-${color}-100 ring-offset-1`
-        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-        }`}
-    >
-      <div className={`w-2 h-2 rounded-full bg-${color}-500`} />
-      <span className="text-xs font-bold">{label}</span>
-    </button>
-  );
-
-  const currentData = period === 'week' ? perfWeek : perfMonth;
-  const latest = currentData[currentData.length - 1];
-  const previous = currentData[currentData.length - 2] || latest;
-
-  const trendValue = (key) => {
-    const prev = previous?.[key] ?? 0;
-    const curr = latest?.[key] ?? 0;
-    const diff = curr - prev;
-    const sign = diff >= 0 ? '+' : '';
-    return `${sign}${diff}`;
-  };
-
-  const getCompareValues = (key) => {
-    const values = currentData.map((item) => Number(item[key]) || 0).slice(-2);
-    if (values.length === 1) return { prev: values[0], curr: values[0], max: values[0] || 1 };
-    const [prev, curr] = values;
-    const max = Math.max(prev, curr, 1);
-    return { prev, curr, max };
-  };
-
-  const compareChartData = useMemo(() => (
-    [
-      { key: 'calls', label: '통화 수', unit: '건' },
-      { key: 'csat', label: '만족도', unit: '점' },
-      { key: 'avgDuration', label: '평균 통화시간', unit: '초' }
-    ].map((metric) => {
-      const { prev, curr } = getCompareValues(metric.key);
-      return {
-        label: metric.label,
-        prev,
-        curr,
-        unit: metric.unit
-      };
-    })
-  ), [currentData]);
-
   return (
     <>
       <div className="space-y-6">
@@ -353,25 +385,16 @@ export default function AssistantDashboardPage() {
           title="오늘 총 통화"
           value={kpiData?.operations?.totalCallsProcessed ? `${kpiData.operations.totalCallsProcessed}건` : '-'}
           icon={<Phone size={20} className="text-indigo-500" />}
-          trend
-          trendValue="+12%"
-          trendUp={true}
         />
         <Kpi
           title="CSAT (만족도)"
           value={kpiData?.summary?.csat ? `${kpiData.summary.csat}점` : '-'}
           icon={<CheckCircle size={20} className="text-emerald-500" />}
-          trend
-          trendValue="+5pts"
-          trendUp={true}
         />
         <Kpi
-          title="일정 준수율"
+          title="평균 통화시간(초)"
           value={kpiData?.operations?.avgCallDuration ? `${kpiData.operations.avgCallDuration}초` : '-'}
           icon={<Clock size={20} className="text-purple-500" />}
-          trend
-          trendValue="-2%"
-          trendUp={false}
         />
       </div>
 
@@ -627,48 +650,91 @@ export default function AssistantDashboardPage() {
         </div>
 
         <Card className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-extrabold">성과 지표 분석</div>
-              <div className="text-xs text-slate-500 mt-1">통화 수 · 만족도 · 평균 통화시간</div>
+              <div className="text-sm font-extrabold">팀 평균 KPI 비교</div>
+              <div className="text-xs text-slate-500 mt-1">팀 평균 vs 내 실시간</div>
             </div>
-            <div className="flex gap-2">
+            <div className="relative shrink-0" ref={metricDropdownRef}>
               <button
-                onClick={() => setPeriod(period === 'week' ? 'month' : 'week')}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${period === 'week' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-slate-200 text-slate-500'
-                  }`}
+                type="button"
+                onClick={toggleMetricDropdown}
+                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white pl-4 pr-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm outline-none transition-all hover:border-indigo-200 hover:bg-slate-50 focus:ring-2 focus:ring-indigo-100/50"
               >
-                {period === 'week' ? 'Last 4 Weeks' : 'Quarterly'}
+                <span className="truncate max-w-[120px]">{selectedMetric.label}</span>
+                <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isMetricDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
+
+              {isMetricDropdownOpen && (
+                <div className={`absolute right-0 w-56 max-h-[320px] overflow-y-auto rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl z-50 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent ${metricDropUp ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
+                  <div className="grid grid-cols-1 gap-0.5">
+                    {KPI_METRIC_OPTIONS.map((metric) => (
+                      <button
+                        key={metric.key}
+                        type="button"
+                        onClick={() => {
+                          setCompareMetricKey(metric.key);
+                          setIsMetricDropdownOpen(false);
+                        }}
+                        className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-xs font-bold transition-all ${compareMetricKey === metric.key
+                          ? 'bg-indigo-50 text-indigo-600'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                      >
+                        {metric.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="mt-4 h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={compareChartData} barSize={26} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
-                <CartesianGrid strokeDasharray="4 6" stroke="#e2e8f0" vertical={false} strokeOpacity={0.7} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
-                <Tooltip
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
-                  formatter={(value, name, props) => {
-                    const unit = props?.payload?.unit || '';
-                    return [`${value}${unit}`, name === 'prev' ? '저번주' : '이번주'];
-                  }}
-                />
-                <Legend
-                  verticalAlign="top"
-                  align="right"
-                  iconType="circle"
-                  iconSize={8}
-                  wrapperStyle={{ fontSize: 11 }}
-                  formatter={(value) => (value === 'prev' ? '저번주' : '이번주')}
-                />
-                <Bar dataKey="prev" fill="#BFD7ED" radius={[10, 10, 0, 0]} />
-                <Bar dataKey="curr" fill="#F7C5CC" radius={[10, 10, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3 text-xs text-slate-600">
+            선택 지표: <span className="font-extrabold text-slate-800">{selectedMetric.label}</span>
+            <span className="ml-2 text-slate-400">단위: {selectedMetric.unit}</span>
           </div>
+
+          {!kpiData ? (
+            <EmptyState
+              title="KPI 불러오는 중"
+              description="비교 지표를 준비하고 있습니다."
+              className="mt-4 py-12"
+            />
+          ) : (
+            <>
+              <div className="mt-4 h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={compareChartData} barSize={48} margin={{ top: 14, right: 20, left: 0, bottom: 8 }}>
+                    <CartesianGrid strokeDasharray="4 6" stroke="#e2e8f0" vertical={false} strokeOpacity={0.8} />
+                    <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 700 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                      formatter={(_, __, payload) => {
+                        const data = payload?.payload;
+                        if (!data || data.missing) {
+                          return ['데이터 없음', selectedMetric.label];
+                        }
+                        return [formatMetricValue(data.rawValue, selectedMetric.unit), selectedMetric.label];
+                      }}
+                    />
+                    <Bar dataKey="value" radius={[12, 12, 4, 4]}>
+                      {compareChartData.map((entry) => (
+                        <Cell key={entry.period} fill={entry.missing ? '#E2E8F0' : entry.period === '팀 평균' ? '#BFD7ED' : '#F7C5CC'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {teamAverageMetricValue === null || teamAverageMetricValue === undefined ? (
+                <div className="mt-3 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                  팀 평균 지표 데이터가 현재 API 응답에 없어 해당 막대는 비어 있는 값으로 표시됩니다.
+                </div>
+              ) : null}
+            </>
+          )}
         </Card>
 
       </div>
@@ -684,7 +750,7 @@ export default function AssistantDashboardPage() {
   );
 }
 
-function Kpi({ title, value, icon, trend, trendValue, trendUp }) {
+function Kpi({ title, value, icon }) {
   return (
     <div className="rounded-2xl border border-slate-100 bg-white px-5 py-4 shadow-soft flex items-center justify-between">
       <div>
@@ -707,6 +773,38 @@ function CallItem({ title, meta, onOpen }) {
       <div className="text-xs text-slate-500 mt-1">{meta}</div>
     </button>
   );
+}
+
+function getMetricValue(source, metric) {
+  if (!source || !metric?.path) {
+    return null;
+  }
+
+  return metric.path.reduce((acc, key) => {
+    if (acc === null || acc === undefined) {
+      return null;
+    }
+    return acc[key];
+  }, source);
+}
+
+function toNumeric(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatMetricValue(value, unit) {
+  if (value === null || value === undefined) {
+    return '-';
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return String(value);
+  }
+
+  const formatted = Number.isInteger(parsed) ? String(parsed) : parsed.toFixed(2);
+  return unit ? `${formatted}${unit}` : formatted;
 }
 
 
