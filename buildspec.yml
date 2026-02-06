@@ -11,7 +11,8 @@ phases:
   build:
     commands:
       - echo "Creating .env file from environment variables..."
-      - echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" > .env.production
+            - echo "VITE_API_BASE_URL=$VITE_API_BASE_URL" > .env.production
+      - echo "VITE_FAST_API_BASE_URL=$VITE_FAST_API_BASE_URL" >> .env.production
       - echo "Building React app..."
       - npm run build
 
