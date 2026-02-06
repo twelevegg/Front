@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Search, Calendar, Filter, PlayCircle, BarChart2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Search, Calendar, Filter, BarChart2 } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Pill from '../components/Pill.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
@@ -10,8 +10,7 @@ import { maskName } from '../utils/mask.js';
 const TABS = [
   { key: 'summary', label: '요약' },
   { key: 'qa', label: 'QA' },
-  { key: 'log', label: '로그' },
-  { key: 'audio', label: '음성' }
+  { key: 'log', label: '로그' }
 ];
 
 export default function CallHistoryPage() {
@@ -19,10 +18,19 @@ export default function CallHistoryPage() {
   const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState('summary');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterSentiment, setFilterSentiment] = useState('All'); // All | Positive | Negative | Neutral
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const calendarPopoverRef = useRef(null);
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  });
 
   useEffect(() => {
     const fetchCalls = async () => {
@@ -92,9 +100,10 @@ export default function CallHistoryPage() {
 
   const filteredCalls = useMemo(() => {
     const q = String(searchQuery || '').trim();
-      return calls.filter((c) => {
-        const customer = c.customerName || '';
-        const customerMasked = maskName(customer);
+    return calls.filter((c) => {
+      const customer = c.customerName || '';
+      const customerMasked = maskName(customer);
+      const callDate = c.startTime ? new Date(c.startTime) : null;
 
       const matchesSearch =
         !q ||
@@ -103,14 +112,59 @@ export default function CallHistoryPage() {
         customer.includes(q) ||
         customerMasked.includes(q); // 마스킹된 이름으로도 검색 가능
 
-      const matchesSentiment =
-        filterSentiment === 'All' || c.sentiment === filterSentiment;
+      const matchesDate =
+        selectedDate && callDate instanceof Date && !Number.isNaN(callDate.getTime())
+          ? isSameDate(callDate, selectedDate)
+          : false;
 
-      return matchesSearch && matchesSentiment;
+      return matchesSearch && matchesDate;
     });
-  }, [calls, searchQuery, filterSentiment]);
+  }, [calls, searchQuery, selectedDate]);
 
-  const selected = useMemo(() => calls.find((c) => c.id === selectedId), [calls, selectedId]);
+  const selected = useMemo(() => filteredCalls.find((c) => c.id === selectedId), [filteredCalls, selectedId]);
+
+  useEffect(() => {
+    if (filteredCalls.length === 0) {
+      setSelectedId(null);
+      return;
+    }
+
+    setSelectedId((prev) => {
+      const exists = filteredCalls.some((call) => call.id === prev);
+      return exists ? prev : filteredCalls[0].id;
+    });
+  }, [filteredCalls]);
+
+  const calendarLabel = `${calendarMonth.getFullYear()}년 ${calendarMonth.getMonth() + 1}월`;
+  const daysInMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate();
+  const firstDayOfWeek = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1).getDay();
+  const totalCells = Math.ceil((firstDayOfWeek + daysInMonth) / 7) * 7;
+
+  const dailyCounts = useMemo(() => {
+    const map = new Map();
+    calls.forEach((call) => {
+      if (!call.startTime) return;
+      const date = new Date(call.startTime);
+      if (Number.isNaN(date.getTime())) return;
+      const key = formatDateKey(date);
+      map.set(key, (map.get(key) || 0) + 1);
+    });
+    return map;
+  }, [calls]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (!calendarPopoverRef.current || calendarPopoverRef.current.contains(event.target)) {
+        return;
+      }
+      setIsCalendarOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -178,34 +232,6 @@ export default function CallHistoryPage() {
         );
       }
 
-      case 'audio':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <PlayCircle size={20} className="text-indigo-500" />
-              <span className="text-sm font-bold text-slate-700">통화 녹음 다시듣기</span>
-            </div>
-            <div className="h-16 bg-white rounded-xl border border-slate-200 flex items-center px-4 gap-4 shadow-sm">
-              <button className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 transition">
-                <PlayCircle size={16} className="ml-0.5" />
-              </button>
-              <div className="flex-1 h-8 flex items-center gap-1 opacity-50">
-                {[...Array(40)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-1 bg-indigo-500 rounded-full transition-all duration-300"
-                    style={{
-                      height: `${Math.max(20, Math.random() * 100)}%`,
-                      opacity: Math.random() > 0.5 ? 1 : 0.4
-                    }}
-                  />
-                ))}
-              </div>
-              <div className="text-xs font-bold text-slate-500">03:12</div>
-            </div>
-          </div>
-        );
-
       default:
         return null;
     }
@@ -225,32 +251,84 @@ export default function CallHistoryPage() {
           <div className="p-6 pb-2 shrink-0 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="text-lg font-extrabold text-slate-800">Calls</div>
-              <div className="flex gap-2">
-                <button className="p-2 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-500 transition">
-                  <Calendar size={18} />
+              <div className="relative" ref={calendarPopoverRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsCalendarOpen((prev) => !prev)}
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition"
+                >
+                  <Calendar size={14} />
+                  {selectedDate ? formatDateOnly(selectedDate) : '날짜 선택'}
                 </button>
-                <div className="relative group">
-                  <button className="flex items-center gap-1 pl-3 pr-2 py-2 rounded-full border border-slate-200 bg-white text-xs font-bold hover:bg-slate-50">
-                    <Filter size={14} />
-                    <span>{filterSentiment === 'All' ? '감정 필터' : filterSentiment}</span>
-                  </button>
-                  <div className="hidden group-hover:block absolute top-full right-0 pt-2 w-32 z-20">
-                    <div className="bg-white border border-slate-200 shadow-xl rounded-xl p-1">
-                      {['All', 'Positive', 'Neutral', 'Negative'].map((s) => (
+
+                {isCalendarOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-[304px] rounded-2xl border border-slate-100 bg-white p-4 shadow-xl z-30">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-xs font-bold text-slate-500">{calendarLabel}</div>
+                      <div className="flex items-center gap-1 text-xs text-slate-400">
                         <button
-                          key={s}
-                          onClick={() => setFilterSentiment(s)}
-                          className={`w-full text-left px-3 py-2 text-xs font-bold rounded-lg transition ${filterSentiment === s
-                            ? 'bg-indigo-50 text-indigo-600'
-                            : 'hover:bg-slate-50 text-slate-700'
-                            }`}
+                          type="button"
+                          onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                          className="px-2 py-1 rounded-lg border hover:bg-slate-50"
                         >
-                          {s}
+                          ◀
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setCalendarMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                          className="px-2 py-1 rounded-lg border hover:bg-slate-50"
+                        >
+                          ▶
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-1 text-[11px] text-slate-400 font-semibold">
+                      {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                        <div key={day} className="text-center">{day}</div>
                       ))}
                     </div>
+
+                    <div className="mt-2 grid grid-cols-7 gap-1 text-[11px]">
+                      {Array.from({ length: totalCells }).map((_, idx) => {
+                        const dayNumber = idx - firstDayOfWeek + 1;
+                        const isInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+                        const dateObj = isInMonth
+                          ? new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), dayNumber)
+                          : null;
+                        const dateKey = dateObj ? formatDateKey(dateObj) : '';
+                        const callCount = dateKey ? (dailyCounts.get(dateKey) || 0) : 0;
+                        const isSelected = dateObj && selectedDate ? isSameDate(dateObj, selectedDate) : false;
+
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            disabled={!isInMonth}
+                            onClick={() => {
+                              if (!dateObj) return;
+                              setSelectedDate(dateObj);
+                              setIsCalendarOpen(false);
+                            }}
+                            className={`h-10 rounded-lg border transition ${isInMonth
+                              ? isSelected
+                                ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-extrabold ring-2 ring-indigo-100'
+                                : 'bg-slate-50 border-slate-100 text-slate-700 hover:bg-slate-100'
+                              : 'border-transparent bg-transparent cursor-default'
+                              }`}
+                          >
+                            <div className="leading-4">{isInMonth ? dayNumber : ''}</div>
+                            {isInMonth && callCount > 0 ? (
+                              <div className="text-[9px] font-bold text-indigo-500 mt-0.5">{callCount}건</div>
+                            ) : (
+                              <div className="h-[11px]" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -263,6 +341,7 @@ export default function CallHistoryPage() {
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
             </div>
+
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -367,6 +446,35 @@ function formatDateTime(value) {
     hour: '2-digit',
     minute: '2-digit'
   });
+}
+
+function formatDateOnly(value) {
+  if (!value) return '-';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
+
+function formatDateKey(value) {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function isSameDate(a, b) {
+  if (!a || !b) return false;
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 function formatDuration(seconds) {
