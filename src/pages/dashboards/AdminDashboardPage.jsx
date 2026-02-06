@@ -285,7 +285,7 @@ export default function AdminDashboardPage() {
       <div>
         <div className="text-sm text-slate-500">Dashboard</div>
         <div className="text-xl font-extrabold mt-1">관리자 대시보드</div>
-        <div className="text-sm text-slate-500 mt-1">신입 사원 현황 · 스트레스 지수 · 폭언/욕설 알림</div>
+        <div className="text-sm text-slate-500 mt-1">신입 사원 현황 · KPI 비교</div>
       </div>
 
       {/* KPI Cards Section */}
@@ -313,8 +313,8 @@ export default function AdminDashboardPage() {
             trendUp={true}
           />
           <Kpi
-            title="Sentiment (감정)"
-            value={kpiData?.summary?.sentimentScore ? `${kpiData.summary.sentimentScore}` : '-'}
+            title="총 통화 수"
+            value={kpiData?.operations?.totalCallsProcessed ? `${kpiData.operations.totalCallsProcessed}건` : '-'}
             trend
             trendValue="+0.1"
             trendUp={true}

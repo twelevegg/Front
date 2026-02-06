@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { callEventBus } from '../calls/callEvents.js';
 import { useAuth } from '../auth/AuthProvider.jsx';
+import { getWebSocketUrl } from '../../utils/websocketUtils.js';
 
 const CoPilotContext = createContext(null);
 

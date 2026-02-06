@@ -1,20 +1,32 @@
-import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutGrid, PhoneCall, Library, GraduationCap, FileText, Users, Activity, LogOut } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutGrid, PhoneCall, Library, GraduationCap, FileText, Users, Activity, LogOut, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../features/auth/AuthProvider.jsx';
 import NotificationBell from './common/NotificationBell.jsx';
 import { ROUTES } from '../app/routeConstants.js';
 import UserProfileModal from './common/UserProfileModal.jsx';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Sidebar() {
   const { role, user, logout } = useAuth();
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const navRef = useRef(null);
 
   const handleLogout = () => {
     logout();
     navigate(ROUTES.LOGIN, { replace: true });
+  };
+
+  const handleTrainingMenuToggle = (isOpen) => {
+    if (!navRef.current) {
+      return;
+    }
+
+    navRef.current.scrollTo({
+      top: isOpen ? navRef.current.scrollHeight : 0,
+      behavior: 'smooth',
+    });
   };
 
   return (
@@ -31,7 +43,7 @@ export default function Sidebar() {
         <div className="text-sm text-slate-500">Console</div>
       </div>
 
-      <nav className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
+      <nav ref={navRef} className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
         {role === 'admin' && (
           <>
             <SideLink to="/dashboard/admin" icon={LayoutGrid} label="Admin Dashboard" />
@@ -48,6 +60,7 @@ export default function Sidebar() {
         <SidebarDropdown
           icon={GraduationCap}
           label="Training Center"
+          onToggle={handleTrainingMenuToggle}
           routes={[
             { to: "/training/ppt", label: "PPT 교육", icon: FileText },
             { to: "/training/role-playing", label: "RolePlaying", icon: Users }
@@ -126,36 +139,68 @@ function SideLink({ to, icon: Icon, label }) {
   );
 }
 
-function SidebarDropdown({ icon: Icon, label, routes }) {
-  // Check if any child route is active to highlight the parent
-  // (This is a simplified check, ideally specific to logic needed)
+function SidebarDropdown({ icon: Icon, label, routes, onToggle }) {
+  const location = useLocation();
+  const hasActiveRoute = routes.some((route) => location.pathname.startsWith(route.to));
+  const [isOpen, setIsOpen] = useState(hasActiveRoute);
+  const shouldNotifyToggleRef = useRef(false);
+
+  useEffect(() => {
+    if (hasActiveRoute) {
+      setIsOpen(true);
+    }
+  }, [hasActiveRoute]);
+
+  useEffect(() => {
+    if (!shouldNotifyToggleRef.current) {
+      return;
+    }
+
+    shouldNotifyToggleRef.current = false;
+    onToggle?.(isOpen);
+  }, [isOpen, onToggle]);
+
   return (
-    <div className="relative group">
+    <div>
       <button
         type="button"
-        className="w-full flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition text-slate-700 hover:bg-slate-50 hover:shadow-sm"
+        aria-expanded={isOpen}
+        onClick={() => {
+          shouldNotifyToggleRef.current = true;
+          setIsOpen((prev) => !prev);
+        }}
+        className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3 font-semibold transition ${hasActiveRoute
+          ? 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+          : 'text-slate-700 hover:bg-slate-50 hover:shadow-sm'
+          }`}
       >
         <div className="grid place-items-center h-9 w-9 rounded-xl bg-white border border-slate-100 shadow-sm">
           <Icon size={18} />
         </div>
-        {label}
+        <span className="flex-1 text-left">{label}</span>
+        <ChevronDown
+          size={16}
+          className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
-      <div className="hidden group-hover:block group-focus-within:block ml-12 mt-1 space-y-1">
-        {routes.map((route) => (
-          <NavLink
-            key={route.to}
-            to={route.to}
-            className={({ isActive }) =>
-              `flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${isActive ? "text-indigo-600 bg-indigo-50 font-extrabold" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-              }`
-            }
-          >
-            <route.icon size={16} />
-            {route.label}
-          </NavLink>
-        ))}
-      </div>
+      {isOpen && (
+        <div className="ml-12 mt-1 space-y-1 max-h-36 overflow-y-auto custom-scrollbar pr-1">
+          {routes.map((route) => (
+            <NavLink
+              key={route.to}
+              to={route.to}
+              className={({ isActive }) =>
+                `flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition ${isActive ? 'text-indigo-600 bg-indigo-50 font-extrabold' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                }`
+              }
+            >
+              <route.icon size={16} />
+              {route.label}
+            </NavLink>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { getWebSocketUrl } from '../utils/websocketUtils.js';
+
 export class NotificationService {
     constructor() {
         this.socket = null;
@@ -11,7 +13,6 @@ export class NotificationService {
 
         this.userId = userId;
 
-        // ✅ URL 결정 로직 (환경변수 기반)
         // ✅ URL 결정 로직 (환경변수 기반)
         const getWsBase = () => {
             // 이 서비스는 FastAPI(/ai)에 연결되므로 FAST_API_BASE_URL 우선 사용
