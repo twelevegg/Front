@@ -26,7 +26,7 @@ export default function Footer() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="font-extrabold text-slate-700 tracking-tight">Aivle 12</span>
+              <span className="font-extrabold text-slate-700 tracking-tight">CS NAVIGATOR</span>
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center gap-y-1 gap-x-4 text-[11px] text-slate-400 font-medium">
