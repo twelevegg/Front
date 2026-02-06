@@ -27,10 +27,7 @@ export default function CallHistoryPage() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  });
+  const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
     const fetchCalls = async () => {
@@ -115,7 +112,7 @@ export default function CallHistoryPage() {
       const matchesDate =
         selectedDate && callDate instanceof Date && !Number.isNaN(callDate.getTime())
           ? isSameDate(callDate, selectedDate)
-          : false;
+          : true;
 
       return matchesSearch && matchesDate;
     });
@@ -258,7 +255,7 @@ export default function CallHistoryPage() {
                   className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-600 flex items-center gap-1.5 hover:bg-slate-50 transition"
                 >
                   <Calendar size={14} />
-                  {selectedDate ? formatDateOnly(selectedDate) : '날짜 선택'}
+                  {selectedDate ? formatDateOnly(selectedDate) : '전체 날짜'}
                 </button>
 
                 {isCalendarOpen && (
