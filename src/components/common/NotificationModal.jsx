@@ -8,10 +8,10 @@ const MOCK_NOTIFICATIONS = [
         id: 1,
         type: 'critical',
         category: 'risk',
-        title: 'Burnout Alert: Team B',
-        message: 'Fatigue levels in Team B have exceeded the 85% threshold.',
-        detail: 'Team B has shown consistent high fatigue levels over the last 3 days. Average break time has decreased by 40%. It is recommended to schedule a mandatory team break or distribute workload immediately.',
-        time: '10 mins ago',
+        title: '번아웃 경고: B팀',
+        message: 'B팀의 피로도가 85% 임계값을 초과했습니다.',
+        detail: '지난 3일간 B팀의 평균 피로도가 지속적으로 높게 측정되었습니다. 평균 휴식 시간이 40% 감소했습니다. 즉각적인 팀 휴식 일정 조정 또는 업무 분배가 권장됩니다.',
+        time: '10분 전',
         date: '2025-01-20',
         read: false
     },
@@ -19,10 +19,10 @@ const MOCK_NOTIFICATIONS = [
         id: 2,
         type: 'warning',
         category: 'risk',
-        title: 'Attrition Risk: Grace Park',
-        message: 'Grace Park shows signs of disengagement.',
-        detail: 'Analysis of recent call logs and sentiment analysis indicates a 30% drop in positive language usage. Grace Park has been flagged for potential burnout-induced attrition.',
-        time: '2 hours ago',
+        title: '이탈 위험: 박은지 상담사',
+        message: '박은지 상담사에게서 직무 몰입도 저하 징후가 포착되었습니다.',
+        detail: '최근 통화 로그 및 감성 분석 결과, 긍정적 언어 사용이 30% 감소했습니다. 번아웃으로 인한 이탈 위험군으로 분류되었습니다.',
+        time: '2시간 전',
         date: '2025-01-20',
         read: false
     },
@@ -30,10 +30,10 @@ const MOCK_NOTIFICATIONS = [
         id: 3,
         type: 'info',
         category: 'system',
-        title: 'System Maintenance',
-        message: 'Scheduled maintenance will occur tonight at 2:00 AM.',
-        detail: 'The system will undergo routine maintenance from 02:00 AM to 04:00 AM. Services may be intermittent during this period.',
-        time: 'Yesterday',
+        title: '시스템 정기 점검',
+        message: '오늘 밤 오전 2시에 정기 점검이 예정되어 있습니다.',
+        detail: '오전 02:00부터 04:00까지 시스템 안정화를 위한 정기 점검이 진행됩니다. 해당 시간에는 서비스 이용이 원활하지 않을 수 있습니다.',
+        time: '어제',
         date: '2025-01-19',
         read: true
     },
@@ -41,10 +41,10 @@ const MOCK_NOTIFICATIONS = [
         id: 4,
         type: 'success',
         category: 'system',
-        title: 'Deployment Successful',
-        message: 'New dashboard features are now live.',
-        detail: 'The generic deployment pipeline finished successfully. All systems are operational.',
-        time: '2 days ago',
+        title: '배포 완료',
+        message: '대시보드 신규 기능이 성공적으로 반영되었습니다.',
+        detail: '배포 파이프라인이 정상적으로 완료되었으며, 모든 시스템이 정상 가동 중입니다.',
+        time: '2일 전',
         date: '2025-01-18',
         read: true
     },
@@ -76,28 +76,34 @@ export default function NotificationModal({ onClose }) {
 
     const handleMarkAllRead = () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        addToast('All notifications marked as read', 'success');
+        addToast('모든 알림을 읽음 처리했습니다.', 'success');
     };
 
     const handleClearAll = () => {
         if (filter === 'all') {
             setNotifications([]);
-            addToast('All notifications cleared', 'info');
+            addToast('모든 알림을 삭제했습니다.', 'info');
         } else {
             setNotifications(prev => prev.filter(n => n.category !== filter));
-            addToast(`${filter} notifications cleared`, 'info');
+            addToast('선택된 알림을 삭제했습니다.', 'info');
         }
     };
 
     const handleDelete = (e, id) => {
         e.stopPropagation();
         setNotifications(prev => prev.filter(n => n.id !== id));
-        addToast('Notification removed', 'info');
+        addToast('알림이 삭제되었습니다.', 'info');
     };
 
     const handleMarkRead = (e, id) => {
         e.stopPropagation();
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
+
+    const filterLabels = {
+        all: '전체',
+        risk: '위험 감지',
+        system: '시스템'
     };
 
     return (
@@ -109,7 +115,11 @@ export default function NotificationModal({ onClose }) {
                 transition={{ duration: 0.2, ease: "easeOut" }}
                 className={`absolute bottom-full left-14 z-50 mb-[-40px] ${selectedId ? 'w-[600px]' : 'w-[420px]'}`}
             >
-                <div className="rounded-2xl bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden border border-white/60 flex flex-col max-h-[80vh]">
+                {/* 
+                   Fixed Height enforced here (h-[600px]) to prevent layout shifts 
+                   when filtering changes the content size.
+                */}
+                <div className="rounded-2xl bg-white/95 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden border border-white/60 flex flex-col h-[600px]">
                     {/* Header */}
                     <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-white/50 shrink-0">
                         <div className="flex items-center gap-3">
@@ -126,7 +136,7 @@ export default function NotificationModal({ onClose }) {
                                 </div>
                             )}
                             <h3 className="font-extrabold text-slate-800 text-lg">
-                                {selectedId ? 'Details' : 'Notifications'}
+                                {selectedId ? '상세 정보' : '알림 센터'}
                             </h3>
                         </div>
                         <div className="flex gap-2">
@@ -135,14 +145,14 @@ export default function NotificationModal({ onClose }) {
                                     <button
                                         onClick={handleMarkAllRead}
                                         className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-blue-600 transition"
-                                        title="Mark all as read"
+                                        title="모두 읽음 처리"
                                     >
                                         <Check size={16} />
                                     </button>
                                     <button
                                         onClick={handleClearAll}
                                         className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-red-500 transition"
-                                        title="Clear all"
+                                        title="전체 삭제"
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -161,10 +171,10 @@ export default function NotificationModal({ onClose }) {
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}
-                                    className={`pb-3 text-sm font-bold capitalize transition-colors relative ${filter === f ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
+                                    className={`pb-3 text-sm font-bold transition-colors relative ${filter === f ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
                                         }`}
                                 >
-                                    {f}
+                                    {filterLabels[f]}
                                     {filter === f && (
                                         <motion.div
                                             layoutId="activeTab"
@@ -185,13 +195,13 @@ export default function NotificationModal({ onClose }) {
                                 {notifications.length === 0 && (
                                     <div className="py-12 text-center text-slate-400">
                                         <Bell size={48} className="mx-auto mb-4 opacity-20" />
-                                        <p className="text-sm font-medium">No notifications</p>
+                                        <p className="text-sm font-medium">새로운 알림이 없습니다</p>
                                     </div>
                                 )}
 
                                 {groupedNotifications.today.length > 0 && (
                                     <div>
-                                        <div className="px-2 mb-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider">Today</div>
+                                        <div className="px-2 mb-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider">오늘</div>
                                         <div className="space-y-2">
                                             {groupedNotifications.today.map(n => (
                                                 <NotificationItem
@@ -208,7 +218,7 @@ export default function NotificationModal({ onClose }) {
 
                                 {groupedNotifications.earlier.length > 0 && (
                                     <div>
-                                        <div className="px-2 mb-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider">Earlier</div>
+                                        <div className="px-2 mb-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider">이전 알림</div>
                                         <div className="space-y-2">
                                             {groupedNotifications.earlier.map(n => (
                                                 <NotificationItem
@@ -277,7 +287,7 @@ function NotificationItem({ notification, onClick, onDelete, onMarkRead }) {
                     <button
                         onClick={(e) => onMarkRead(e, notification.id)}
                         className="p-1.5 rounded-full bg-slate-50 text-blue-500 hover:bg-blue-50 shadow-sm border border-slate-100"
-                        title="Mark as read"
+                        title="읽음 처리"
                     >
                         <Check size={12} />
                     </button>
@@ -285,7 +295,7 @@ function NotificationItem({ notification, onClick, onDelete, onMarkRead }) {
                 <button
                     onClick={(e) => onDelete(e, notification.id)}
                     className="p-1.5 rounded-full bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 shadow-sm border border-slate-100"
-                    title="Delete"
+                    title="삭제"
                 >
                     <Trash2 size={12} />
                 </button>
@@ -343,7 +353,7 @@ function DetailView({ notification }) {
 
             <div className="mt-8 flex justify-end">
                 <button className="text-sm font-bold text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl transition">
-                    View Related Report →
+                    관련 보고서 보기 →
                 </button>
             </div>
         </motion.div>
