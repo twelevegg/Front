@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { notificationService } from '../../services/NotificationService.js';
 import Card from '../../components/Card.jsx';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { callEventBus } from '../../features/calls/callEvents.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
 import EmptyState from '../../components/common/EmptyState.jsx';
@@ -13,17 +13,17 @@ import { request } from '../../services/http.js';
 import { useAuth } from '../../features/auth/AuthProvider.jsx';
 import CallLogModal from '../../features/calls/CallLogModal.jsx';
 
-const dataWeek = [
-  { label: 'W-4', qa: 80, success: 81, adherence: 90 },
-  { label: 'W-3', qa: 81, success: 82, adherence: 91 },
-  { label: 'W-2', qa: 82, success: 83, adherence: 92 },
-  { label: 'W-1', qa: 83, success: 84, adherence: 92 }
+const perfWeek = [
+  { label: 'W-4', calls: 102, csat: 79, avgDuration: 330 },
+  { label: 'W-3', calls: 118, csat: 81, avgDuration: 315 },
+  { label: 'W-2', calls: 124, csat: 83, avgDuration: 305 },
+  { label: 'W-1', calls: 136, csat: 85, avgDuration: 298 }
 ];
 
-const dataMonth = [
-  { label: 'Jan', qa: 78, success: 75, adherence: 88 },
-  { label: 'Feb', qa: 82, success: 80, adherence: 90 },
-  { label: 'Mar', qa: 85, success: 85, adherence: 93 },
+const perfMonth = [
+  { label: 'Jan', calls: 412, csat: 78, avgDuration: 322 },
+  { label: 'Feb', calls: 438, csat: 82, avgDuration: 310 },
+  { label: 'Mar', calls: 466, csat: 86, avgDuration: 295 }
 ];
 
 export default function AssistantDashboardPage() {
@@ -31,7 +31,6 @@ export default function AssistantDashboardPage() {
   const navigate = useNavigate();
   const { openWithCall } = useCoPilot();
   const { addToast } = useToast();
-  const [chartType, setChartType] = useState('line'); // 'line' | 'bar'
   const [period, setPeriod] = useState('week'); // 'week' | 'month'
   const [status, setStatus] = useState('online'); // online | busy | offline
   const [recentCalls, setRecentCalls] = useState([]);
@@ -269,7 +268,41 @@ export default function AssistantDashboardPage() {
     </button>
   );
 
-  const currentData = period === 'week' ? dataWeek : dataMonth;
+  const currentData = period === 'week' ? perfWeek : perfMonth;
+  const latest = currentData[currentData.length - 1];
+  const previous = currentData[currentData.length - 2] || latest;
+
+  const trendValue = (key) => {
+    const prev = previous?.[key] ?? 0;
+    const curr = latest?.[key] ?? 0;
+    const diff = curr - prev;
+    const sign = diff >= 0 ? '+' : '';
+    return `${sign}${diff}`;
+  };
+
+  const getCompareValues = (key) => {
+    const values = currentData.map((item) => Number(item[key]) || 0).slice(-2);
+    if (values.length === 1) return { prev: values[0], curr: values[0], max: values[0] || 1 };
+    const [prev, curr] = values;
+    const max = Math.max(prev, curr, 1);
+    return { prev, curr, max };
+  };
+
+  const compareChartData = useMemo(() => (
+    [
+      { key: 'calls', label: '통화 수', unit: '건' },
+      { key: 'csat', label: '만족도', unit: '점' },
+      { key: 'avgDuration', label: '평균 통화시간', unit: '초' }
+    ].map((metric) => {
+      const { prev, curr } = getCompareValues(metric.key);
+      return {
+        label: metric.label,
+        prev,
+        curr,
+        unit: metric.unit
+      };
+    })
+  ), [currentData]);
 
   return (
     <>
@@ -334,8 +367,8 @@ export default function AssistantDashboardPage() {
         />
         <Kpi
           title="일정 준수율"
-          value={kpiData?.agentProductivity?.scheduleAdherence ? `${kpiData.agentProductivity.scheduleAdherence}%` : '-'}
-          icon={<BookOpen size={20} className="text-purple-500" />}
+          value={kpiData?.operations?.avgCallDuration ? `${kpiData.operations.avgCallDuration}초` : '-'}
+          icon={<Clock size={20} className="text-purple-500" />}
           trend
           trendValue="-2%"
           trendUp={false}
@@ -597,7 +630,7 @@ export default function AssistantDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm font-extrabold">성과 지표 분석</div>
-              <div className="text-xs text-slate-500 mt-1">QA / 성공률 / 준수율</div>
+              <div className="text-xs text-slate-500 mt-1">통화 수 · 만족도 · 평균 통화시간</div>
             </div>
             <div className="flex gap-2">
               <button
@@ -607,45 +640,33 @@ export default function AssistantDashboardPage() {
               >
                 {period === 'week' ? 'Last 4 Weeks' : 'Quarterly'}
               </button>
-              <button
-                onClick={() => setChartType(chartType === 'line' ? 'bar' : 'line')}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${chartType === 'line' ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'border-slate-200 text-slate-500'
-                  }`}
-              >
-                {chartType === 'line' ? 'Line View' : 'Bar View'}
-              </button>
             </div>
           </div>
 
-          <div className="mt-4 h-[260px]">
+          <div className="mt-4 h-[320px]">
             <ResponsiveContainer width="100%" height="100%">
-              {chartType === 'line' ? (
-                <LineChart data={currentData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[60, 100]} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
-                    cursor={{ stroke: '#cbd5e1', strokeWidth: 1, strokeDasharray: '4 4' }}
-                  />
-                  <Line type="monotone" dataKey="qa" stroke="#4f46e5" strokeWidth={3} dot={{ r: 4, fill: '#4f46e5', strokeWidth: 0 }} activeDot={{ r: 6 }} />
-                  <Line type="monotone" dataKey="success" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 0 }} />
-                  <Line type="monotone" dataKey="adherence" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4, fill: '#f59e0b', strokeWidth: 0 }} />
-                </LineChart>
-              ) : (
-                <BarChart data={currentData} barSize={20}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} domain={[0, 100]} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
-                    cursor={{ fill: '#f8fafc' }}
-                  />
-                  <Bar dataKey="qa" fill="#4f46e5" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="success" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="adherence" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              )}
+              <BarChart data={compareChartData} barSize={26} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="4 6" stroke="#e2e8f0" vertical={false} strokeOpacity={0.7} />
+                <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#94a3b8' }} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                  formatter={(value, name, props) => {
+                    const unit = props?.payload?.unit || '';
+                    return [`${value}${unit}`, name === 'prev' ? '저번주' : '이번주'];
+                  }}
+                />
+                <Legend
+                  verticalAlign="top"
+                  align="right"
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: 11 }}
+                  formatter={(value) => (value === 'prev' ? '저번주' : '이번주')}
+                />
+                <Bar dataKey="prev" fill="#BFD7ED" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="curr" fill="#F7C5CC" radius={[10, 10, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
