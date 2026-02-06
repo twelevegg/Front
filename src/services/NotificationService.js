@@ -10,8 +10,20 @@ export class NotificationService {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) return;
 
         this.userId = userId;
-        // production 환경에서는 환경변수나 base URL을 사용하세요.
-        const wsUrl = `ws://k8s-default-aiccingr-9a828090cc-358415700.ap-northeast-2.elb.amazonaws.com/ai/api/v1/agent/notifications/${userId}`;
+
+        // ✅ URL 결정 로직 (환경변수 기반)
+        const getWsBase = () => {
+            const apiBase = import.meta.env.VITE_API_BASE_URL || '';
+
+            // http -> ws, https -> wss 자동 변환
+            if (apiBase.startsWith('http')) {
+                return apiBase.replace(/^http/, 'ws');
+            }
+            return apiBase;
+        };
+
+        const wsBase = getWsBase();
+        const wsUrl = `${wsBase}/ai/api/v1/agent/notifications/${userId}`;
 
         console.log(`NotificationService: Connecting to ${wsUrl}`);
         this.socket = new WebSocket(wsUrl);
