@@ -18,6 +18,10 @@ export default function Sidebar() {
     navigate(ROUTES.LOGIN, { replace: true });
   };
 
+  const handleBrandClick = () => {
+    navigate(role === 'admin' ? ROUTES.DASH_ADMIN : ROUTES.DASH_ASSISTANT);
+  };
+
   const handleTrainingMenuToggle = (isOpen) => {
     if (!navRef.current) {
       return;
@@ -37,9 +41,13 @@ export default function Sidebar() {
       className="rounded-3xl bg-white/70 backdrop-blur-xl shadow-soft border border-white/50 p-6 sticky top-6 self-start flex flex-col h-[calc(100vh-3rem)] z-50"
     >
       <div className="mb-6 shrink-0">
-        <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-          CS-Navigator
-        </div>
+        <button
+          type="button"
+          onClick={handleBrandClick}
+          className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent transition-all duration-200 hover:scale-[1.02] hover:opacity-100 hover:drop-shadow-[0_2px_8px_rgba(71,85,105,0.35)]"
+        >
+          CS Navigator
+        </button>
         <div className="text-sm text-slate-500">Console</div>
       </div>
 
