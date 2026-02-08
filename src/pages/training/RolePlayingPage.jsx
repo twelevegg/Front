@@ -1,18 +1,18 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { sendRPMessage } from '../../api/rpService';
-import { Mic, MicOff, PhoneOff, User, BarChart2, Clock, Volume2, Globe } from 'lucide-react';
+import { User, BarChart2, Volume2, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { qaReport } from '../../api/qaService';
-import Card from '../../components/Card.jsx';
 import { useToast } from '../../components/common/ToastProvider.jsx';
+import RPCoPilotModal from '../../features/rpCopilot/RPCoPilotModal.jsx';
 
 
 const PERSONAS = [
     {
         id: 'angry',
         name: '악성 민원 고객',
-        desc: '배송 지연에 대해 매우 화가 난 상태입니다. 욕설을 할 수도 있습니다.',
+        desc: '매우 화가 난 상태입니다. 욕설을 할 수도 있습니다.',
         difficulty: 'Hard',
         tone: 'Aggressive',
         color: 'bg-red-500',
@@ -41,12 +41,10 @@ const PERSONAS = [
 export default function RolePlayingPage() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
-    const bottomRef = useRef(null);
 
     const { addToast } = useToast();
     const [selectedPersona, setSelectedPersona] = useState(null);
     const [callStatus, setCallStatus] = useState('idle'); // idle | connecting | active | ended
-    const [micOn, setMicOn] = useState(true);
     const [duration, setDuration] = useState(0);
 
     const [qaOpen, setQaOpen] = useState(false);
@@ -54,16 +52,38 @@ export default function RolePlayingPage() {
     const [qaData, setQaData] = useState(null);
     const [qaError, setQaError] = useState('');
     const [openExpertIndex, setOpenExpertIndex] = useState(null);
+    const [aiTyping, setAiTyping] = useState(false);
+    const [rpCopilotOpen, setRpCopilotOpen] = useState(false);
 
 
-    const sendMessage = async (text) => {
-        const userMsg = { role: 'user', content: text };
-        setMessages(prev => [...prev, userMsg]);
+    const sendMessage = async (text, options = {}) => {
+        const { showUser = true, start = false, personaOverride = null } = options;
+        const persona = personaOverride || selectedPersona;
+
+        if (!persona) {
+            addToast('페르소나가 선택되지 않았습니다.', 'error');
+            return;
+        }
+
+        if (showUser) {
+            const userMsg = { role: 'user', content: text };
+            setMessages(prev => [...prev, userMsg]);
+        }
+
+        setAiTyping(true);
 
         try {
             const data = await sendRPMessage({
-                sessionId: selectedPersona.id,
+                sessionId: persona.id,
                 message: text,
+                persona: {
+                    id: persona.id,
+                    name: persona.name,
+                    desc: persona.desc,
+                    tone: persona.tone,
+                    difficulty: persona.difficulty,
+                },
+                start,
             });
 
             setMessages(prev => [
@@ -73,6 +93,8 @@ export default function RolePlayingPage() {
         } catch (e) {
             console.error("RP Error Details:", e);
             addToast(`AI 응답 오류: ${e.message}`, 'error');
+        } finally {
+            setAiTyping(false);
         }
     };
 
@@ -85,9 +107,6 @@ export default function RolePlayingPage() {
         return () => clearInterval(interval);
     }, [callStatus]);
 
-    useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
 
 
     const formatTime = (sec) => {
@@ -99,9 +118,15 @@ export default function RolePlayingPage() {
     const handleStartCall = (persona) => {
         setSelectedPersona(persona);
         setCallStatus('connecting');
+        setRpCopilotOpen(true);
         setTimeout(() => {
             setCallStatus('active');
             addToast(`${persona.name}님과 연결되었습니다.`, 'success');
+            sendMessage('통화가 시작되었습니다. 고객이 먼저 인사와 문의를 시작해 주세요.', {
+                showUser: false,
+                start: true,
+                personaOverride: persona,
+            });
         }, 2000); // Mock connection delay
     };
 
@@ -137,14 +162,17 @@ export default function RolePlayingPage() {
         setCallStatus('idle');
         setDuration(0);
         setSelectedPersona(null);
+        setAiTyping(false);
     };
 
     return (
         <div className="h-[calc(100vh-100px)] flex flex-col">
             <div className="mb-6 shrink-0">
-                <div className="text-sm text-slate-500 font-bold mb-1">AI Roleplay Simulation</div>
-                <h1 className="text-2xl font-black text-slate-900">실전 음성 트레이닝</h1>
-                <p className="text-slate-600 mt-1">다양한 AI 고객 페르소나와 실시간 음성으로 대화하며 대응 능력을 키우세요.</p>
+                <div>
+                    <div className="text-sm text-slate-500 font-bold mb-1">AI Roleplay Simulation</div>
+                    <h1 className="text-2xl font-black text-slate-900">실전 AI 트레이닝</h1>
+                    <p className="text-slate-600 mt-1">다양한 AI 고객 페르소나와 실시간 채팅으로 대화하며 대응 능력을 키우세요.</p>
+                </div>
             </div>
 
             <AnimatePresence mode="wait">
@@ -190,114 +218,7 @@ export default function RolePlayingPage() {
                         ))}
                     </motion.div>
                 ) : (
-                    <motion.div
-                        key="call"
-                        initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="flex-1 flex flex-col rounded-3xl bg-slate-900 text-white shadow-2xl overflow-hidden relative"
-                    >
-                        {/* Background Ambience */}
-                        <div
-                            className={`absolute inset-0 opacity-20 bg-gradient-to-br from-slate-900 via-slate-800 to-black pointer-events-none`} />
-
-                        {/* Header */}
-                        <div className="relative z-10 flex justify-between items-center p-8">
-                            <div className="flex items-center gap-4">
-                                <div
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center ${selectedPersona.color} text-white font-bold text-xl shadow-lg`}>
-                                    {selectedPersona.name[0]}
-                                </div>
-                                <div>
-                                    <div className="font-extrabold text-lg">{selectedPersona.name}</div>
-                                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                                        <span
-                                            className={`w-2 h-2 rounded-full ${callStatus === 'active' ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`} />
-                                        {callStatus === 'connecting' ? '연결 중...' :
-                                            callStatus === 'ended' ? '통화 종료' :
-                                                formatTime(duration)}
-                                    </div>
-                                </div>
-                            </div>
-                            <div
-                                className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md text-xs font-bold border border-white/10">
-                                AI Training Mode
-                            </div>
-                        </div>
-
-                        {/* Visualizer Area */}
-                        <div className="flex-1 relative z-10 flex flex-col p-6 overflow-hidden">
-                            {/* Chat Messages */}
-                            <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                                {messages.map((msg, idx) => (
-                                    <div
-                                        key={idx}
-                                        className={`max-w-[70%] px-4 py-3 rounded-2xl text-sm ${msg.role === 'user'
-                                                ? 'ml-auto bg-blue-500 text-white'
-                                                : 'mr-auto bg-slate-700 text-white'
-                                            }`}
-                                    >
-                                        {msg.content}
-                                    </div>
-                                ))}
-                                {/* 🔽 자동 스크롤 기준점 */}
-                                <div ref={bottomRef} />
-                            </div>
-
-                            {/* Input */}
-                            <div className="flex gap-2">
-                                <input
-                                    value={input}
-                                    onChange={(e) => setInput(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && input.trim()) {
-                                            sendMessage(input);
-                                            setInput('');
-                                        }
-                                    }}
-                                    placeholder="상담사 답변을 입력하세요..."
-                                    className="flex-1 px-4 py-3 rounded-xl bg-slate-800 text-white outline-none border border-slate-700"
-                                />
-                                <button
-                                    onClick={() => {
-                                        if (!input.trim()) return;
-                                        sendMessage(input);
-                                        setInput('');
-                                    }}
-                                    className="px-6 py-3 rounded-xl bg-blue-500 text-white font-bold hover:bg-blue-600 transition"
-                                >
-                                    전송
-                                </button>
-                            </div>
-                        </div>
-
-
-                        {/* Controls */}
-                        {callStatus !== 'ended' && (
-                            <div className="relative z-10 p-10 flex justify-center items-center gap-8">
-                                <button
-                                    onClick={() => setMicOn(!micOn)}
-                                    className={`p-6 rounded-full transition-all duration-300 ${micOn ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-white text-slate-900 hover:bg-slate-200'
-                                        }`}
-                                >
-                                    {micOn ? <Mic size={32} /> : <MicOff size={32} />}
-                                </button>
-
-                                <button
-                                    onClick={handleEndCall}
-
-                                    className="p-8 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 hover:scale-105 transition-all active:scale-95"
-                                >
-                                    <PhoneOff size={40} />
-                                </button>
-
-                                <button
-                                    className="p-6 rounded-full bg-slate-800 text-slate-400 hover:bg-slate-700 transition">
-                                    {/* Placeholder for menu/settings */}
-                                    <div className="w-8 h-8 flex items-center justify-center font-bold">...</div>
-                                </button>
-                            </div>
-                        )}
-                    </motion.div>
+                    <div className="flex-1" />
                 )}
             </AnimatePresence>
 
@@ -424,6 +345,20 @@ export default function RolePlayingPage() {
                 </div>
             )}
             {/* ✅ QA 모달 끝 */}
+
+            <RPCoPilotModal
+                open={rpCopilotOpen}
+                setOpen={setRpCopilotOpen}
+                messages={messages}
+                persona={selectedPersona}
+                callStatus={callStatus}
+                duration={duration}
+                input={input}
+                setInput={setInput}
+                onSend={(text) => sendMessage(text)}
+                aiTyping={aiTyping}
+                onEndCall={handleEndCall}
+            />
 
         </div>
     );
