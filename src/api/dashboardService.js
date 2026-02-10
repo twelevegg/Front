@@ -1,4 +1,4 @@
-import { apiFetch } from './client';
+import { apiFetch, apiFetchFast } from './client';
 
 export const dashboardService = {
     /**
@@ -20,6 +20,19 @@ export const dashboardService = {
         // 현재 개발 편의성을 위해 PathVariable로 id를 받는 테스트 엔드포인트 사용 가능 여부 확인 필요.
         // Controller에 /my/kpi/test/{memberId} 가 있으므로 이를 사용.
         return await apiFetch(`/api/v1/dashboards/my/kpi/test/${memberId}`);
+    },
+
+    /**
+     * 심사위원용 실시간 상담 시뮬레이션 시작
+     * POST /ai/api/v1/simulation/start
+     */
+    startSimulation: async () => {
+        // AI 서버 (FastAPI)로 요청
+        // Spring이 아닌 FastAPI로 직접 요청해야 하므로 apiFetchFast 사용
+        // VITE_FAST_API_BASE_URL에 이미 /ai가 포함되어 있으므로 /ai 제거
+        return await apiFetchFast('/api/v1/simulation/start', {
+            method: 'POST'
+        });
     }
 };
 
