@@ -31,8 +31,10 @@ export default function SignUpPage() {
   // ✅ Tenant 선택 (kt, skt, lgu)
   const [tenant, setTenant] = useState('kt');
 
+  // ... existing code ...
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); // Global error (e.g. server error)
+  const [errors, setErrors] = useState({}); // Field-level errors
 
   // ✅ Legal Consents
   const [agreedTerms, setAgreedTerms] = useState(false);
@@ -54,29 +56,38 @@ export default function SignUpPage() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrors({});
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError('올바른 이메일 형식을 입력해주세요.');
-      return;
+    const newErrors = {};
+
+    if (!name.trim()) {
+      newErrors.name = '이름을 입력해주세요.';
+    }
+
+    if (!email.trim()) {
+      newErrors.email = '이메일을 입력해주세요.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = '올바른 이메일 형식을 입력해주세요.';
     }
 
     if (password.length < 8) {
-      setError('비밀번호는 최소 8자 이상이어야 합니다.');
-      return;
+      newErrors.password = '비밀번호는 최소 8자 이상이어야 합니다.';
     }
 
     if (password !== password2) {
-      setError('비밀번호 확인이 일치하지 않습니다.');
-      return;
+      newErrors.confirm = '비밀번호가 일치하지 않습니다.';
     }
 
     if (!agreedTerms) {
-      setError('서비스 이용약관에 동의해야 합니다.');
-      return;
+      newErrors.terms = '서비스 이용약관에 동의해야 합니다.';
     }
 
     if (!agreedPrivacy) {
-      setError('개인정보 수집 및 이용에 동의해야 합니다.');
+      newErrors.privacy = '개인정보 수집 및 이용에 동의해야 합니다.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -111,7 +122,7 @@ export default function SignUpPage() {
       ctaTo={ROUTES.LOGIN}
     >
       <form onSubmit={onSubmit} className="space-y-4">
-        <Field label="Name">
+        <Field label="Name" error={errors.name}>
           <IconInput>
             <User size={18} className="text-slate-400" />
             <input
@@ -125,7 +136,7 @@ export default function SignUpPage() {
           </IconInput>
         </Field>
 
-        <Field label="Email">
+        <Field label="Email" error={errors.email}>
           <IconInput>
             <Mail size={18} className="text-slate-400" />
             <input
@@ -190,7 +201,7 @@ export default function SignUpPage() {
 
         {/* Password Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Password">
+          <Field label="Password" error={errors.password}>
             <IconInput>
               <Lock size={18} className="text-slate-400" />
               <input
@@ -208,7 +219,7 @@ export default function SignUpPage() {
             </IconInput>
           </Field>
 
-          <Field label="Confirm">
+          <Field label="Confirm" error={errors.confirm}>
             <IconInput>
               <Lock size={18} className="text-slate-400" />
               <input
@@ -265,7 +276,7 @@ export default function SignUpPage() {
               label="[필수] 서비스 이용약관 동의"
               checked={agreedTerms}
               onChange={setAgreedTerms}
-              customLabelClass="text-xs text-slate-500"
+              customLabelClass={`text-xs ${errors.terms ? 'text-red-500 font-bold' : 'text-slate-500'}`}
             />
             <button
               type="button"
@@ -281,7 +292,7 @@ export default function SignUpPage() {
               label="[필수] 개인정보 수집 및 이용 동의"
               checked={agreedPrivacy}
               onChange={setAgreedPrivacy}
-              customLabelClass="text-xs text-slate-500"
+              customLabelClass={`text-xs ${errors.privacy ? 'text-red-500 font-bold' : 'text-slate-500'}`}
             />
             <button
               type="button"
@@ -333,11 +344,12 @@ export default function SignUpPage() {
 }
 
 /** ✅ label wrapper 제거(클릭 씹힘/포커스 간섭 방지) */
-function Field({ label, children }) {
+function Field({ label, error, children }) {
   return (
     <div className="block">
       <div className="text-xs font-extrabold text-slate-600 mb-2">{label}</div>
       {children}
+      {error && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{error}</p>}
     </div>
   );
 }
