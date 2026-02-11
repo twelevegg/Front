@@ -7,6 +7,7 @@ import { ROUTES } from '../../app/routeConstants.js';
 import { signupApi } from '../../features/auth/api.js';
 import PrivacyPolicyModal from '../../components/legal/PrivacyPolicyModal.jsx';
 import TermsOfServiceModal from '../../components/legal/TermsOfServiceModal.jsx';
+import MarketingConsentModal from '../../components/legal/MarketingConsentModal.jsx';
 
 export default function SignUpPage() {
   const nav = useNavigate();
@@ -22,6 +23,7 @@ export default function SignUpPage() {
   // ✅ 개인정보 모달
   const [policyOpen, setPolicyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
+  const [marketingOpen, setMarketingOpen] = useState(false);
 
   // ✅ role 선택 (admin / assistant)
   const [role, setRole] = useState('assistant');
@@ -29,8 +31,10 @@ export default function SignUpPage() {
   // ✅ Tenant 선택 (kt, skt, lgu)
   const [tenant, setTenant] = useState('kt');
 
+  // ... existing code ...
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(''); // Global error (e.g. server error)
+  const [errors, setErrors] = useState({}); // Field-level errors
 
   // ✅ Legal Consents
   const [agreedTerms, setAgreedTerms] = useState(false);
@@ -52,24 +56,38 @@ export default function SignUpPage() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setErrors({});
+
+    const newErrors = {};
+
+    if (!name.trim()) {
+      newErrors.name = '이름을 입력해주세요.';
+    }
+
+    if (!email.trim()) {
+      newErrors.email = '이메일을 입력해주세요.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = '올바른 이메일 형식을 입력해주세요.';
+    }
 
     if (password.length < 8) {
-      setError('비밀번호는 최소 8자 이상이어야 합니다.');
-      return;
+      newErrors.password = '비밀번호는 최소 8자 이상이어야 합니다.';
     }
 
     if (password !== password2) {
-      setError('비밀번호 확인이 일치하지 않습니다.');
-      return;
+      newErrors.confirm = '비밀번호가 일치하지 않습니다.';
     }
 
     if (!agreedTerms) {
-      setError('서비스 이용약관에 동의해야 합니다.');
-      return;
+      newErrors.terms = '서비스 이용약관에 동의해야 합니다.';
     }
 
     if (!agreedPrivacy) {
-      setError('개인정보 수집 및 이용에 동의해야 합니다.');
+      newErrors.privacy = '개인정보 수집 및 이용에 동의해야 합니다.';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
 
@@ -104,7 +122,7 @@ export default function SignUpPage() {
       ctaTo={ROUTES.LOGIN}
     >
       <form onSubmit={onSubmit} className="space-y-4">
-        <Field label="Name">
+        <Field label="Name" error={errors.name}>
           <IconInput>
             <User size={18} className="text-slate-400" />
             <input
@@ -118,7 +136,7 @@ export default function SignUpPage() {
           </IconInput>
         </Field>
 
-        <Field label="Email">
+        <Field label="Email" error={errors.email}>
           <IconInput>
             <Mail size={18} className="text-slate-400" />
             <input
@@ -183,7 +201,7 @@ export default function SignUpPage() {
 
         {/* Password Grid */}
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Password">
+          <Field label="Password" error={errors.password}>
             <IconInput>
               <Lock size={18} className="text-slate-400" />
               <input
@@ -201,7 +219,7 @@ export default function SignUpPage() {
             </IconInput>
           </Field>
 
-          <Field label="Confirm">
+          <Field label="Confirm" error={errors.confirm}>
             <IconInput>
               <Lock size={18} className="text-slate-400" />
               <input
@@ -220,27 +238,13 @@ export default function SignUpPage() {
           </Field>
         </div>
 
-        {/* Password Strength */}
+        {/* Password Requirements Checklist */}
         {password && (
-          <div className="flex items-center gap-2 -mt-2">
-            <div className="flex-1 flex gap-1 h-1">
-              {[1, 2, 3, 4].map((level) => (
-                <div
-                  key={level}
-                  className={`flex-1 rounded-full transition-all ${passwordStrength >= level
-                    ? (passwordStrength <= 2
-                      ? 'bg-red-400'
-                      : passwordStrength === 3
-                        ? 'bg-amber-400'
-                        : 'bg-green-500')
-                    : 'bg-slate-100'
-                    }`}
-                />
-              ))}
-            </div>
-            <div className="text-[10px] font-bold text-slate-400 w-12 text-right">
-              {passwordStrength <= 2 ? 'Weak' : passwordStrength === 3 ? 'Medium' : 'Strong'}
-            </div>
+          <div className="grid grid-cols-2 gap-2 mt-2 px-1">
+            <PasswordRequirement label="최소 8자 이상" met={password.length >= 8} />
+            <PasswordRequirement label="대문자 포함" met={/[A-Z]/.test(password)} />
+            <PasswordRequirement label="숫자 포함" met={/[0-9]/.test(password)} />
+            <PasswordRequirement label="특수문자 포함" met={/[^A-Za-z0-9]/.test(password)} />
           </div>
         )}
 
@@ -272,7 +276,7 @@ export default function SignUpPage() {
               label="[필수] 서비스 이용약관 동의"
               checked={agreedTerms}
               onChange={setAgreedTerms}
-              customLabelClass="text-xs text-slate-500"
+              customLabelClass={`text-xs ${errors.terms ? 'text-red-500 font-bold' : 'text-slate-500'}`}
             />
             <button
               type="button"
@@ -288,7 +292,7 @@ export default function SignUpPage() {
               label="[필수] 개인정보 수집 및 이용 동의"
               checked={agreedPrivacy}
               onChange={setAgreedPrivacy}
-              customLabelClass="text-xs text-slate-500"
+              customLabelClass={`text-xs ${errors.privacy ? 'text-red-500 font-bold' : 'text-slate-500'}`}
             />
             <button
               type="button"
@@ -299,13 +303,22 @@ export default function SignUpPage() {
             </button>
           </div>
 
-          <Checkbox
-            id="marketing"
-            label="[선택] 마케팅 정보 수신 동의"
-            checked={agreedMarketing}
-            onChange={setAgreedMarketing}
-            customLabelClass="text-xs text-slate-500"
-          />
+          <div className="flex items-center justify-between">
+            <Checkbox
+              id="marketing"
+              label="[선택] 마케팅 정보 수신 동의"
+              checked={agreedMarketing}
+              onChange={setAgreedMarketing}
+              customLabelClass="text-xs text-slate-500"
+            />
+            <button
+              type="button"
+              onClick={() => setMarketingOpen(true)}
+              className="text-xs font-bold text-blue-600 hover:underline px-2 py-1 relative z-10"
+            >
+              내용보기
+            </button>
+          </div>
         </div>
 
         <button
@@ -325,16 +338,18 @@ export default function SignUpPage() {
 
       <PrivacyPolicyModal open={policyOpen} onClose={() => setPolicyOpen(false)} />
       <TermsOfServiceModal open={termsOpen} onClose={() => setTermsOpen(false)} />
+      <MarketingConsentModal open={marketingOpen} onClose={() => setMarketingOpen(false)} />
     </AuthShell>
   );
 }
 
 /** ✅ label wrapper 제거(클릭 씹힘/포커스 간섭 방지) */
-function Field({ label, children }) {
+function Field({ label, error, children }) {
   return (
     <div className="block">
       <div className="text-xs font-extrabold text-slate-600 mb-2">{label}</div>
       {children}
+      {error && <p className="text-red-500 text-[11px] font-bold mt-1 ml-1">{error}</p>}
     </div>
   );
 }
@@ -429,5 +444,15 @@ function TenantButton({ active, onClick, src, alt, color, imgClass = "h-[60%] w-
     >
       <img src={src} alt={alt} className={`${imgClass} mix-blend-multiply`} />
     </button>
+  );
+}
+
+function PasswordRequirement({ label, met }) {
+  return (
+    <div className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${met ? 'text-green-600' : 'text-slate-400'}`}>
+      <div className={`w-1.5 h-1.5 rounded-full ${met ? 'bg-green-500' : 'bg-slate-300'}`} />
+      {label}
+      {met && <Check size={12} strokeWidth={3} />}
+    </div>
   );
 }

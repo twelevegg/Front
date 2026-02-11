@@ -3,7 +3,7 @@ import { useRef, useMemo, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { ROUTES } from '../app/routeConstants';
 import PrivacyPolicyModal from '../components/legal/PrivacyPolicyModal.jsx';
 import TermsOfServiceModal from '../components/legal/TermsOfServiceModal.jsx';
@@ -15,7 +15,7 @@ import {
     Database,
     Users,
     FileText,
-    BarChart,
+    BarChart as BarChartIcon,
     ChevronRight,
     Github,
     Twitter,
@@ -175,6 +175,14 @@ const DashboardPreview = () => {
         y.set((event.clientY - centerY) / 40);
     }
 
+    const mockChartData = [
+        { name: 'CSAT', value: 4.8, max: 5 },
+        { name: 'FCR', value: 92, max: 100 },
+        { name: 'Adherence', value: 95, max: 100 },
+        { name: 'Occupancy', value: 88, max: 100 },
+    ];
+    const palette = ['#A7C7E7', '#F7C5CC', '#CDEAC0', '#FEE3C5'];
+
     return (
         <motion.div
             style={{ perspective: 1200 }}
@@ -191,7 +199,7 @@ const DashboardPreview = () => {
                 className="relative rounded-3xl bg-slate-50 border border-slate-200 shadow-2xl overflow-hidden aspect-[16/10] transform-style-3d will-change-transform flex"
             >
                 {/* --- MOCKED SIDEBAR --- */}
-                <div className="w-64 bg-white/50 backdrop-blur-sm border-r border-slate-100 p-6 flex flex-col justify-between shrink-0 z-10">
+                <div className="w-64 bg-white/50 backdrop-blur-sm border-r border-slate-100 p-6 flex flex-col justify-between shrink-0 z-10 hidden md:flex">
                     <div>
                         <div className="mb-8">
                             <div className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
@@ -236,12 +244,13 @@ const DashboardPreview = () => {
                 </div>
 
                 {/* --- MOCKED ADMIN DASHBOARD BODY --- */}
-                <div className="flex-1 p-6 md:p-8 overflow-hidden bg-slate-50/50 relative z-0">
+                <div className="flex-1 p-6 md:p-8 overflow-hidden bg-slate-50/50 relative z-0 flex flex-col">
                     {/* Header Section */}
                     <div className="mb-6 flex justify-between items-end">
                         <div>
-                            <div className="text-sm text-slate-500 font-semibold mb-1">Overview</div>
+                            <div className="text-sm text-slate-500 font-semibold mb-1">Dashboard</div>
                             <div className="text-2xl font-extrabold text-slate-900">관리자 대시보드</div>
+                            <div className="text-xs text-slate-400 font-bold mt-1">신입 사원 현황 · KPI 분석</div>
                         </div>
                         <div className="flex gap-2">
                             <div className="bg-white p-2 rounded-full border border-slate-100 shadow-sm"><Users className="w-4 h-4 text-slate-400" /></div>
@@ -249,12 +258,12 @@ const DashboardPreview = () => {
                     </div>
 
                     {/* KPI Section */}
-                    <div className="grid grid-cols-4 gap-3 mb-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                         {[
-                            { title: "FCR", val: "94.2%", trend: "+1.2%", up: true },
-                            { title: "CSAT", val: "4.8", trend: "+0.3", up: true },
-                            { title: "NPS", val: "72", trend: "+2.5", up: true },
-                            { title: "Sense", val: "Good", trend: "0.0", up: true }
+                            { title: "FCR (최초 해결률)", val: "94.2%", trend: "+1.2%", up: true },
+                            { title: "Avg CSAT (만족도)", val: "4.8", trend: "+0.3", up: true },
+                            { title: "NPS (추천 지수)", val: "72", trend: "+2.5", up: true },
+                            { title: "총 처리 통화", val: "1,240건", trend: "+12%", up: true }
                         ].map((kpi, i) => (
                             <div key={i} className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
                                 <div className="text-[10px] text-slate-400 font-bold uppercase mb-1">{kpi.title}</div>
@@ -267,69 +276,81 @@ const DashboardPreview = () => {
                     </div>
 
                     {/* Main Content Grid */}
-                    <div className="grid grid-cols-[1fr_1.5fr] gap-4 h-full">
-                        {/* List Card */}
-                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
-                            <div className="flex justify-between items-center mb-4">
-                                <div className="font-bold text-slate-800 text-sm">이탈 징후</div>
-                                <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-4 h-full min-h-0">
+                        {/* List Card (New Hires) */}
+                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 flex flex-col min-h-0">
+                            <div className="flex justify-between items-center mb-4 shrink-0">
+                                <div className="font-bold text-slate-800 text-sm">신입 사원 목록</div>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 overflow-hidden relative">
                                 {[
-                                    { name: "김지민", team: "배송", risk: 82 },
-                                    { name: "정유진", team: "기술", risk: 77 },
-                                    { name: "이현우", team: "결제", risk: 53 },
-                                    { name: "박수아", team: "배송", risk: 31 },
+                                    { name: "김지민", id: "A-1021", date: "2026.01.15", day: 27, active: true },
+                                    { name: "이현우", id: "B-2055", date: "2026.01.20", day: 22, active: false },
+                                    { name: "박수아", id: "C-3102", date: "2026.02.01", day: 10, active: false },
                                 ].map((c, i) => (
-                                    <div key={i} className="flex justify-between items-center p-2 rounded-xl border border-slate-50 bg-slate-50/50 hover:bg-slate-100 transition-colors">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-white border border-slate-100 flex items-center justify-center font-bold text-xs text-slate-500 shadow-sm">{c.name[0]}</div>
+                                    <div key={i} className={`flex justify-between items-center p-3 rounded-2xl border transition-colors ${c.active ? 'bg-indigo-50 border-indigo-100' : 'bg-white border-slate-100 opacity-60'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shadow-sm ${c.active ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                                                {c.name[0]}
+                                            </div>
                                             <div>
-                                                <div className="font-bold text-slate-700 text-xs">{c.name}</div>
-                                                <div className="text-[10px] text-slate-400">{c.team}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="font-bold text-slate-700 text-sm">{c.name}</div>
+                                                    {c.active && <span className="px-1.5 py-0.5 rounded-[4px] bg-indigo-100 text-indigo-600 text-[10px] font-bold">Selected</span>}
+                                                </div>
+                                                <div className="text-[10px] text-slate-400">{c.id} · 입사 {c.date}</div>
                                             </div>
                                         </div>
-                                        <div className={`text-sm font-black ${c.risk > 80 ? 'text-rose-500' : c.risk > 50 ? 'text-amber-500' : 'text-emerald-500'}`}>{c.risk}</div>
+                                        <div className="text-right">
+                                            <div className={`text-lg font-black ${c.active ? 'text-indigo-600' : 'text-slate-400'}`}>{c.day}</div>
+                                            <div className="text-[10px] text-slate-400">days</div>
+                                        </div>
                                     </div>
                                 ))}
+                                {/* Fade out bottom */}
+                                <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
                             </div>
                         </div>
 
-                        {/* Detail Card */}
+                        {/* Detail Card (Bar Chart) */}
                         <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 relative overflow-hidden flex flex-col gap-4">
-                            <div className="flex justify-between items-start">
+                            <div className="flex justify-between items-start shrink-0">
                                 <div>
                                     <div className="text-lg font-black text-slate-900">김지민</div>
-                                    <div className="text-xs text-slate-500 font-medium">A-1021 · 배송/반품</div>
+                                    <div className="text-xs text-slate-500 font-medium">A-1021 · 신입 상담사</div>
                                 </div>
-                                <span className="px-2 py-1 rounded bg-rose-100 text-rose-600 text-[10px] font-bold">Risk High</span>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="p-3 bg-rose-50 rounded-xl">
-                                    <div className="text-[10px] text-rose-400 font-bold uppercase">Risk</div>
-                                    <div className="text-lg font-black text-rose-500">82</div>
-                                </div>
-                                <div className="p-3 bg-indigo-50 rounded-xl">
-                                    <div className="text-[10px] text-indigo-400 font-bold uppercase">Stress</div>
-                                    <div className="text-lg font-black text-indigo-500">Avg</div>
+                                <div className="flex gap-2">
+                                    <div className="px-3 py-1 rounded-lg bg-slate-50 border border-slate-100 text-center">
+                                        <div className="text-[9px] uppercase font-bold text-slate-400">Tenure</div>
+                                        <div className="text-sm font-black text-indigo-600">27 <span className="text-[9px] text-slate-400">days</span></div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex-1 bg-slate-50 rounded-xl relative overflow-hidden border border-slate-100">
+                            <div className="flex-1 bg-slate-50 rounded-2xl relative overflow-hidden border border-slate-100 p-4">
+                                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-70" />
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={[
-                                        { d: 'M', v: 30 }, { d: 'T', v: 45 }, { d: 'W', v: 35 },
-                                        { d: 'T', v: 60 }, { d: 'F', v: 75 }, { d: 'S', v: 50 }, { d: 'S', v: 65 }
-                                    ]}>
-                                        <defs>
-                                            <linearGradient id="colorV" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
-                                                <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <Area type="monotone" dataKey="v" stroke="#f43f5e" strokeWidth={3} fill="url(#colorV)" />
-                                    </AreaChart>
+                                    <BarChart data={mockChartData} barSize={40} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="4 6" stroke="#cbd5e1" vertical={false} strokeOpacity={0.5} />
+                                        <XAxis
+                                            dataKey="name"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 11, fill: '#94a3b8' }}
+                                            tickCount={5}
+                                        />
+                                        <Bar dataKey="value" radius={[8, 8, 4, 4]}>
+                                            {mockChartData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={palette[index % palette.length]} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
@@ -373,22 +394,12 @@ const HeroSection = () => {
                         </span>
                     </motion.div>
 
-                    {/* 2. Main Title Line 1 */}
-                    <motion.h1
-                        className="text-6xl md:text-8xl font-black tracking-tight leading-tight text-white shadow-2xl mb-2"
+                    {/* 2. Main Title Line 1 (CS NAVIGATOR - Gradient, Scaled Up) */}
+                    <motion.div
+                        className="text-5xl md:text-8xl font-black tracking-tight leading-tight mb-4"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
-                    >
-                        미래형 AI 고객센터
-                    </motion.h1>
-
-                    {/* 3. Main Title Line 2 */}
-                    <motion.div
-                        className="text-6xl md:text-8xl font-black tracking-tight leading-tight mb-10"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }}
                     >
                         <motion.span
                             animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
@@ -403,6 +414,16 @@ const HeroSection = () => {
                             CS NAVIGATOR
                         </motion.span>
                     </motion.div>
+
+                    {/* 3. Main Title Line 2 (Description - White, Single Line, Larger than Scroll Text) */}
+                    <motion.h2
+                        className="text-2xl md:text-4xl font-bold tracking-widest text-slate-300 shadow-2xl mb-12 max-w-7xl mx-auto whitespace-nowrap"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }}
+                    >
+                        상담사를 위한 실시간 상담 멘트 추천 & 신입 온보딩 AI
+                    </motion.h2>
 
                     {/* 0. Bottom Text (Appears First, then Shimmers) */}
                     {/* 0. Bottom Text (Layered Shimmer with Bloom) */}

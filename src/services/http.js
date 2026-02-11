@@ -31,6 +31,13 @@ export async function request(path, { method = 'GET', body, headers } = {}) {
 async function fetchWithAuth(path, { method = 'GET', body, headers } = {}, retried = false) {
   const token = tokenStorage.get();
 
+  // DEBUG: 계정 탈퇴 요청 시 토큰 로그 확인
+  if (path === '/api/v1/auth/withdraw') {
+    console.log(`[DEBUG] Requesting /withdraw with method: ${method}`);
+    console.log(`[DEBUG] Token present: ${!!token}`);
+    if (token) console.log(`[DEBUG] Token starts with: ${token.substring(0, 10)}...`);
+  }
+
   const res = await fetch(`${API_BASE}${path}`, {
     method,
     headers: {
