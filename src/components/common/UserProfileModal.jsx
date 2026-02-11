@@ -40,11 +40,6 @@ export default function UserProfileModal({ open, onClose, user, role }) {
 
                 <Dialog.Content asChild>
                     <div className="fixed inset-0 flex items-center justify-center z-[110] pointer-events-none">
-                        {/* Clicking outside strategy: We use a full-screen div for centering, 
-                                    so we need a way to close on outside click. 
-                                    Radix's Overlay usually handles this, but with custom structure we might need manual handling if pointer-events are tricky.
-                                    However, Dialog.Overlay handles the click. 
-                                */}
                         <div className="relative w-full max-w-md pointer-events-auto p-4">
                             <motion.div
                                 layoutId="profile-card-container"
@@ -52,7 +47,7 @@ export default function UserProfileModal({ open, onClose, user, role }) {
                                 layout="position"
                                 className="bg-white/90 backdrop-blur-2xl rounded-3xl shadow-2xl overflow-hidden border border-white/50"
                             >
-                                {/* Header Section (Shared Element Transition) */}
+                                {/* Header Section */}
                                 <div className="relative p-6 bg-gradient-to-br from-indigo-50 to-white border-b border-indigo-100/50">
                                     <button
                                         onClick={handleClose}
@@ -162,6 +157,10 @@ export default function UserProfileModal({ open, onClose, user, role }) {
                                             </div>
                                         </motion.form>
                                     )}
+
+                                    {/* Account Deletion Section */}
+                                    {!showPwForm && <AccountDeletionSection onClose={handleClose} />}
+
                                 </div>
                             </motion.div>
                         </div>
@@ -182,6 +181,104 @@ function InfoItem({ icon, label, value }) {
                 <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
             </div>
             <div className="text-sm font-bold text-slate-700">{value}</div>
+        </div>
+    );
+}
+
+// Account Deletion Sub-component
+import { deleteAccountApi } from '../../features/auth/api';
+
+function AccountDeletionSection({ onClose }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleWithdraw = async (e) => {
+        e.preventDefault();
+        if (!confirm("정말로 계정을 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+
+        setLoading(true);
+        setError(null);
+        try {
+            await deleteAccountApi({ password });
+            alert("계정이 성공적으로 탈퇴되었습니다.");
+            // Force logout or redirect
+            window.location.href = '/login';
+        } catch (err) {
+            console.error(err);
+            setError("탈퇴 처리에 실패했습니다. 비밀번호를 확인해주세요.");
+            setLoading(false);
+        }
+    };
+
+    if (!isExpanded) {
+        return (
+            <div className="pt-2 border-t border-slate-100">
+                <button
+                    onClick={() => setIsExpanded(true)}
+                    className="w-full py-3 rounded-xl border border-red-100 text-red-500 font-bold hover:bg-red-50 hover:border-red-200 transition flex items-center justify-center gap-2"
+                >
+                    <AlertCircle size={16} />
+                    Delete Account
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="pt-2 border-t border-slate-100">
+            <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                className="bg-red-50 rounded-xl p-4 space-y-3"
+            >
+                <div className="flex items-start gap-3">
+                    <div className="p-2 bg-red-100 rounded-lg text-red-600">
+                        <AlertCircle size={20} />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold text-red-700">Danger Zone</h4>
+                        <p className="text-xs text-red-600/80 leading-relaxed mt-1">
+                            계정을 탈퇴하면 모든 데이터가 삭제되거나 비활성화되며, 이 작업은 되돌릴 수 없습니다.
+                        </p>
+                    </div>
+                </div>
+
+                <form onSubmit={handleWithdraw} className="space-y-3 pt-2">
+                    <input
+                        type="password"
+                        placeholder="Confirm Password"
+                        className="w-full px-4 py-2.5 rounded-lg bg-white border border-red-200 text-sm focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none transition placeholder:text-red-300"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                    />
+
+                    {error && <p className="text-xs text-red-600 font-bold">{error}</p>}
+
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setIsExpanded(false);
+                                setPassword('');
+                                setError(null);
+                            }}
+                            className="flex-1 py-2 rounded-lg bg-white border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 transition"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 py-2 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700 shadow-md shadow-red-200 transition disabled:opacity-50"
+                        >
+                            {loading ? 'Processing...' : 'Delete Account'}
+                        </button>
+                    </div>
+                </form>
+            </motion.div>
         </div>
     );
 }
