@@ -373,22 +373,12 @@ const HeroSection = () => {
                         </span>
                     </motion.div>
 
-                    {/* 2. Main Title Line 1 */}
-                    <motion.h1
-                        className="text-6xl md:text-8xl font-black tracking-tight leading-tight text-white shadow-2xl mb-2"
+                    {/* 2. Main Title Line 1 (CS NAVIGATOR - Gradient, Scaled Up) */}
+                    <motion.div
+                        className="text-5xl md:text-8xl font-black tracking-tight leading-tight mb-4"
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1.2, duration: 0.8, ease: "easeOut" }}
-                    >
-                        미래형 AI 고객센터
-                    </motion.h1>
-
-                    {/* 3. Main Title Line 2 */}
-                    <motion.div
-                        className="text-6xl md:text-8xl font-black tracking-tight leading-tight mb-10"
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }}
                     >
                         <motion.span
                             animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
@@ -403,6 +393,16 @@ const HeroSection = () => {
                             CS NAVIGATOR
                         </motion.span>
                     </motion.div>
+
+                    {/* 3. Main Title Line 2 (Description - White, Single Line, Larger than Scroll Text) */}
+                    <motion.h2
+                        className="text-2xl md:text-4xl font-bold tracking-widest text-slate-300 shadow-2xl mb-12 max-w-7xl mx-auto whitespace-nowrap"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9, duration: 0.8, ease: "easeOut" }}
+                    >
+                        상담사를 위한 실시간 상담 멘트 추천 & 신입 온보딩 AI
+                    </motion.h2>
 
                     {/* 0. Bottom Text (Appears First, then Shimmers) */}
                     {/* 0. Bottom Text (Layered Shimmer with Bloom) */}
