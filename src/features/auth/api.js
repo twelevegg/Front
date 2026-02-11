@@ -25,3 +25,17 @@ export async function signupApi({ tenantName, email, password, memberName, role 
 export async function meApi() {
   return request('/api/v1/auth/me');
 }
+
+/**
+ * 계정 탈퇴 (PROTECTED)
+ * 백엔드 DELETE /api/v1/auth/withdraw
+ * body에 { currentPassword: ... } 형태로 보냄
+ */
+export async function deleteAccountApi({ password }) {
+  // DELETE 메소드에 body를 싣는 것은 표준이지만, fetch/axios 구현체에 따라 다를 수 있음.
+  // 여기서는 request 유틸이 body를 지원한다고 가정.
+  return request('/api/v1/auth/withdraw', {
+    method: 'DELETE',
+    body: { currentPassword: password }
+  });
+}
