@@ -15,12 +15,12 @@ async function assertOk(res) {
   throw new Error(text || `API Error (${res.status})`);
 }
 
-// POST /api/v1/edu/jobs (multipart)
+// POST /ai/api/v1/edu/jobs (multipart)
 export async function createEduJob(file) {
   const form = new FormData();
   form.append('file', file);
 
-  const res = await fetch(buildUrl('/api/v1/edu/jobs'), {
+  const res = await fetch(buildUrl('/ai/api/v1/edu/jobs'), {
     method: 'POST',
     body: form,
     credentials: 'include',
@@ -50,27 +50,27 @@ export async function uploadToSpringSecurely(file) {
 }
 
 
-// GET /api/v1/edu/jobs/{job_id}
+// GET /ai/api/v1/edu/jobs/{job_id}
 export async function getEduJob(jobId) {
-  const res = await fetch(buildUrl(`/api/v1/edu/jobs/${jobId}`), {
+  const res = await fetch(buildUrl(`/ai/api/v1/edu/jobs/${jobId}`), {
     credentials: 'include',
   });
   await assertOk(res);
   return res.json();
 }
 
-// GET /api/v1/edu/jobs/{job_id}/video -> blob
+// GET /ai/api/v1/edu/jobs/{job_id}/video -> blob
 export async function fetchEduVideoBlob(jobId) {
-  const res = await fetch(buildUrl(`/api/v1/edu/jobs/${jobId}/video`), {
+  const res = await fetch(buildUrl(`/ai/api/v1/edu/jobs/${jobId}/video`), {
     credentials: 'include',
   });
   await assertOk(res);
   return res.blob();
 }
 
-// POST /api/v1/edu/jobs/{job_id}/grade
+// POST /ai/api/v1/edu/jobs/{job_id}/grade
 export async function gradeEduJob(jobId, userAnswers) {
-  const res = await fetch(buildUrl(`/api/v1/edu/jobs/${jobId}/grade`), {
+  const res = await fetch(buildUrl(`/ai/api/v1/edu/jobs/${jobId}/grade`), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_answers: userAnswers }),
@@ -80,9 +80,9 @@ export async function gradeEduJob(jobId, userAnswers) {
   return res.json();
 }
 
-// POST /api/v1/edu/jobs/{job_id}/next
+// POST /ai/api/v1/edu/jobs/{job_id}/next
 export async function nextEduRound(jobId) {
-  const res = await fetch(buildUrl(`/api/v1/edu/jobs/${jobId}/next`), {
+  const res = await fetch(buildUrl(`/ai/api/v1/edu/jobs/${jobId}/next`), {
     method: 'POST',
     credentials: 'include',
   });
