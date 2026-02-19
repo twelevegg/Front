@@ -9,7 +9,7 @@ import { maskName } from '../utils/mask.js';
 
 const TABS = [
   { key: 'summary', label: '요약' },
-  { key: 'qa', label: 'QA' },
+  // { key: 'qa', label: 'QA' },
   { key: 'log', label: '로그' }
 ];
 
@@ -64,7 +64,7 @@ export default function CallHistoryPage() {
             title: call.summaryText || (call.callType ? `${call.callType} 통화` : '통화 기록'),
             datetime: formatDateTime(call.startTime || call.endTime),
             summary: call.summaryText || '',
-            qa: '',
+            // qa: '',
             log,
             sentiment: 'Neutral',
             customerName: call.customerName || '',
@@ -188,23 +188,23 @@ export default function CallHistoryPage() {
           </div>
         );
 
-      case 'qa':
-        return (
-          <div className="space-y-4">
-            <div className="text-sm text-slate-700">
-              <h3 className="font-bold mb-2">고객 질문</h3>
-              <p className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-                {selected?.customerQuestion || '고객 질문이 없습니다.'}
-              </p>
-            </div>
-            <div className="text-sm text-slate-700">
-              <h3 className="font-bold mb-2">상담원 답변</h3>
-              <p className="bg-slate-50 rounded-xl border border-slate-100 p-4">
-                {selected?.agentAnswer || '상담원 답변이 없습니다.'}
-              </p>
-            </div>
-          </div>
-        );
+      // case 'qa':
+      //   return (
+      //     <div className="space-y-4">
+      //       <div className="text-sm text-slate-700">
+      //         <h3 className="font-bold mb-2">고객 질문</h3>
+      //         <p className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+      //           {selected?.customerQuestion || '고객 질문이 없습니다.'}
+      //         </p>
+      //       </div>
+      //       <div className="text-sm text-slate-700">
+      //         <h3 className="font-bold mb-2">상담원 답변</h3>
+      //         <p className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+      //           {selected?.agentAnswer || '상담원 답변이 없습니다.'}
+      //         </p>
+      //       </div>
+      //     </div>
+      //   );
 
       case 'log': {
         const logs = Array.isArray(selected?.log) ? selected.log : [];

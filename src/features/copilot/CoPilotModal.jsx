@@ -164,7 +164,7 @@ export function CoPilotModal() {
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="text-sm font-extrabold flex items-center gap-2">
-                          <UserRound size={16} /> 5. 고객 정보
+                          <UserRound size={16} /> 4. 고객 정보
                         </div>
                         <div className="text-xs text-slate-500 mt-1">DB 기반 기본정보 + 가입/약정(목데이터)</div>
                       </div>
@@ -181,13 +181,14 @@ export function CoPilotModal() {
                     <div className="mt-4 flex items-center justify-end gap-2">
                       <button
                         onClick={() => {
-                          if (window.confirm("통화를 종료하고 분석을 시작하시겠습니까?")) {
+                          if (window.confirm("통화를 종료하시겠습니까?")) {
                             sendCallEnd();
+                            setOpen(false);
                           }
                         }}
                         className="rounded-2xl border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-sm font-extrabold hover:bg-red-100"
                       >
-                        전화 종료
+                        통화 종료
                       </button>
                     </div>
                   </Card>
