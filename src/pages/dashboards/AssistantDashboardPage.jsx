@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { notificationService } from '../../services/NotificationService.js';
+
 import Card from '../../components/Card.jsx';
 import { callEventBus } from '../../features/calls/callEvents.js';
 import { useToast } from '../../components/common/ToastProvider.jsx';
@@ -12,6 +12,7 @@ import { dashboardService } from '../../api/dashboardService.js';
 import { request } from '../../services/http.js';
 import { useAuth } from '../../features/auth/AuthProvider.jsx';
 import CallLogModal from '../../features/calls/CallLogModal.jsx';
+import SimulationModal from '../../components/modals/SimulationModal.jsx';
 
 const KPI_METRIC_OPTIONS = [
   { key: 'fcr', label: '최초 해결률', path: ['summary', 'fcr'], unit: '%' },
@@ -90,6 +91,9 @@ export default function AssistantDashboardPage() {
   const [isMetricDropdownOpen, setIsMetricDropdownOpen] = useState(false);
   const [metricDropUp, setMetricDropUp] = useState(false);
   const metricDropdownRef = useRef(null);
+
+  // [NEW] Real-time Simulation State
+  const [isSimulationModalOpen, setIsSimulationModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchMemberKpis = async () => {
@@ -255,35 +259,7 @@ export default function AssistantDashboardPage() {
     fetchStatus();
   }, [user?.id]);
 
-  useEffect(() => {
-    // 임시 User ID 사용 (실제로는 로그인 정보에서 가져와야 함)
-    const userId = "agent_user_01";
-    notificationService.connect(userId);
 
-    const handleCallStart = (data) => {
-      console.log("Dashboard: Call Started Event", data);
-
-      // 알림 메시지 표시
-      addToast(`새로운 상담 전화가 연결되었습니다. (Call ID: ${data.callId})`, 'info');
-
-      syncStatus('busy');
-
-      // CoPilot 자동 실행
-      openCopilot({
-        callId: data.callId,
-        customerName: data.customer_info?.name || '고객',
-        issue: '실시간 상담 (Incoming Call)',
-        channel: 'Voice'
-      });
-    };
-
-    notificationService.on("CALL_STARTED", handleCallStart);
-
-    return () => {
-      notificationService.off("CALL_STARTED", handleCallStart);
-      notificationService.disconnect();
-    };
-  }, [user?.id]);
 
   useEffect(() => {
     const handleConnected = () => syncStatus('busy');
@@ -300,6 +276,18 @@ export default function AssistantDashboardPage() {
 
   const handleQuickAction = (action) => {
     addToast(`${action} 기능이 실행되었습니다. (Dev Mock)`, 'info');
+  };
+
+  const handleStartSimulation = async () => {
+    try {
+      setIsSimulationModalOpen(false);
+      addToast('실시간 상담 시뮬레이션을 시작합니다...', 'info');
+      await dashboardService.startSimulation();
+      addToast('시뮬레이션이 성공적으로 트리거되었습니다.', 'success');
+    } catch (e) {
+      console.error(e);
+      addToast('시뮬레이션 시작 실패', 'error');
+    }
   };
 
   const handleChatSubmit = () => {
@@ -338,150 +326,168 @@ export default function AssistantDashboardPage() {
 
   return (
     <>
+      {/* Simulation Button - Fixed Position on Right */}
+      <button
+        onClick={() => setIsSimulationModalOpen(true)}
+        className="fixed right-8 top-1/3 z-40 bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold py-4 px-6 rounded-2xl shadow-xl shadow-rose-200 transition-all hover:scale-105 hover:shadow-2xl flex flex-col items-center gap-1 group"
+      >
+        <span className="bg-white/20 p-2 rounded-full mb-1 group-hover:bg-white/30 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-phone-call"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /><path d="M14.05 2a9 9 0 0 1 8 7.94" /><path d="M14.05 6A5 5 0 0 1 18 10" /></svg>
+        </span>
+        <span className="text-sm">상담원용</span>
+        <span className="text-lg leading-none">실시간 상담</span>
+      </button>
+
+      <SimulationModal
+        isOpen={isSimulationModalOpen}
+        onClose={() => setIsSimulationModalOpen(false)}
+        onConfirm={handleStartSimulation}
+      />
+
       <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm text-slate-500 font-bold">Dashboard</div>
-          <div className="text-xl font-black text-slate-900 mt-1">상담원 대시보드</div>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm text-slate-500 font-bold">Dashboard</div>
+            <div className="text-xl font-black text-slate-900 mt-1">상담원 대시보드</div>
+          </div>
+
+          {/* Status Toggle */}
+          <div className="flex items-center gap-2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
+            <button
+              onClick={() => syncStatus('online')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'online'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm font-bold'
+                : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+              <span className="text-xs">상담 대기</span>
+            </button>
+            <button
+              onClick={() => syncStatus('busy')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'busy'
+                ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm font-bold'
+                : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <div className={`w-2 h-2 rounded-full ${status === 'busy' ? 'bg-amber-500' : 'bg-slate-300'}`} />
+              <span className="text-xs">용무 중</span>
+            </button>
+            <button
+              onClick={() => syncStatus('offline')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'offline'
+                ? 'bg-slate-100 border-slate-300 text-slate-700 shadow-sm font-bold'
+                : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
+                }`}
+            >
+              <div className={`w-2 h-2 rounded-full ${status === 'offline' ? 'bg-slate-500' : 'bg-slate-300'}`} />
+              <span className="text-xs">자리 비움</span>
+            </button>
+          </div>
         </div>
 
-        {/* Status Toggle */}
-        <div className="flex items-center gap-2 bg-white p-1.5 rounded-full border border-slate-200 shadow-sm">
-          <button
-            onClick={() => syncStatus('online')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'online'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm font-bold'
-              : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
-              }`}
-          >
-            <div className={`w-2 h-2 rounded-full ${status === 'online' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-            <span className="text-xs">상담 대기</span>
-          </button>
-          <button
-            onClick={() => syncStatus('busy')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'busy'
-              ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm font-bold'
-              : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
-              }`}
-          >
-            <div className={`w-2 h-2 rounded-full ${status === 'busy' ? 'bg-amber-500' : 'bg-slate-300'}`} />
-            <span className="text-xs">용무 중</span>
-          </button>
-          <button
-            onClick={() => syncStatus('offline')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${status === 'offline'
-              ? 'bg-slate-100 border-slate-300 text-slate-700 shadow-sm font-bold'
-              : 'border-transparent text-slate-500 hover:bg-slate-50 font-medium'
-              }`}
-          >
-            <div className={`w-2 h-2 rounded-full ${status === 'offline' ? 'bg-slate-500' : 'bg-slate-300'}`} />
-            <span className="text-xs">자리 비움</span>
-          </button>
+        <div className="grid grid-cols-3 gap-4">
+          <Kpi
+            title="오늘 총 통화"
+            value={kpiData?.operations?.totalCallsProcessed ? `${kpiData.operations.totalCallsProcessed}건` : '-'}
+            icon={<Phone size={20} className="text-indigo-500" />}
+          />
+          <Kpi
+            title="CSAT (만족도)"
+            value={kpiData?.summary?.csat ? `${kpiData.summary.csat}점` : '-'}
+            icon={<CheckCircle size={20} className="text-emerald-500" />}
+          />
+          <Kpi
+            title="평균 통화시간(초)"
+            value={kpiData?.operations?.avgCallDuration ? `${kpiData.operations.avgCallDuration}초` : '-'}
+            icon={<Clock size={20} className="text-purple-500" />}
+          />
         </div>
-      </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <Kpi
-          title="오늘 총 통화"
-          value={kpiData?.operations?.totalCallsProcessed ? `${kpiData.operations.totalCallsProcessed}건` : '-'}
-          icon={<Phone size={20} className="text-indigo-500" />}
-        />
-        <Kpi
-          title="CSAT (만족도)"
-          value={kpiData?.summary?.csat ? `${kpiData.summary.csat}점` : '-'}
-          icon={<CheckCircle size={20} className="text-emerald-500" />}
-        />
-        <Kpi
-          title="평균 통화시간(초)"
-          value={kpiData?.operations?.avgCallDuration ? `${kpiData.operations.avgCallDuration}초` : '-'}
-          icon={<Clock size={20} className="text-purple-500" />}
-        />
-      </div>
+        <div className="grid grid-cols-[420px_1fr] gap-6">
+          <div className="space-y-6">
+            <Card className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-extrabold">최근 통화</div>
+              </div>
+              <div className="mt-4 space-y-3">
+                {recentCallsLoading ? (
+                  <EmptyState title="불러오는 중" description="최근 통화를 불러오고 있습니다." className="py-8" />
+                ) : recentCallsError ? (
+                  <EmptyState title="불러오기 실패" description={recentCallsError} className="py-8" />
+                ) : recentCalls.length === 0 ? (
+                  <EmptyState title="최근 통화 없음" description="표시할 최근 통화가 없습니다." className="py-8" />
+                ) : (
+                  recentCalls.slice(0, 3).map((call) => (
+                    <CallItem
+                      key={call.callId}
+                      title={call.summaryText || '최근 통화'}
+                      meta={`${call.callId} · ${formatTime(call.startTime)}`}
+                      onOpen={() => openCallLog(call.callId)}
+                    />
+                  ))
+                )}
+              </div>
+            </Card>
 
-      <div className="grid grid-cols-[420px_1fr] gap-6">
-        <div className="space-y-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-extrabold">최근 통화</div>
-            </div>
-            <div className="mt-4 space-y-3">
-              {recentCallsLoading ? (
-                <EmptyState title="불러오는 중" description="최근 통화를 불러오고 있습니다." className="py-8" />
-              ) : recentCallsError ? (
-                <EmptyState title="불러오기 실패" description={recentCallsError} className="py-8" />
-              ) : recentCalls.length === 0 ? (
-                <EmptyState title="최근 통화 없음" description="표시할 최근 통화가 없습니다." className="py-8" />
-              ) : (
-                recentCalls.slice(0, 3).map((call) => (
-                  <CallItem
-                    key={call.callId}
-                    title={call.summaryText || '최근 통화'}
-                    meta={`${call.callId} · ${formatTime(call.startTime)}`}
-                    onOpen={() => openCallLog(call.callId)}
-                  />
-                ))
-              )}
-            </div>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="p-6">
-            {quickView === 'grid' ? (
-              <>
-                <div className="text-sm font-extrabold mb-4">빠른 실행</div>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setQuickView('calendar')}
-                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
-                  >
-                    <Calendar size={20} />
-                    <span className="text-xs font-bold">캘린더</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQuickView('memo')}
-                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
-                  >
-                    <StickyNote size={20} />
-                    <span className="text-xs font-bold">메모장</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQuickView('schedule')}
-                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
-                  >
-                    <CalendarCheck size={20} />
-                    <span className="text-xs font-bold">일정 관리</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setQuickView('chat')}
-                    className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
-                  >
-                    <MessageSquare size={20} />
-                    <span className="text-xs font-bold">팀 채팅</span>
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setQuickView('grid')}
-                    className="h-7 w-7 rounded-xl border border-slate-200 text-xs hover:bg-slate-50"
-                  >
-                    ←
-                  </button>
-                  <div className="text-sm font-extrabold">
-                    {quickView === 'calendar' && '캘린더'}
-                    {quickView === 'memo' && '메모장'}
-                    {quickView === 'schedule' && '일정 관리'}
-                    {quickView === 'chat' && '팀 채팅'}
+            {/* Quick Actions */}
+            <Card className="p-6">
+              {quickView === 'grid' ? (
+                <>
+                  <div className="text-sm font-extrabold mb-4">빠른 실행</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setQuickView('calendar')}
+                      className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                    >
+                      <Calendar size={20} />
+                      <span className="text-xs font-bold">캘린더</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickView('memo')}
+                      className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                    >
+                      <StickyNote size={20} />
+                      <span className="text-xs font-bold">메모장</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickView('schedule')}
+                      className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                    >
+                      <CalendarCheck size={20} />
+                      <span className="text-xs font-bold">일정 관리</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setQuickView('chat')}
+                      className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-100"
+                    >
+                      <MessageSquare size={20} />
+                      <span className="text-xs font-bold">팀 채팅</span>
+                    </button>
                   </div>
-                </div>
-                {quickView === 'calendar' && (
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setQuickView('grid')}
+                      className="h-7 w-7 rounded-xl border border-slate-200 text-xs hover:bg-slate-50"
+                    >
+                      ←
+                    </button>
+                    <div className="text-sm font-extrabold">
+                      {quickView === 'calendar' && '캘린더'}
+                      {quickView === 'memo' && '메모장'}
+                      {quickView === 'schedule' && '일정 관리'}
+                      {quickView === 'chat' && '팀 채팅'}
+                    </div>
+                  </div>
+                  {quickView === 'calendar' && (
                     <div className="rounded-2xl border border-slate-100 bg-white/80 p-4">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-xs font-bold text-slate-500">{calendarLabel}</div>
@@ -502,242 +508,242 @@ export default function AssistantDashboardPage() {
                           </button>
                         </div>
                       </div>
-                    <div className="grid grid-cols-7 gap-2 text-[11px] text-slate-400 font-semibold">
-                      {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-                        <div key={day} className="text-center">{day}</div>
-                      ))}
-                    </div>
-                    <div className="mt-2 grid grid-cols-7 gap-2 text-[11px] text-slate-600">
-                      {Array.from({ length: totalCells }).map((_, idx) => {
-                        const dayNumber = idx - firstDayOfWeek + 1;
-                        const isInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
-                        const isToday = isInMonth && todayDate === dayNumber;
-                        return (
-                          <div
-                            key={idx}
-                            className={`h-8 rounded-lg border ${isInMonth ? (isToday ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-extrabold ring-2 ring-indigo-100' : 'bg-slate-50 border-slate-100') : 'border-transparent'}`}
-                          >
-                            <div className="text-center leading-8">{isInMonth ? dayNumber : ''}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-                {quickView === 'memo' && (
-                  <div className="space-y-3">
-                    <div className="rounded-2xl border border-slate-100 bg-white/80 p-3">
-                      <div className="text-xs font-bold text-slate-600 mb-2">메모 작성</div>
-                      <textarea
-                        className="w-full min-h-[90px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                        placeholder="메모를 입력하세요..."
-                        value={memoInput}
-                        onChange={(event) => setMemoInput(event.target.value)}
-                      />
-                      <div className="mt-2 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={handleAddMemo}
-                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
-                        >
-                          메모 추가
-                        </button>
+                      <div className="grid grid-cols-7 gap-2 text-[11px] text-slate-400 font-semibold">
+                        {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
+                          <div key={day} className="text-center">{day}</div>
+                        ))}
+                      </div>
+                      <div className="mt-2 grid grid-cols-7 gap-2 text-[11px] text-slate-600">
+                        {Array.from({ length: totalCells }).map((_, idx) => {
+                          const dayNumber = idx - firstDayOfWeek + 1;
+                          const isInMonth = dayNumber > 0 && dayNumber <= daysInMonth;
+                          const isToday = isInMonth && todayDate === dayNumber;
+                          return (
+                            <div
+                              key={idx}
+                              className={`h-8 rounded-lg border ${isInMonth ? (isToday ? 'bg-indigo-100 border-indigo-300 text-indigo-700 font-extrabold ring-2 ring-indigo-100' : 'bg-slate-50 border-slate-100') : 'border-transparent'}`}
+                            >
+                              <div className="text-center leading-8">{isInMonth ? dayNumber : ''}</div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-slate-100 bg-white/80 p-3">
-                      <div className="text-xs font-bold text-slate-600 mb-2">내 메모</div>
-                      <div className="space-y-2 max-h-[140px] overflow-y-auto">
-                        {memoItems.map((memo) => (
-                          <div key={memo.id} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-                            {memo.text}
+                  )}
+                  {quickView === 'memo' && (
+                    <div className="space-y-3">
+                      <div className="rounded-2xl border border-slate-100 bg-white/80 p-3">
+                        <div className="text-xs font-bold text-slate-600 mb-2">메모 작성</div>
+                        <textarea
+                          className="w-full min-h-[90px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                          placeholder="메모를 입력하세요..."
+                          value={memoInput}
+                          onChange={(event) => setMemoInput(event.target.value)}
+                        />
+                        <div className="mt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={handleAddMemo}
+                            className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
+                          >
+                            메모 추가
+                          </button>
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-slate-100 bg-white/80 p-3">
+                        <div className="text-xs font-bold text-slate-600 mb-2">내 메모</div>
+                        <div className="space-y-2 max-h-[140px] overflow-y-auto">
+                          {memoItems.map((memo) => (
+                            <div key={memo.id} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                              {memo.text}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {quickView === 'schedule' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-bold text-slate-500">일정 추가</div>
+                        <button
+                          type="button"
+                          onClick={handleAddSchedule}
+                          className="h-7 w-7 rounded-full border border-slate-200 text-xs font-bold hover:bg-slate-50"
+                          title="일정 추가"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                          placeholder="내용 입력"
+                          value={scheduleDraft.title}
+                          onChange={(event) => setScheduleDraft((prev) => ({ ...prev, title: event.target.value }))}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="date"
+                          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                          value={scheduleDraft.dueDate}
+                          onChange={(event) => setScheduleDraft((prev) => ({ ...prev, dueDate: event.target.value }))}
+                        />
+                        <select
+                          className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100 text-slate-600 bg-white"
+                          value={scheduleDraft.tag}
+                          onChange={(event) => setScheduleDraft((prev) => ({ ...prev, tag: event.target.value }))}
+                        >
+                          <option value="개인">개인</option>
+                          <option value="팀">팀</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        {scheduleItems.map((item, index) => (
+                          <div key={`${item.time}-${item.tag}`} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/80 px-3 py-2">
+                            <div>
+                              <div className="text-xs font-bold text-slate-700">{item.title}</div>
+                              <div className="text-[11px] text-slate-400 mt-0.5">{item.dueDate || `#${index + 1}`}</div>
+                            </div>
+                            <span className="text-[10px] font-bold rounded-full bg-indigo-50 text-indigo-600 px-2 py-1">{item.tag}</span>
                           </div>
                         ))}
                       </div>
                     </div>
-                  </div>
-                )}
-                {quickView === 'schedule' && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-bold text-slate-500">일정 추가</div>
-                      <button
-                        type="button"
-                        onClick={handleAddSchedule}
-                        className="h-7 w-7 rounded-full border border-slate-200 text-xs font-bold hover:bg-slate-50"
-                        title="일정 추가"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                        placeholder="내용 입력"
-                        value={scheduleDraft.title}
-                        onChange={(event) => setScheduleDraft((prev) => ({ ...prev, title: event.target.value }))}
-                      />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="date"
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                        value={scheduleDraft.dueDate}
-                        onChange={(event) => setScheduleDraft((prev) => ({ ...prev, dueDate: event.target.value }))}
-                      />
-                      <select
-                        className="w-20 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100 text-slate-600 bg-white"
-                        value={scheduleDraft.tag}
-                        onChange={(event) => setScheduleDraft((prev) => ({ ...prev, tag: event.target.value }))}
-                      >
-                        <option value="개인">개인</option>
-                        <option value="팀">팀</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      {scheduleItems.map((item, index) => (
-                        <div key={`${item.time}-${item.tag}`} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white/80 px-3 py-2">
-                          <div>
-                            <div className="text-xs font-bold text-slate-700">{item.title}</div>
-                            <div className="text-[11px] text-slate-400 mt-0.5">{item.dueDate || `#${index + 1}`}</div>
+                  )}
+                  {quickView === 'chat' && (
+                    <>
+                      <div className="space-y-2 max-h-[160px] overflow-y-auto">
+                        {chatMessages.map((msg) => (
+                          <div
+                            key={msg.id}
+                            className={`rounded-xl border px-3 py-2 text-xs ${msg.author === '나'
+                              ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                              : 'bg-white border-slate-100 text-slate-700'
+                              }`}
+                          >
+                            <div className="font-bold text-[11px] mb-0.5">{msg.author}</div>
+                            <div>{msg.text}</div>
                           </div>
-                          <span className="text-[10px] font-bold rounded-full bg-indigo-50 text-indigo-600 px-2 py-1">{item.tag}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {quickView === 'chat' && (
-                  <>
-                    <div className="space-y-2 max-h-[160px] overflow-y-auto">
-                      {chatMessages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`rounded-xl border px-3 py-2 text-xs ${msg.author === '나'
-                            ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
-                            : 'bg-white border-slate-100 text-slate-700'
-                            }`}
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                          placeholder="메시지 입력..."
+                          value={chatInput}
+                          onChange={(event) => setChatInput(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                              handleChatSubmit();
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleChatSubmit}
+                          className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
                         >
-                          <div className="font-bold text-[11px] mb-0.5">{msg.author}</div>
-                          <div>{msg.text}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-100"
-                        placeholder="메시지 입력..."
-                        value={chatInput}
-                        onChange={(event) => setChatInput(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-                            handleChatSubmit();
-                          }
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleChatSubmit}
-                        className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold hover:bg-slate-50"
-                      >
-                        전송
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </Card>
-        </div>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-sm font-extrabold">팀 평균 KPI 비교</div>
-              <div className="text-xs text-slate-500 mt-1">팀 평균 vs 내 실시간</div>
-            </div>
-            <div className="relative shrink-0" ref={metricDropdownRef}>
-              <button
-                type="button"
-                onClick={toggleMetricDropdown}
-                className="flex items-center gap-2 rounded-full border border-slate-200 bg-white pl-4 pr-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm outline-none transition-all hover:border-indigo-200 hover:bg-slate-50 focus:ring-2 focus:ring-indigo-100/50"
-              >
-                <span className="truncate max-w-[120px]">{selectedMetric.label}</span>
-                <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isMetricDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isMetricDropdownOpen && (
-                <div className={`absolute right-0 w-56 max-h-[320px] overflow-y-auto rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl z-50 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent ${metricDropUp ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
-                  <div className="grid grid-cols-1 gap-0.5">
-                    {KPI_METRIC_OPTIONS.map((metric) => (
-                      <button
-                        key={metric.key}
-                        type="button"
-                        onClick={() => {
-                          setCompareMetricKey(metric.key);
-                          setIsMetricDropdownOpen(false);
-                        }}
-                        className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-xs font-bold transition-all ${compareMetricKey === metric.key
-                          ? 'bg-indigo-50 text-indigo-600'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                          }`}
-                      >
-                        {metric.label}
-                      </button>
-                    ))}
-                  </div>
+                          전송
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
-            </div>
+            </Card>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3 text-xs text-slate-600">
-            선택 지표: <span className="font-extrabold text-slate-800">{selectedMetric.label}</span>
-            <span className="ml-2 text-slate-400">단위: {selectedMetric.unit}</span>
-          </div>
-
-          {!kpiData ? (
-            <EmptyState
-              title="KPI 불러오는 중"
-              description="비교 지표를 준비하고 있습니다."
-              className="mt-4 py-12"
-            />
-          ) : (
-            <>
-              <div className="mt-4 h-[280px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={compareChartData} barSize={48} margin={{ top: 14, right: 20, left: 0, bottom: 8 }}>
-                    <CartesianGrid strokeDasharray="4 6" stroke="#e2e8f0" vertical={false} strokeOpacity={0.8} />
-                    <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 700 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
-                      formatter={(_, __, payload) => {
-                        const data = payload?.payload;
-                        if (!data || data.missing) {
-                          return ['데이터 없음', selectedMetric.label];
-                        }
-                        return [formatMetricValue(data.rawValue, selectedMetric.unit), selectedMetric.label];
-                      }}
-                    />
-                    <Bar dataKey="value" radius={[12, 12, 4, 4]}>
-                      {compareChartData.map((entry) => (
-                        <Cell key={entry.period} fill={entry.missing ? '#E2E8F0' : entry.period === '팀 평균' ? '#BFD7ED' : '#F7C5CC'} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+          <Card className="p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-extrabold">팀 평균 KPI 비교</div>
+                <div className="text-xs text-slate-500 mt-1">팀 평균 vs 내 실시간</div>
               </div>
+              <div className="relative shrink-0" ref={metricDropdownRef}>
+                <button
+                  type="button"
+                  onClick={toggleMetricDropdown}
+                  className="flex items-center gap-2 rounded-full border border-slate-200 bg-white pl-4 pr-3 py-1.5 text-xs font-bold text-slate-600 shadow-sm outline-none transition-all hover:border-indigo-200 hover:bg-slate-50 focus:ring-2 focus:ring-indigo-100/50"
+                >
+                  <span className="truncate max-w-[120px]">{selectedMetric.label}</span>
+                  <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${isMetricDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-              {teamAverageMetricValue === null || teamAverageMetricValue === undefined ? (
-                <div className="mt-3 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-                  팀 평균 지표 데이터가 현재 API 응답에 없어 해당 막대는 비어 있는 값으로 표시됩니다.
+                {isMetricDropdownOpen && (
+                  <div className={`absolute right-0 w-56 max-h-[320px] overflow-y-auto rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl z-50 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent ${metricDropUp ? 'bottom-full mb-2' : 'top-full mt-2'}`}>
+                    <div className="grid grid-cols-1 gap-0.5">
+                      {KPI_METRIC_OPTIONS.map((metric) => (
+                        <button
+                          key={metric.key}
+                          type="button"
+                          onClick={() => {
+                            setCompareMetricKey(metric.key);
+                            setIsMetricDropdownOpen(false);
+                          }}
+                          className={`flex w-full items-center rounded-lg px-3 py-2 text-left text-xs font-bold transition-all ${compareMetricKey === metric.key
+                            ? 'bg-indigo-50 text-indigo-600'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            }`}
+                        >
+                          {metric.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/70 px-4 py-3 text-xs text-slate-600">
+              선택 지표: <span className="font-extrabold text-slate-800">{selectedMetric.label}</span>
+              <span className="ml-2 text-slate-400">단위: {selectedMetric.unit}</span>
+            </div>
+
+            {!kpiData ? (
+              <EmptyState
+                title="KPI 불러오는 중"
+                description="비교 지표를 준비하고 있습니다."
+                className="mt-4 py-12"
+              />
+            ) : (
+              <>
+                <div className="mt-4 h-[280px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={compareChartData} barSize={48} margin={{ top: 14, right: 20, left: 0, bottom: 8 }}>
+                      <CartesianGrid strokeDasharray="4 6" stroke="#e2e8f0" vertical={false} strokeOpacity={0.8} />
+                      <XAxis dataKey="period" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b', fontWeight: 700 }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                      <Tooltip
+                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}
+                        formatter={(_, __, payload) => {
+                          const data = payload?.payload;
+                          if (!data || data.missing) {
+                            return ['데이터 없음', selectedMetric.label];
+                          }
+                          return [formatMetricValue(data.rawValue, selectedMetric.unit), selectedMetric.label];
+                        }}
+                      />
+                      <Bar dataKey="value" radius={[12, 12, 4, 4]}>
+                        {compareChartData.map((entry) => (
+                          <Cell key={entry.period} fill={entry.missing ? '#E2E8F0' : entry.period === '팀 평균' ? '#BFD7ED' : '#F7C5CC'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
-              ) : null}
-            </>
-          )}
-        </Card>
 
-      </div>
+                {teamAverageMetricValue === null || teamAverageMetricValue === undefined ? (
+                  <div className="mt-3 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                    팀 평균 지표 데이터가 현재 API 응답에 없어 해당 막대는 비어 있는 값으로 표시됩니다.
+                  </div>
+                ) : null}
+              </>
+            )}
+          </Card>
+
+        </div>
       </div>
       <CallLogModal
         open={callLogOpen}
