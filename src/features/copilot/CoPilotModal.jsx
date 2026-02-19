@@ -390,13 +390,13 @@ function buildMockSession(call, realTranscript = [], realAgentResults = []) {
 
     customerInfo: {
       basic: [
-        { label: '고객ID', value: 'CUST-102938' },
+        { label: '고객ID', value: call?.customer_info?.customer_id || 'CUST-102938' },
         { label: '등급', value: 'VIP' },
         { label: '주소', value: '서울 강남구 ○○로' },
         { label: '선호 채널', value: '전화' }
       ],
       subscription: [
-        { label: '상품', value: '기가인터넷 1G' },
+        { label: '상품', value: call?.customer_info?.internet_plan || '5G 데이터 레귤러' },
         { label: '약정', value: '24개월 (잔여 7개월)' },
         { label: '결합', value: '모바일 2회선' },
         { label: '월요금', value: '39,000원' }
