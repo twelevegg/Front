@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [tenant, setTenant] = useState('kt');
+  const [tenant, setTenant] = useState('lgu');
 
   const [showPw, setShowPw] = useState(false);
 
@@ -103,6 +103,8 @@ export default function LoginPage() {
               src="/logos/kt.png"
               alt="KT"
               color="ring-[#ED1C24] bg-[#ED1C24]/5 hover:bg-[#ED1C24]/10"
+              disabled
+              badgeLabel="준비중"
             />
             <TenantButton
               active={tenant === 'skt'}
@@ -110,6 +112,8 @@ export default function LoginPage() {
               src="/logos/skt.png"
               alt="SKT"
               color="ring-[#3617CE] bg-[#3617CE]/5 hover:bg-[#3617CE]/10"
+              disabled
+              badgeLabel="준비중"
             />
             <TenantButton
               active={tenant === 'lgu'}
@@ -245,20 +249,28 @@ function PwToggleButton({ show, onToggle }) {
   );
 }
 
-function TenantButton({ active, onClick, src, alt, color, imgClass = "h-[60%] w-auto object-contain" }) {
+function TenantButton({ active, onClick, src, alt, color, imgClass = "h-[60%] w-auto object-contain", disabled = false, badgeLabel = '' }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={`
         h-14 rounded-2xl flex items-center justify-center border transition-all overflow-hidden relative w-full
-        ${active
+        ${disabled
+          ? 'bg-slate-100 border-slate-200 cursor-not-allowed opacity-70'
+          : active
           ? `ring-4 ring-offset-2 ${color} border-transparent`
           : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
         }
       `}
     >
-      <img src={src} alt={alt} className={`${imgClass} mix-blend-multiply`} />
+      {disabled && badgeLabel ? (
+        <span className="absolute left-1.5 top-1.5 rounded-full border border-slate-300 bg-slate-200 px-1.5 py-0.5 text-[10px] font-extrabold text-slate-600">
+          {badgeLabel}
+        </span>
+      ) : null}
+      <img src={src} alt={alt} className={`${imgClass} mix-blend-multiply ${disabled ? 'grayscale' : ''}`} />
     </button>
   );
 }
