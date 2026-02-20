@@ -169,7 +169,7 @@ export default function LoginPage() {
           <button
             type="button"
             disabled={pending}
-            onClick={() => onQuickLogin({ tenantName: 'kt', email: 'user@test.com', password: 'password' })}
+            onClick={() => onQuickLogin({ tenantName: 'lgu', email: 'user@test.com', password: 'password' })}
             className="w-full rounded-full border border-sky-200 bg-sky-100/80 py-3 font-extrabold text-sky-700 hover:bg-sky-100 transition btn-press disabled:opacity-60"
           >
             심사위원 로그인용 (상담사)
