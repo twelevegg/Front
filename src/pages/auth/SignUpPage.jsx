@@ -176,7 +176,7 @@ export default function SignUpPage() {
               onClick={() => setTenant('lgu')}
               src="/logos/lgu.png"
               alt="LG U+"
-              color="ring-[#D0006F] bg-[#D0006F]/5 hover:bg-[#D0006F]/10"
+              color="ring-[#EB008B] bg-[#EB008B]/5 hover:bg-[#EB008B]/10"
               imgClass="h-[75%] w-auto object-contain mix-blend-multiply"
             />
           </div>

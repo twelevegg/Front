@@ -120,7 +120,7 @@ export default function LoginPage() {
               onClick={() => setTenant('lgu')}
               src="/logos/lgu.png"
               alt="LG U+"
-              color="ring-[#D0006F] bg-[#D0006F]/5 hover:bg-[#D0006F]/10"
+              color="ring-[#EB008B] bg-[#EB008B]/5 hover:bg-[#EB008B]/10"
               imgClass="h-[75%] w-auto object-contain mix-blend-multiply"
             />
           </div>
@@ -260,8 +260,8 @@ function TenantButton({ active, onClick, src, alt, color, imgClass = "h-[60%] w-
         ${disabled
           ? 'bg-slate-100 border-slate-200 cursor-not-allowed opacity-70'
           : active
-          ? `ring-4 ring-offset-2 ${color} border-transparent`
-          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+            ? `ring-4 ring-offset-2 ${color} border-transparent`
+            : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
         }
       `}
     >

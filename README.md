@@ -52,7 +52,7 @@
 각 테넌트의 공식 브랜드 컬러 규정을 준수하며, **Runtime Theme Injection** 아키텍처를 통해 사용자가 브랜드 아이덴티티를 명확히 인지할 수 있도록 구현했습니다.
 - **KT**: `KT Red` (#ED1C24 / Pantone 1795C)
 - **SKT**: `SKT Red` (#3617CE / Pantone 2126C)
-- **LG U+**: `Magenta` (#D0006F / R208 G0 B111)
+- **LG U+**: `Magenta` (#EB008B / R235 G0 B139)
 - **Brand Variables**: CSS Variables(`--color-kt`, `--color-skt`)를 기반으로 컴포넌트 레벨에서 동적으로 브랜드 컬러를 참조합니다.
 
 ### 3. Background Contrast & Visibility
