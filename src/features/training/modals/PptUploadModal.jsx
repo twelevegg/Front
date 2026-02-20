@@ -7,16 +7,36 @@ import { createEduJob, uploadToSpringSecurely } from "../../../api/eduService.js
 export default function PptUploadModal({ open, onClose, onUploaded }) {
   const inputRef = useRef(null);
   const [file, setFile] = useState(null);
+  const [isDefaultFile, setIsDefaultFile] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const DEFAULT_FILE_URL = "/edu/placeholder.pdf";
+  const DEFAULT_FILE_NAME = "edu-placeholder.pdf";
+
+  const loadDefaultFile = async () => {
+    try {
+      const res = await fetch(DEFAULT_FILE_URL);
+      if (!res.ok) throw new Error("default file not found");
+      const blob = await res.blob();
+      const defaultFile = new File([blob], DEFAULT_FILE_NAME, {
+        type: blob.type || "application/pdf",
+      });
+      setFile(defaultFile);
+      setIsDefaultFile(true);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     if (open) {
       setFile(null);
+      setIsDefaultFile(false);
       setUploading(false);
       setProgress(0);
       setError("");
+      loadDefaultFile();
     }
   }, [open]);
 
@@ -33,7 +53,10 @@ export default function PptUploadModal({ open, onClose, onUploaded }) {
 
   const handleFileSelect = (e) => {
     const selected = e.target.files?.[0];
-    if (selected) setFile(selected);
+    if (selected) {
+      setFile(selected);
+      setIsDefaultFile(false);
+    }
   };
 
   const handleUpload = async () => {
@@ -106,6 +129,9 @@ export default function PptUploadModal({ open, onClose, onUploaded }) {
               <div className="flex-1 min-w-0">
                 <div className="font-extrabold text-slate-800 truncate">{file.name}</div>
                 <div className="text-xs text-slate-500">{(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                {isDefaultFile && (
+                  <div className="text-[11px] text-blue-500 font-semibold">기본 파일</div>
+                )}
               </div>
               {!uploading && (
                 <button
